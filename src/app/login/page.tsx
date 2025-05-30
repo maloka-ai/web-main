@@ -3,7 +3,8 @@
 import { Button, TextField, Typography, Box, InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useState } from 'react';
-import styles from './login.module.css';
+import styles from './page.module.css';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,12 +12,12 @@ export default function LoginPage() {
   return (
     <Box className={styles.container}>
       <Box className={styles.card}>
-        <img src="/images/marca-medio.png" alt="Lara Logo" className={styles.logo} />
+        <img src="/images/marca-medio@3x.png" alt="Lara Logo" className={styles.logo} />
 
-        <Typography variant="h5" className={styles.title}>
+        <Typography  variant='h5' className={styles.title}>
           Converse com seus dados
         </Typography>
-        <Typography variant="body1" className={styles.subtitle}>
+        <Typography  variant='h5' className={`${styles.title} ${styles.subtitle}`}>
           e aumente suas vendas
         </Typography>
 
@@ -45,10 +46,11 @@ export default function LoginPage() {
             ),
           }}
         />
-
-        <Button variant="contained" className={styles.button} fullWidth>
-          Entrar
-        </Button>
+        <Link href={'/home'}>
+          <Button variant="contained" className={styles.button} fullWidth>
+            Entrar
+          </Button>
+        </Link>
 
         <Typography className={styles.forgot}>Esqueci a senha</Typography>
 

@@ -1,0 +1,206 @@
+// app/components/AssistantChat.tsx
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { Box, Typography, TextField, IconButton, Paper, Button, Drawer, List, ListItem, ListItemText } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+
+import styles from './assistantChat.module.css';
+import { createConversation, listMessages, sendMessage } from '@/services/apiService';
+import { ArrowLeft, ArrowRight } from '@mui/icons-material';
+
+interface Message {
+  content: string;
+  role: 'user' | 'assistant';
+}
+
+const conversations = [
+  {
+    id: "6bb7af3e-3bda-4ef9-9aad-373f9d503d33",
+    name: "Destaque dos clientes campeões",
+  },
+  {
+    id: "9af45b37-e544-4a19-8ba2-4c0a0eb1ea90",
+    name: "Alerta de Produtos com Baixo Estoque"
+  }
+]
+
+export default function AssistantChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+    listMessages(activeConversationId).then((data) => {
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid messages data:', data);
+        return;
+      }
+      if (data.length === 0) {
+        return;
+      }
+      setMessages(data);
+    });
+  }, [activeConversationId]);
+
+  useEffect(() => {
+    socketRef.current = new WebSocket('ws://localhost:5000');
+
+    socketRef.current.onmessage = (event) => {
+      const parsed = JSON.parse(event.data);
+      if (parsed.type === 'new_message' && parsed.data.conversation_id === activeConversationId) {
+        const newMessage: Message = {
+          content: parsed.data.message,
+          role: 'assistant',
+        };
+        setMessages((prev) => {
+          const updatedMessages = [...prev];
+          if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
+            updatedMessages.pop();
+          }
+          return [...updatedMessages, newMessage];
+        });
+      }
+    };
+    return () => {
+      socketRef.current?.close();
+    };
+  }, [activeConversationId]);
+
+  const handleSend = async () => {
+    const inputMessage = input.trim();
+    if (!inputMessage) return;
+    setInput('');
+    const newMessages = [
+      ...messages,
+      { content: input, role: 'user' },
+      { content: 'Analisando...', role: 'assistant' }
+
+    ];
+    setMessages(newMessages as Message[]);
+    let responseMessage
+    if (!activeConversationId) {
+      const newConversation = await createConversation()
+      setActiveConversationId(newConversation.conversation_id);
+      responseMessage = await sendMessage(newConversation.conversation_id, inputMessage);
+    }else{
+      responseMessage = await sendMessage(activeConversationId, inputMessage);
+    }
+
+    if (!responseMessage || !responseMessage.response) {
+      console.error('Invalid response message:', responseMessage);
+      return;
+    }
+
+    const newMessage: Message = {
+      content: responseMessage.response,
+      role: 'assistant',
+    };
+
+    console.log('New message received:', newMessage);
+
+    setTimeout(() => {
+      setMessages((prev) => {
+        const updatedMessages = [...prev];
+        if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
+          updatedMessages.pop();
+        }
+        return [...updatedMessages, newMessage];
+      });
+    }
+    , 1000);
+
+  };
+
+  return (
+    <Box className={`${styles.wrapper} ${expanded ? styles['wrapper-expanded'] : ''}`}>
+      <IconButton
+        className={styles.toggleButton}
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? <ArrowLeft /> : <ArrowRight />}
+      </IconButton>
+
+      <Box className={styles.drawerOverlay} style={{ display: drawerOpen ? 'block' : 'none' }}>
+        <Box className={styles.drawer}>
+          <Box className={styles.drawerHeader}>
+            <IconButton onClick={() => setDrawerOpen(false)}>
+              <MenuOpenIcon />
+            </IconButton>
+            <Typography variant="h6" className={styles.drawerTitle}>Histórico</Typography>
+          </Box>
+          <List>
+            {conversations.map(({id, name}) => (
+                <ListItem
+                  key={`${id}`}
+                  className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
+                  onClick={() => {
+                    setActiveConversationId(id);
+                    setDrawerOpen(false);
+                  }}>
+                    <span className={styles.conversationName}>{name}</span>
+                </ListItem>
+              ))}
+          </List>
+        </Box>
+        <Box className={styles.drawerBackdrop} onClick={() => setDrawerOpen(false)} />
+      </Box>
+      <Paper elevation={3} className={styles.chatContainer}>
+        <Box className={styles.header}>
+          <IconButton onClick={() => setDrawerOpen(true)}>
+            <MenuOpenIcon />
+          </IconButton>
+          <Typography variant="h6" className={styles.headerTitle}>
+            Assistente
+          </Typography>
+          <IconButton>
+            <AddBoxOutlinedIcon />
+          </IconButton>
+        </Box>
+
+        <Box className={styles.messageArea}>
+          {messages.map((msg, index) => (
+            <Box key={index} className={msg.role === 'user' ? styles.userMsg : styles.botMsg}>
+              {msg.content}
+            </Box>
+          ))}
+        </Box>
+
+        <Box className={styles.inputArea}>
+          <TextField
+            fullWidth
+            placeholder="Escreva aqui sua solicitação"
+            multiline
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            className={styles.inputField}
+            sx={{
+              '& .MuiInputBase-root': {
+                backgroundColor: '#f9f8f4',
+                borderRadius: '12px',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '& textarea': {
+                minHeight: '70px',
+                maxHeight: '200px',
+                overflowY: 'auto',
+              },
+            }}
+          />
+          <IconButton className={styles.sendButton} onClick={handleSend} color="primary">
+            <ArrowUpwardIcon sx={{color: '#fff'}} />
+          </IconButton>
+        </Box>
+      </Paper>
+    </Box>
+  );
+}
