@@ -4,6 +4,7 @@ export async function createConversation(title: string) {
   const res = await fetch(`${API_BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title }),
   });
   return await res.json();
