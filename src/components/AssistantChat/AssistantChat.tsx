@@ -115,17 +115,16 @@ export default function AssistantChat() {
 
     console.log('New message received:', newMessage);
 
-    setTimeout(() => {
-      setMessages((prev) => {
-        const updatedMessages = [...prev];
-        if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
-          updatedMessages.pop();
-        }
-        return [...updatedMessages, newMessage];
-      });
-    }
-    , 1000);
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
 
+    console.log('Updating messages with new message:', newMessage);
+    setMessages((prev) => {
+      const updatedMessages = [...prev];
+      if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
+        updatedMessages.pop();
+      }
+      return [...updatedMessages, newMessage];
+    });
   };
 
   const handleCreateConversation = async (title: string) => {
