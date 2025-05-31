@@ -1,18 +1,24 @@
 // app/components/Analises/widgets/ResumoKPI.tsx
 'use client';
 
-import { Box, Typography } from '@mui/material';
-import { ReactElement } from 'react';
+import { useState } from 'react';
+import { Box, Icon, IconButton, Typography } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, DotProps } from 'recharts';
+import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
+import DetalheKPI from './DetalheKPI';
 
 interface ResumoKPIProps {
   titulo: string;
   subtitulo: string;
+  valor: string;
   gain: number;
   data: { name: string; value: number }[];
 }
 
-export default function ResumoKPI({ titulo, subtitulo, data, gain }: ResumoKPIProps) {
+export default function ResumoKPI({ titulo, subtitulo, valor, data, gain }: ResumoKPIProps) {
+
+  const [open, setOpen] = useState(false);
+
   return (
     <Box
       sx={{
@@ -23,16 +29,39 @@ export default function ResumoKPI({ titulo, subtitulo, data, gain }: ResumoKPIPr
         width: '100%',
       }}
     >
-      <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={0.5}>
-        {titulo}
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+        onClick={() => setOpen(!open)}
+      >
+        <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={0.5}>
+          {titulo}
+        </Typography>
+
+        <IconButton
+          onClick={() => setOpen(!open)}
+
+          sx={{ color: '#f19468', width: 32, height: 32, padding: 0}}>
+          <OpenInFullOutlinedIcon />
+        </IconButton>
+
+        <DetalheKPI
+          open={open}
+          onClose={() => setOpen(false)}
+          kpi={{ titulo, subtitulo, valor, data, gain }}
+        />
+
+      </Box>
       <Box sx={{ height: 150, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           {/* <BarChart data={data}>
             <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
             <YAxis hide />
             <Tooltip cursor={{ fill: '#f5f5f5' }} />
-            <Bar dataKey="value" fill="#df8157" radius={[4, 4, 0, 0]} barSize={20} />
+            <Bar dataKey="value" fill="#f39b72" radius={[4, 4, 0, 0]} barSize={20} />
           </BarChart> */}
           <LineChart data={data} margin={{ top: 10, bottom: 5, left: 0, right: 0 }}>
           <XAxis

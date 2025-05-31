@@ -1,9 +1,10 @@
 const API_BASE = 'http://localhost:5000'; // ajuste conforme o host/backend
 
-export async function createConversation() {
+export async function createConversation(title: string) {
   const res = await fetch(`${API_BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
+    body: JSON.stringify({ title }),
   });
   return await res.json();
 }

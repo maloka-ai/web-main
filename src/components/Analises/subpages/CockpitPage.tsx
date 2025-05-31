@@ -9,6 +9,7 @@ const exemploDados = [
   {
     titulo: 'Receita Hoje',
     subtitulo: 'vs Previsão',
+    valor: 'R$ 14.527.000',
     gain: 3,
     data: [
       { name: 'Seg', value: 120 },
@@ -20,7 +21,8 @@ const exemploDados = [
   },
   {
     titulo: 'Ticket médio',
-    subtitulo: 'Rendimento médio por venda de produto',
+    subtitulo: 'vs Semana Anterior',
+    valor: 'R$ 457',
     gain: -2,
     data: [
       { name: 'Seg', value: 78 },
@@ -66,6 +68,7 @@ export default function CockpitPage() {
                 titulo={item.titulo}
                 subtitulo={item.subtitulo}
                 data={item.data}
+                valor={item.valor}
                 gain={item.gain} // Simulando ganho aleatório
               />
             ))}

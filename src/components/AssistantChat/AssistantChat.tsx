@@ -11,6 +11,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import styles from './assistantChat.module.css';
 import { createConversation, listMessages, sendMessage } from '@/services/apiService';
 import { ArrowLeft, ArrowRight } from '@mui/icons-material';
+import CreateConversationModal from './CreateConversationModal';
 
 interface Message {
   content: string;
@@ -34,6 +35,7 @@ export default function AssistantChat() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -86,8 +88,15 @@ export default function AssistantChat() {
     ];
     setMessages(newMessages as Message[]);
     let responseMessage
+    // title = inputMessage, mas se for maior que 150 caracteres, só usar 150 e adicionar "..." no final
+    let title;
+    if (inputMessage.length > 150) {
+      title = inputMessage.substring(0, 150) + '...';
+    }else {
+      title = inputMessage;
+    }
     if (!activeConversationId) {
-      const newConversation = await createConversation()
+      const newConversation = await createConversation(title)
       setActiveConversationId(newConversation.conversation_id);
       responseMessage = await sendMessage(newConversation.conversation_id, inputMessage);
     }else{
@@ -117,6 +126,12 @@ export default function AssistantChat() {
     }
     , 1000);
 
+  };
+
+  const handleCreateConversation = async (title: string) => {
+    const newConversation = await createConversation(title);
+    setActiveConversationId(newConversation.conversation_id);
+    setMessages([]);
   };
 
   return (
@@ -152,6 +167,13 @@ export default function AssistantChat() {
         </Box>
         <Box className={styles.drawerBackdrop} onClick={() => setDrawerOpen(false)} />
       </Box>
+
+      <CreateConversationModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreateConversation}
+      />
+
       <Paper elevation={3} className={styles.chatContainer}>
         <Box className={styles.header}>
           <IconButton onClick={() => setDrawerOpen(true)}>
@@ -160,7 +182,7 @@ export default function AssistantChat() {
           <Typography variant="h6" className={styles.headerTitle}>
             Assistente
           </Typography>
-          <IconButton>
+          <IconButton onClick={() => setCreateModalOpen(true)}>
             <AddBoxOutlinedIcon />
           </IconButton>
         </Box>
