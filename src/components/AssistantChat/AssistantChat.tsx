@@ -52,29 +52,29 @@ export default function AssistantChat() {
     });
   }, [activeConversationId]);
 
-  useEffect(() => {
-    socketRef.current = new WebSocket('ws://localhost:5000');
+  // useEffect(() => {
+  //   socketRef.current = new WebSocket('ws://localhost:5000');
 
-    socketRef.current.onmessage = (event) => {
-      const parsed = JSON.parse(event.data);
-      if (parsed.type === 'new_message' && parsed.data.conversation_id === activeConversationId) {
-        const newMessage: Message = {
-          content: parsed.data.message,
-          role: 'assistant',
-        };
-        setMessages((prev) => {
-          const updatedMessages = [...prev];
-          if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
-            updatedMessages.pop();
-          }
-          return [...updatedMessages, newMessage];
-        });
-      }
-    };
-    return () => {
-      socketRef.current?.close();
-    };
-  }, [activeConversationId]);
+  //   socketRef.current.onmessage = (event) => {
+  //     const parsed = JSON.parse(event.data);
+  //     if (parsed.type === 'new_message' && parsed.data.conversation_id === activeConversationId) {
+  //       const newMessage: Message = {
+  //         content: parsed.data.message,
+  //         role: 'assistant',
+  //       };
+  //       setMessages((prev) => {
+  //         const updatedMessages = [...prev];
+  //         if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
+  //           updatedMessages.pop();
+  //         }
+  //         return [...updatedMessages, newMessage];
+  //       });
+  //     }
+  //   };
+  //   return () => {
+  //     socketRef.current?.close();
+  //   };
+  // }, [activeConversationId]);
 
   const handleSend = async () => {
     const inputMessage = input.trim();
