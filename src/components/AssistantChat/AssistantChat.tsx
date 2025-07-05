@@ -9,23 +9,29 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 import styles from './assistantChat.module.css';
-import { createConversation, listMessages, sendMessage } from '@/services/apiService';
+import { createConversation, listConversations, listMessages, sendMessage } from '@/services/apiService';
 import { ArrowLeft, ArrowRight } from '@mui/icons-material';
 import CreateConversationModal from './CreateConversationModal';
+import AssistenteSelector from './AssistenteSelector';
 
 interface Message {
   content: string;
   role: 'user' | 'assistant';
 }
 
-const conversations = [
+interface Conversation {
+  id: string;
+  title: string;
+}
+
+const conversationsMock = [
   {
     id: "6bb7af3e-3bda-4ef9-9aad-373f9d503d33",
-    name: "Destaque dos clientes campeões",
+    title: "Destaque dos clientes campeões",
   },
   {
     id: "9af45b37-e544-4a19-8ba2-4c0a0eb1ea90",
-    name: "Alerta de Produtos com Baixo Estoque"
+    title: "Alerta de Produtos com Baixo Estoque"
   }
 ]
 
@@ -33,6 +39,7 @@ export default function AssistantChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>(conversationsMock);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -46,35 +53,22 @@ export default function AssistantChat() {
         return;
       }
       if (data.length === 0) {
+        setMessages([]);
         return;
       }
       setMessages(data);
     });
   }, [activeConversationId]);
 
-  // useEffect(() => {
-  //   socketRef.current = new WebSocket('ws://localhost:5000');
-
-  //   socketRef.current.onmessage = (event) => {
-  //     const parsed = JSON.parse(event.data);
-  //     if (parsed.type === 'new_message' && parsed.data.conversation_id === activeConversationId) {
-  //       const newMessage: Message = {
-  //         content: parsed.data.message,
-  //         role: 'assistant',
-  //       };
-  //       setMessages((prev) => {
-  //         const updatedMessages = [...prev];
-  //         if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
-  //           updatedMessages.pop();
-  //         }
-  //         return [...updatedMessages, newMessage];
-  //       });
-  //     }
-  //   };
-  //   return () => {
-  //     socketRef.current?.close();
-  //   };
-  // }, [activeConversationId]);
+  useEffect(() => {
+    listConversations().then((data) => {
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid conversations data:', data);
+        return;
+      }
+      setConversations(data);
+    });
+  }, [drawerOpen]);
 
   const handleSend = async () => {
     const inputMessage = input.trim();
@@ -151,7 +145,7 @@ export default function AssistantChat() {
             <Typography variant="h6" className={styles.drawerTitle}>Histórico</Typography>
           </Box>
           <List>
-            {conversations.map(({id, name}) => (
+            {conversations.map(({id, title}) => (
                 <ListItem
                   key={`${id}`}
                   className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
@@ -159,7 +153,7 @@ export default function AssistantChat() {
                     setActiveConversationId(id);
                     setDrawerOpen(false);
                   }}>
-                    <span className={styles.conversationName}>{name}</span>
+                    <span className={styles.conversationName}>{title}</span>
                 </ListItem>
               ))}
           </List>
@@ -195,6 +189,7 @@ export default function AssistantChat() {
         </Box>
 
         <Box className={styles.inputArea}>
+          <Box className={styles.inputWrapper}>
           <TextField
             fullWidth
             placeholder="Escreva aqui sua solicitação"
@@ -213,10 +208,13 @@ export default function AssistantChat() {
               '& textarea': {
                 minHeight: '70px',
                 maxHeight: '200px',
-                overflowY: 'auto',
+                overflowY: 'scroll',
+                marginBottom: '40px',
               },
             }}
           />
+          <AssistenteSelector className={styles.inputSelector} />
+          </Box>
           <IconButton className={styles.sendButton} onClick={handleSend} color="primary">
             <ArrowUpwardIcon sx={{color: '#fff'}} />
           </IconButton>

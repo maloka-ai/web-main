@@ -1,13 +1,33 @@
 'use client';
 
-import { Button, TextField, Typography, Box, InputAdornment, IconButton } from '@mui/material';
+import { Button, TextField, Typography, Box, InputAdornment, IconButton, CircularProgress, Alert } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useState } from 'react';
 import styles from './page.module.css';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { authService } from '@/services/authService';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      await authService.login({ email, password });
+      router.push('/home');
+    } catch (error) {
+      setErrorMessage('E-mail ou senha inválidos. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box className={styles.container}>
@@ -21,6 +41,12 @@ export default function LoginPage() {
           e aumente suas vendas
         </Typography>
 
+        {errorMessage && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
+
         <TextField
           fullWidth
           label="E-mail"
@@ -28,6 +54,8 @@ export default function LoginPage() {
           variant="outlined"
           margin="normal"
           className={styles.input}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <TextField
           fullWidth
@@ -36,6 +64,8 @@ export default function LoginPage() {
           variant="outlined"
           margin="normal"
           className={styles.input}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -46,11 +76,15 @@ export default function LoginPage() {
             ),
           }}
         />
-        <Link href={'/home'}>
-          <Button variant="contained" className={styles.button} fullWidth>
-            Entrar
-          </Button>
-        </Link>
+        <Button
+          variant="contained"
+          className={styles.button}
+          fullWidth
+          disabled={loading}
+          onClick={handleLogin}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
+        </Button>
 
         <Typography className={styles.forgot}>Esqueci a senha</Typography>
 
