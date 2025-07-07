@@ -9,19 +9,16 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 
 interface KPIData {
   titulo: string;
-  subtitulo: string;
-  valor: string;
-  gain: number;
-  data: { name: string; value: number }[];
+  data: string;
 }
 
-interface DetalheKPIProps {
+interface DetailsKPIProps {
   open: boolean;
   onClose: () => void;
   kpi: KPIData;
 }
 
-export default function DetalheKPI({ open, onClose, kpi }: DetalheKPIProps) {
+export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
 
   const sugestoes: string[] = [
     'Aumentar a frequência de postagens',
@@ -60,47 +57,7 @@ export default function DetalheKPI({ open, onClose, kpi }: DetalheKPIProps) {
 
         <Box>
           <Typography variant="h3" fontWeight={600} color="#78a27f">
-            {kpi.valor}
-          </Typography>
-          <Box sx={{ height: 200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={kpi.data}
-                margin={{ top: 10, bottom: 20, left: 10, right: 10 }}
-              >
-                <XAxis
-                  dataKey="name"
-                  interval={0}
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={12}
-                  tick={{ fill: '#666' }}
-                  padding={{ left: 10, right: 10 }}
-                />
-                <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                <Tooltip
-                  contentStyle={{ fontSize: '0.8rem' }}
-                  wrapperStyle={{ zIndex: 1000 }}
-                  labelStyle={{ display: 'none' }}
-                  cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#78a27f"
-                  strokeWidth={2}
-                  dot={false}
-                  isAnimationActive={false}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-          <Typography mt={1} fontSize="0.9rem" color="#4b4b4b">
-            vs Meta{' '}
-            <span style={{ color: kpi.gain>= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-            {kpi.gain >= 0 ? '+' : ''}{kpi.gain}%
-            </span>
+            {kpi.data}
           </Typography>
         </Box>
 

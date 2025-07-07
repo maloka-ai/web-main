@@ -67,6 +67,8 @@ export default function AssistantChat() {
         return;
       }
       setConversations(data);
+    }).catch((error) => {
+      console.error('Error fetching conversations:', error);
     });
   }, [drawerOpen]);
 

@@ -4,30 +4,31 @@ import { useState } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
-import DetalheKPI from './DetalheKPI';
+import DetailsKPI from './DetailsKPI';
+import DetalheGraphLine from './DetailGraphLine';
 
-interface DataPoint {
+export interface DataPoint {
   name: string;
   value: number;
 }
 
-interface ResumoGraficoLinhaProps {
+interface ResumeGraphLineProps {
   titulo: string;
-  subtitulo: string;
-  valor: string;
-  gain: number;
   data: DataPoint[];
+  subtitulo?: string;
+  valor?: string;
+  gain?: number;
   xLabelMap?: Record<string, string>;
 }
 
-export default function ResumoGraficoLinha({
+export default function ResumeGraphLine({
   titulo,
   subtitulo,
   valor,
   data,
   gain,
   xLabelMap,
-}: ResumoGraficoLinhaProps) {
+}: ResumeGraphLineProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -55,10 +56,10 @@ export default function ResumoGraficoLinha({
           <OpenInFullOutlinedIcon />
         </IconButton>
 
-        <DetalheKPI
+        <DetalheGraphLine
           open={open}
           onClose={() => setOpen(false)}
-          kpi={{ titulo, subtitulo, valor, data, gain }}
+          graph={{ titulo, subtitulo, valor, data, gain }}
         />
       </Box>
 
@@ -95,20 +96,21 @@ export default function ResumoGraficoLinha({
         </ResponsiveContainer>
       </Box>
 
-      <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
-        {subtitulo}
-        <span
-          style={{
-            color: gain >= 0 ? '#4caf50' : '#f44336',
-            fontWeight: 600,
+      {subtitulo && (
+        <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
+          {subtitulo}
+          {gain && (<span
+            style={{
+              color: gain >= 0 ? '#4caf50' : '#f44336',
+              fontWeight: 600,
             marginLeft: '0.5rem',
             whiteSpace: 'nowrap',
           }}
         >
           {gain >= 0 ? '+' : ''}
           {gain}%
-        </span>
-      </Typography>
+        </span>)}
+      </Typography>)}
     </Box>
   );
 }
