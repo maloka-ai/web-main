@@ -25,6 +25,7 @@ export default function RenderGraph({ graph, index }: { graph: any; index: numbe
           gain={graph.gain}
           data={graph.data as DataPoint[]}
           xLabelMap={graph.xLabelMap}
+          hideXAxis={graph.hideXAxis}
         />
       );
     default:

@@ -19,6 +19,7 @@ interface ResumeGraphLineProps {
   valor?: string;
   gain?: number;
   xLabelMap?: Record<string, string>;
+  hideXAxis?: boolean;
 }
 
 export default function ResumeGraphLine({
@@ -28,6 +29,7 @@ export default function ResumeGraphLine({
   data,
   gain,
   xLabelMap,
+  hideXAxis,
 }: ResumeGraphLineProps) {
   const [open, setOpen] = useState(false);
 
@@ -71,6 +73,7 @@ export default function ResumeGraphLine({
               interval={0}
               tickLine={false}
               axisLine={false}
+              hide={hideXAxis}
               fontSize={12}
               tick={{ fill: '#666' }}
               padding={{ left: 24, right: 24 }}

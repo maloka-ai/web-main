@@ -1,6 +1,7 @@
 import { analysisService, AnnualRevenue, MonthlyRevenue, SegmentacaoCliente, StockMetrics } from "@/services/analysisService";
 import { GraphType } from "@/utils/enums";
 import { formatCurrency } from "@/utils/format";
+import { DataPoint } from "../widgets/ResumeGraphLine";
 
 type Graphs = {
   type: GraphType;
@@ -10,6 +11,7 @@ type Graphs = {
   gain?: number;
   value?: string;
   xLabelMap?: { [key: string]: string };
+  hideXAxis?: boolean;
 }
 
 export function clientsMakeGraphs(
@@ -149,6 +151,24 @@ export function stockMakeGraphs(
 
   const currentStock = stock[stock.length - 1];
 
+  // Para cara StockMetrics, calcula (TOTAL SKU ATIVO (ESTOQUE <= 0)) / (TOTAL SKU ATIVO (ESTOQUE > 0) + TOTAL SKU ATIVO (ESTOQUE <= 0)), lista de ruptura
+  const rupturaPercentages = stock.map(s => {
+    const totalAtivoComEstoqueMaiorQueZero = s.total_sku_ativo_com_estoque_maior_que_zero || 0;
+    const totalAtivoComEstoqueMenorOuIgualZero = s.total_sku_ativo_com_estoque_menor_ou_igual_zero || 0;
+    const totalAtivo = totalAtivoComEstoqueMaiorQueZero + totalAtivoComEstoqueMenorOuIgualZero;
+    const rupturaPercentage = totalAtivo > 0 ? (totalAtivoComEstoqueMenorOuIgualZero / totalAtivo) * 100 : 0;
+    // Obtem dia/mes da data_hora_analise
+    const date = new Date(s.data_hora_analise);
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+    return {
+      name: `${dia}/${mes}`,
+      value: rupturaPercentage,
+    };
+  });
+
+
+
   return [
     {
       type: GraphType.KPI,
@@ -191,6 +211,12 @@ export function stockMakeGraphs(
         'C': 'Grupo C',
       }
     },
+    {
+      type: GraphType.LINE,
+      title: "% Ruptura (Estoque ativo)",
+      data: rupturaPercentages,
+      hideXAxis: true,
+    }
   ]
 
 }
