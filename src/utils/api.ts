@@ -26,7 +26,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         authService.logout();
-        window.location.href = '/login';
+        window.location.href = '/v0/login';
         return Promise.reject(err);
       }
     }

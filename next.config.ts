@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  basePath: '/v0',
+  assetPrefix: '/v0',
 };
 
 if (process.env.NODE_ENV === 'development') {

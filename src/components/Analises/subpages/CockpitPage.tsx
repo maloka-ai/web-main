@@ -44,8 +44,8 @@ export default function CockpitPage() {
   }, [annualRevenues, monthlyRevenues]);
 
   return (
-    <Box sx={{ display: 'flex', gap: '1.5rem' }}>
-      <Box sx={{ width: '350px' }}>
+    <Box sx={{ display: 'flex', gap: '1.5rem', overflow: 'hidden' }}>
+      <Box sx={{ width: '350px', overflow: 'auto' }}>
         <Typography
           variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}
         >
@@ -61,7 +61,7 @@ export default function CockpitPage() {
 
         <Box sx={{
           marginBottom: '2rem',
-          overflowY: 'auto',
+          // overflowY: 'auto',
         }}>
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
             Cliente

@@ -32,7 +32,7 @@ export default function LoginPage() {
   return (
     <Box className={styles.container}>
       <Box className={styles.card}>
-        <img src="/images/marca-medio@3x.png" alt="Lara Logo" className={styles.logo} />
+        <img src="/v0/images/marca-medio@3x.png" alt="Lara Logo" className={styles.logo} />
 
         <Typography  variant='h5' className={styles.title}>
           Converse com seus dados

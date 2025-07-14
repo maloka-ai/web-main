@@ -19,7 +19,7 @@ export default function HeaderSistema() {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Image src='/images/marca-maloka-medio@3x.png' alt="Maloka'ai" width={147} height={22} />
+        <Image src='/v0/images/marca-maloka-medio@3x.png' alt="Maloka'ai" width={147} height={22} />
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
