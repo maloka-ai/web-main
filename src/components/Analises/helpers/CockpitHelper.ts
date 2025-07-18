@@ -1,4 +1,4 @@
-import { analysisService, AnnualRevenue, MonthlyRevenue, SegmentacaoCliente, StockMetrics } from "@/services/analysisService";
+import { analysisService, AnnualRevenue, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, MonthlyRevenue, SegmentacaoCliente, StockMetrics } from "@/services/analysisService";
 import { GraphType } from "@/utils/enums";
 import { formatCurrency } from "@/utils/format";
 import { DataPoint } from "../widgets/ResumeGraphLine";
@@ -15,8 +15,41 @@ type Graphs = {
 }
 
 export function clientsMakeGraphs(
-  clients: SegmentacaoCliente[]
+  clients: SegmentacaoCliente[],
+  customerQuarterlyRecurrence: CustomerQuarterlyRecurrence[],
+  customerAnnualRecurrence: CustomerAnnualRecurrence[],
 ): Graphs[] {
+
+
+  if (customerQuarterlyRecurrence.length < 3 || customerAnnualRecurrence.length < 3) {
+    return [];
+  }
+
+  console.log(customerQuarterlyRecurrence, customerAnnualRecurrence)
+
+  const last3QuarterlyRecurrence = customerQuarterlyRecurrence.slice(-3).map(cqr => {
+    return {
+      name: `${cqr.ano}Q${cqr.trimestre}`,
+      value: cqr.taxa_recorrencia.toFixed(0)
+    }
+  })
+  const xLabelMapLast3QuarterlyRecurrence: { [key: string]: string } = last3QuarterlyRecurrence.reduce((acc, qr) => {
+    acc[qr.name] = qr.name;
+    return acc;
+  }, {} as { [key: string]: string });
+
+  const last3AnnualRecurrence = customerAnnualRecurrence.slice(-3).map(cqr => {
+    return {
+      name: `${cqr.ano}`,
+      value: cqr.taxa_retencao.toFixed(0)
+    }
+  })
+  const xLabelMapLast3AnnualRecurrence: { [key: string]: string } = last3AnnualRecurrence.reduce((acc, qr) => {
+    acc[qr.name] = qr.name;
+    return acc;
+  }, {} as { [key: string]: string });
+
+
 
   return [
     {
@@ -32,34 +65,18 @@ export function clientsMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Taxa de Recorrência Trimestral",
-      subtitle: "Últimos 3 trimestres",
-      gain: 23,
-      data: [
-        { name: '2023Q4', value: 30 },
-        { name: '2024Q1', value: 48 },
-        { name: '2024Q2', value: 48 },
-      ],
-      xLabelMap: {
-        '2023Q4': '2023/T4',
-        '2024Q1': '2024/T1',
-        '2024Q2': '2024/T2',
-      }
+      data: last3QuarterlyRecurrence,
+      value: `${last3QuarterlyRecurrence[2].value}%`,
+      xLabelMap: xLabelMapLast3QuarterlyRecurrence,
     },
     {
       type: GraphType.LINE,
       title: "Taxa de Retenção Anual",
       subtitle: "Últimos 3 anos",
       gain: 8,
-      data: [
-        { name: '2022', value: 62 },
-        { name: '2023', value: 67 },
-        { name: '2024', value: 64 },
-      ],
-      xLabelMap: {
-        '2022': '2022',
-        '2023': '2023',
-        '2024': '2024',
-      }
+      data: last3AnnualRecurrence,
+      value: "64%",
+      xLabelMap: xLabelMapLast3AnnualRecurrence,
     }
   ]
 
@@ -89,6 +106,7 @@ export function salesMakeGraphs(
   const currentMonthlyRevenue = monthlyRevenue
     .filter(mr => mr.mes === currentMonth && mr.ano === currentYear)
     .reduce((acc, mr) => acc + mr.total_venda, 0);
+  const lastCurrentAnnualRevenue = annualRevenues[annualRevenues.length - 1]
   return [
     {
       type: GraphType.LINE,
@@ -98,6 +116,7 @@ export function salesMakeGraphs(
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
       })),
+      value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
       xLabelMap: xLabelMapLast3Years,
     },
     {
@@ -107,6 +126,7 @@ export function salesMakeGraphs(
         name: ar.ano.toString(),
         value: ar.qtd_vendas_produtos ? ar.faturamento_em_produtos / ar.qtd_vendas_produtos : 0
       })),
+      value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
       xLabelMap: xLabelMapLast3Years,
     },
     {
@@ -116,6 +136,7 @@ export function salesMakeGraphs(
         name: ar.ano.toString(),
         value: ar.qtd_vendas_servicos ? ar.faturameno_em_servicos / ar.qtd_vendas_servicos : 0
       })),
+      value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
       xLabelMap: xLabelMapLast3Years,
     },
     {
@@ -191,6 +212,7 @@ export function stockMakeGraphs(
         { name: 'B', value: currentStock.percentual_sku_grupo_b },
         { name: 'C', value: currentStock.percentual_sku_grupo_c },
       ],
+      value: `${currentStock.percentual_sku_grupo_a.toFixed(0)}% ${currentStock.percentual_sku_grupo_b.toFixed(0)}% ${currentStock.percentual_sku_grupo_c.toFixed(0)}%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',
@@ -205,6 +227,7 @@ export function stockMakeGraphs(
         { name: 'B', value: currentStock.percentual_venda_grupo_b },
         { name: 'C', value: currentStock.percentual_venda_grupo_c },
       ],
+      value: `${currentStock.percentual_venda_grupo_a.toFixed(0)}% ${currentStock.percentual_venda_grupo_b.toFixed(0)}% ${currentStock.percentual_venda_grupo_c.toFixed(0)}%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',
@@ -215,6 +238,7 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% Ruptura (Estoque ativo)",
       data: rupturaPercentages,
+      value: `${rupturaPercentages.slice(-1)[0].value.toFixed(0)}%`,
       hideXAxis: true,
     }
   ]

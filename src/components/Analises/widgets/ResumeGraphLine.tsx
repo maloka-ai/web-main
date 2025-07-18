@@ -65,6 +65,17 @@ export default function ResumeGraphLine({
         />
       </Box>
 
+       <Typography fontSize="auto" fontWeight={700} color="#78a27f"
+          sx={{
+            maxWidth: '100%', // ou um valor como '240px'
+            fontSize: 'clamp(1rem, 1.8vw, 2rem)',
+            lineHeight: 1.2,
+            textAlign: 'start',
+          }}
+        >
+          {valor}
+        </Typography>
+
       <Box sx={{ height: 150, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 10, bottom: 5, left: 0, right: 0 }}>

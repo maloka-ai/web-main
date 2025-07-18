@@ -3,13 +3,15 @@
 import { Box, Typography } from '@mui/material';
 import AlertasEAcoes from '../widgets/AlertasEAcoes';
 import { use, useEffect, useState } from 'react';
-import { analysisService, SegmentacaoCliente } from '@/services/analysisService';
+import { analysisService, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, SegmentacaoCliente } from '@/services/analysisService';
 import { clientsMakeGraphs, salesMakeGraphs, stockMakeGraphs } from '../helpers/CockpitHelper';
 import RenderGraph from '../widgets/RenderGraph';
 
 export default function CockpitPage() {
 
   const [clientes, setClientes] = useState<SegmentacaoCliente[]>([]);
+  const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] = useState<CustomerQuarterlyRecurrence[]>([]);
+  const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<CustomerAnnualRecurrence[]>([]);
   const [clientsLoading, setclientsLoading] = useState(true);
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
   const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
@@ -21,7 +23,13 @@ export default function CockpitPage() {
     analysisService.getSegmentacaoClientes()
       .then(setClientes)
       .catch(console.error)
-      .finally(() => setclientsLoading(false));
+
+    analysisService.getCustomerQuarterlyRecurrence((new Date()).getFullYear() - 1)
+      .then(setCustomerQuarterlyRecurrence)
+      .catch(console.error)
+    analysisService.getCustomerAnnualRecurrence((new Date()).getFullYear() - 2)
+      .then(setCustomerAnnualRecurrence)
+      .catch(console.error)
 
     analysisService.getAnnualRevenues()
       .then(setAnnualRevenues)
@@ -41,11 +49,14 @@ export default function CockpitPage() {
     if (annualRevenues && monthlyRevenues) {
       setSalesLoading(false);
     }
-  }, [annualRevenues, monthlyRevenues]);
+    if (clientes && customerQuarterlyRecurrence && customerAnnualRecurrence) {
+      setclientsLoading(false);
+    }
+  }, [annualRevenues, monthlyRevenues, clientes, customerQuarterlyRecurrence, customerAnnualRecurrence]);
 
   return (
-    <Box sx={{ display: 'flex', gap: '1.5rem', overflow: 'hidden' }}>
-      <Box sx={{ width: '350px', overflow: 'auto' }}>
+    <Box sx={{ display: 'flex', gap: '1.5rem', height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
+      <Box sx={{ width: '350px', overflow: 'auto', pr: 1, pb:16 }}>
         <Typography
           variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}
         >
@@ -54,7 +65,7 @@ export default function CockpitPage() {
         <AlertasEAcoes />
       </Box>
 
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
       <Typography variant="h6" fontWeight={600} color="#4b4b4b" mb={1.5}>
           Resultados • KPIs
         </Typography>
@@ -63,19 +74,7 @@ export default function CockpitPage() {
           marginBottom: '2rem',
           // overflowY: 'auto',
         }}>
-          <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
-            Cliente
-          </Typography>
-          <Box sx={{
-            padding: '4px',
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-              {clientes && clientsMakeGraphs(clientes).map((graph, index) => (
-                <RenderGraph key={index} graph={graph} index={index} />
-              ))}
 
-          </Box>
 
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1} mt={2}>
             Vendas
@@ -84,7 +83,7 @@ export default function CockpitPage() {
             padding: '4px',
             display: 'grid',
             gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
               {
                 annualRevenues &&
                 monthlyRevenues &&
@@ -102,13 +101,27 @@ export default function CockpitPage() {
             display: 'grid',
             mb: 4,
             gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
               {
                 stock &&
                 stockMakeGraphs(stock).map((graph, index) => (
                   <RenderGraph key={index} graph={graph} index={index} />
                 ))
               }
+          </Box>
+
+          <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
+            Cliente
+          </Typography>
+          <Box sx={{
+            padding: '4px',
+            display: 'grid',
+            gap: '1rem',
+            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
+              {clientes && customerQuarterlyRecurrence && customerAnnualRecurrence && clientsMakeGraphs(clientes, customerQuarterlyRecurrence, customerAnnualRecurrence).map((graph, index) => (
+                <RenderGraph key={index} graph={graph} index={index} />
+              ))}
+
           </Box>
         </Box>
       </Box>

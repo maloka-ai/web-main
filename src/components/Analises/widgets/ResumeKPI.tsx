@@ -55,7 +55,14 @@ export default function ResumeKPI({ titulo, subtitulo, valor, data, gain }: Resu
 
       </Box>
       <Box sx={{ height: 150, width: '100%' }}>
-        <Typography fontSize="2rem" fontWeight={700} color="#4b4b4b">
+        <Typography fontSize="auto" fontWeight={700} color="#78a27f"
+          sx={{
+            maxWidth: '100%', // ou um valor como '240px'
+            fontSize: 'clamp(1rem, 1.8vw, 2rem)',
+            lineHeight: 1.2,
+            textAlign: 'start',
+          }}
+        >
           {data}
         </Typography>
       </Box>

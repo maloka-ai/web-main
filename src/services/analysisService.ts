@@ -104,9 +104,42 @@ export interface StockMetrics {
   cobertura_em_dias_grupo_c: number;
 }
 
+
+export interface CustomerQuarterlyRecurrence {
+    id: number;
+    ano: number;
+    trimestre: number;
+    total_clientes: number;
+    clietes_retornantes: number;
+    clientes_novos: number;
+    taxa_recorrencia: number;
+    cliente: string;
+}
+
+
+
+export interface CustomerAnnualRecurrence {
+    id: number;
+    ano: number;
+    clientes_novos: number;
+    clietes_retornantes: number;
+    taxa_clientes_retornantes: number;
+    taxa_clientes_novos: number;
+    taxa_retencao: number;
+    cliente: string;
+}
+
 export const analysisService = {
   async getSegmentacaoClientes(): Promise<SegmentacaoCliente[]> {
     const response = await api.get<SegmentacaoCliente[]>('/customer/segmentacao/clientes_por_segmento');
+    return response.data;
+  },
+  async getCustomerQuarterlyRecurrence(inital_year: number): Promise<CustomerQuarterlyRecurrence[]> {
+    const response = await api.get<CustomerQuarterlyRecurrence[]>(`/customer/recorrencia_trimestral?ano_inicial=${inital_year}`);
+    return response.data;
+  },
+  async getCustomerAnnualRecurrence(inital_year: number): Promise<CustomerAnnualRecurrence[]> {
+    const response = await api.get<CustomerAnnualRecurrence[]>(`/customer/recorrencia_anual?ano_inicial=${inital_year}`);
     return response.data;
   },
   async getAnnualRevenues(): Promise<AnnualRevenue[]> {
