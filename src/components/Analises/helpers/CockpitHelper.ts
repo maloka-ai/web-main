@@ -25,8 +25,6 @@ export function clientsMakeGraphs(
     return [];
   }
 
-  console.log(customerQuarterlyRecurrence, customerAnnualRecurrence)
-
   const last3QuarterlyRecurrence = customerQuarterlyRecurrence.slice(-3).map(cqr => {
     return {
       name: `${cqr.ano}Q${cqr.trimestre}`,
@@ -208,11 +206,11 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% SKUs por Curva ABC",
       data: [
-        { name: 'A', value: currentStock.percentual_sku_grupo_a },
-        { name: 'B', value: currentStock.percentual_sku_grupo_b },
-        { name: 'C', value: currentStock.percentual_sku_grupo_c },
+        { name: 'A', value: currentStock.percent_sku_grupo_a },
+        { name: 'B', value: currentStock.percent_sku_grupo_b },
+        { name: 'C', value: currentStock.percent_sku_grupo_c },
       ],
-      value: `${currentStock.percentual_sku_grupo_a.toFixed(0)}% ${currentStock.percentual_sku_grupo_b.toFixed(0)}% ${currentStock.percentual_sku_grupo_c.toFixed(0)}%`,
+      value: `${currentStock.percent_sku_grupo_a.toFixed(0)}% ${currentStock.percent_sku_grupo_b.toFixed(0)}% ${currentStock.percent_sku_grupo_c.toFixed(0)}%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',
@@ -223,11 +221,11 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% Venda por Curva ABC",
       data: [
-        { name: 'A', value: currentStock.percentual_venda_grupo_a },
-        { name: 'B', value: currentStock.percentual_venda_grupo_b },
-        { name: 'C', value: currentStock.percentual_venda_grupo_c },
+        { name: 'A', value: currentStock.percent_venda_grupo_a },
+        { name: 'B', value: currentStock.percent_venda_grupo_b },
+        { name: 'C', value: currentStock.percent_venda_grupo_c },
       ],
-      value: `${currentStock.percentual_venda_grupo_a.toFixed(0)}% ${currentStock.percentual_venda_grupo_b.toFixed(0)}% ${currentStock.percentual_venda_grupo_c.toFixed(0)}%`,
+      value: `${currentStock.percent_venda_grupo_a.toFixed(0)}% ${currentStock.percent_venda_grupo_b.toFixed(0)}% ${currentStock.percent_venda_grupo_c.toFixed(0)}%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',

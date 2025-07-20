@@ -1,9 +1,10 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import AlertasEAcoes from '../widgets/AlertasEAcoes';
 import { use, useEffect, useState } from 'react';
-import { analysisService, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, SegmentacaoCliente } from '@/services/analysisService';
+import { analysisService, CockpitAlert, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, SegmentacaoCliente } from '@/services/analysisService';
 import { clientsMakeGraphs, salesMakeGraphs, stockMakeGraphs } from '../helpers/CockpitHelper';
 import RenderGraph from '../widgets/RenderGraph';
 
@@ -12,12 +13,10 @@ export default function CockpitPage() {
   const [clientes, setClientes] = useState<SegmentacaoCliente[]>([]);
   const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] = useState<CustomerQuarterlyRecurrence[]>([]);
   const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<CustomerAnnualRecurrence[]>([]);
-  const [clientsLoading, setclientsLoading] = useState(true);
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
   const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
-  const [salesLoading, setSalesLoading] = useState(true);
   const [stock, setStock] = useState<any[]>([]);
-  const [stockLoading, setStockLoading] = useState(true);
+  const [cockpitAlert, setCockpitAlert] = useState<CockpitAlert[]>([]);
 
   useEffect(() => {
     analysisService.getSegmentacaoClientes()
@@ -41,18 +40,12 @@ export default function CockpitPage() {
 
     analysisService.getStockMetrics()
       .then(setStock)
-      .catch(console.error)
-      .finally(() => setStockLoading(false));
-  }, []);
+      .catch(console.error);
 
-  useEffect(() => {
-    if (annualRevenues && monthlyRevenues) {
-      setSalesLoading(false);
-    }
-    if (clientes && customerQuarterlyRecurrence && customerAnnualRecurrence) {
-      setclientsLoading(false);
-    }
-  }, [annualRevenues, monthlyRevenues, clientes, customerQuarterlyRecurrence, customerAnnualRecurrence]);
+    analysisService.getCockpitAlert()
+      .then(setCockpitAlert)
+      .catch(console.error);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', gap: '1.5rem', height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
@@ -62,7 +55,7 @@ export default function CockpitPage() {
         >
           Alertas e Ações
         </Typography>
-        <AlertasEAcoes />
+        <AlertasEAcoes  cockpitAlert={cockpitAlert}/>
       </Box>
 
       <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
@@ -79,50 +72,117 @@ export default function CockpitPage() {
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1} mt={2}>
             Vendas
           </Typography>
-          <Box sx={{
-            padding: '4px',
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
-              {
-                annualRevenues &&
-                monthlyRevenues &&
-                salesMakeGraphs(annualRevenues, monthlyRevenues).map((graph, index) => (
-                  <RenderGraph key={index} graph={graph} index={index} />
-                ))
-              }
-          </Box>
+          {(!annualRevenues && !monthlyRevenues)? (
+            <Box
+              sx={{
+                width: '100%',
+                height: '250px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <InsightsOutlinedIcon sx={{
+                width: '100px',
+                height:'auto',
+                color: '#e2c698',
+              }}/>
+              <Typography color='#737064'>
+                Gerando análises...
+              </Typography>
+            </Box>
+          ) : (
+              <Box sx={{
+                padding: '4px',
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
+                  {
+                    annualRevenues &&
+                    monthlyRevenues &&
+                    salesMakeGraphs(annualRevenues, monthlyRevenues).map((graph, index) => (
+                      <RenderGraph key={index} graph={graph} index={index} />
+                    ))
+                  }
+              </Box>
+            )
+          }
 
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1} mt={2}>
             Estoque
           </Typography>
-          <Box sx={{
-            padding: '4px',
-            display: 'grid',
-            mb: 4,
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
-              {
-                stock &&
-                stockMakeGraphs(stock).map((graph, index) => (
-                  <RenderGraph key={index} graph={graph} index={index} />
-                ))
-              }
-          </Box>
+          {(!stock)? (
+            <Box
+              sx={{
+                width: '100%',
+                height: '250px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <InsightsOutlinedIcon sx={{
+                width: '100px',
+                height:'auto',
+                color: '#e2c698',
+              }}/>
+              <Typography color='#737064'>
+                Gerando análises...
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{
+              padding: '4px',
+              display: 'grid',
+              mb: 4,
+              gap: '1rem',
+              gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
+                {
+                  stock &&
+                  stockMakeGraphs(stock).map((graph, index) => (
+                    <RenderGraph key={index} graph={graph} index={index} />
+                  ))
+                }
+            </Box>
+          )}
 
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
             Cliente
           </Typography>
-          <Box sx={{
-            padding: '4px',
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
-              {clientes && customerQuarterlyRecurrence && customerAnnualRecurrence && clientsMakeGraphs(clientes, customerQuarterlyRecurrence, customerAnnualRecurrence).map((graph, index) => (
-                <RenderGraph key={index} graph={graph} index={index} />
-              ))}
+          {(!stock)? (
+            <Box
+              sx={{
+                width: '100%',
+                height: '250px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <InsightsOutlinedIcon sx={{
+                width: '100px',
+                height:'auto',
+                color: '#e2c698',
+              }}/>
+              <Typography color='#737064'>
+                Gerando análises...
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{
+              padding: '4px',
+              display: 'grid',
+              gap: '1rem',
+              gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
+                {clientes && customerQuarterlyRecurrence && customerAnnualRecurrence && clientsMakeGraphs(clientes, customerQuarterlyRecurrence, customerAnnualRecurrence).map((graph, index) => (
+                  <RenderGraph key={index} graph={graph} index={index} />
+                ))}
 
-          </Box>
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>
