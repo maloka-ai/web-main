@@ -9,10 +9,10 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 import styles from './assistantChat.module.css';
-import { createConversation, listConversations, listMessages, sendMessage } from '@/services/apiService';
+import assistantService, { Assistant, AssistanteMessage, AssistantThreadResume, AssistantType } from '@/services/AssistantService';
 import { ArrowLeft, ArrowRight } from '@mui/icons-material';
 import CreateConversationModal from './CreateConversationModal';
-import AssistenteSelector from './AssistenteSelector';
+import AssistantSelector from './AssistenteSelector';
 
 interface Message {
   content: string;
@@ -36,18 +36,21 @@ const conversationsMock = [
 ]
 
 export default function AssistantChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>(conversationsMock);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const socketRef = useRef<WebSocket | null>(null);
+  const [messages, setMessages] = useState<AssistanteMessage[]>([]);
+  const [conversations, setConversations] = useState<AssistantThreadResume[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.GENERAL)
 
   useEffect(() => {
     if (!activeConversationId) return;
-    listMessages(activeConversationId).then((data) => {
+
+    setAssistantType(conversations.find(conversation => conversation.thread_id===activeConversationId)?.assistant_id || AssistantType.GENERAL)
+
+    assistantService.listMessages(activeConversationId).then((data) => {
       if (!data || !Array.isArray(data)) {
         console.error('Invalid messages data:', data);
         return;
@@ -61,7 +64,7 @@ export default function AssistantChat() {
   }, [activeConversationId]);
 
   useEffect(() => {
-    listConversations().then((data) => {
+    assistantService.listConversations().then((data) => {
       if (!data || !Array.isArray(data)) {
         console.error('Invalid conversations data:', data);
         return;
@@ -82,50 +85,37 @@ export default function AssistantChat() {
       { content: 'Analisando...', role: 'assistant' }
 
     ];
-    setMessages(newMessages as Message[]);
+    setMessages(newMessages as AssistanteMessage[]);
     let responseMessage
-    // title = inputMessage, mas se for maior que 150 caracteres, só usar 150 e adicionar "..." no final
-    let title;
-    if (inputMessage.length > 150) {
-      title = inputMessage.substring(0, 150) + '...';
-    }else {
-      title = inputMessage;
-    }
-    if (!activeConversationId) {
-      const newConversation = await createConversation(title)
-      setActiveConversationId(newConversation.conversation_id);
-      responseMessage = await sendMessage(newConversation.conversation_id, inputMessage);
+    // let title;
+    // if (inputMessage.length > 150) {
+    //   title = inputMessage.substring(0, 150) + '...';
+    // }else {
+    //   title = inputMessage;
+    // }
+    if (!activeConversationId || conversations.find(c => c.thread_id===activeConversationId)?.assistant_id !== assistantType) {
+      const newConversation = await assistantService.createConversation(assistantType)
+      setActiveConversationId(newConversation.thread_id);
+      responseMessage = await assistantService.sendMessage(newConversation.thread_id, inputMessage);
     }else{
-      responseMessage = await sendMessage(activeConversationId, inputMessage);
+      responseMessage = await assistantService.sendMessage(activeConversationId, inputMessage);
     }
 
-    if (!responseMessage || !responseMessage.response) {
+    if (!responseMessage) {
       console.error('Invalid response message:', responseMessage);
       return;
     }
 
-    const newMessage: Message = {
-      content: responseMessage.response,
-      role: 'assistant',
-    };
 
-    console.log('New message received:', newMessage);
+    console.log('New message received:', responseMessage.content);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
-
-    console.log('Updating messages with new message:', newMessage);
-    setMessages((prev) => {
-      const updatedMessages = [...prev];
-      if (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].content === 'Analisando...') {
-        updatedMessages.pop();
-      }
-      return [...updatedMessages, newMessage];
-    });
+    setMessages([...messages.splice(0, -1), responseMessage]);
   };
 
-  const handleCreateConversation = async (title: string) => {
-    const newConversation = await createConversation(title);
-    setActiveConversationId(newConversation.conversation_id);
+  const handleCreateConversation = async (title: string, type: AssistantType) => {
+
+    const newConversation = await assistantService.createConversation(type);
+    setActiveConversationId(newConversation.thread_id);
     setMessages([]);
   };
 
@@ -147,7 +137,7 @@ export default function AssistantChat() {
             <Typography variant="h6" className={styles.drawerTitle}>Histórico</Typography>
           </Box>
           <List>
-            {conversations.map(({id, title}) => (
+            {conversations.map(({thread_id: id}) => (
                 <ListItem
                   key={`${id}`}
                   className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
@@ -155,7 +145,7 @@ export default function AssistantChat() {
                     setActiveConversationId(id);
                     setDrawerOpen(false);
                   }}>
-                    <span className={styles.conversationName}>{title}</span>
+                    <span className={styles.conversationName}>{id}</span>
                 </ListItem>
               ))}
           </List>
@@ -215,7 +205,7 @@ export default function AssistantChat() {
               },
             }}
           />
-          <AssistenteSelector className={styles.inputSelector} />
+          <AssistantSelector assistantType={assistantType} className={styles.inputSelector} onSelectAssistantType={(type)=>setAssistantType(type)}/>
           </Box>
           <IconButton className={styles.sendButton} onClick={handleSend} color="primary">
             <ArrowUpwardIcon sx={{color: '#fff'}} />

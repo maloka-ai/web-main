@@ -1,23 +1,26 @@
 // app/components/AssistantChat/CreateConversationModal.tsx
 'use client';
 
-import { Box, Button, Modal, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, InputLabel, MenuItem, Modal, Select, TextField, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import { useState } from 'react';
+import { AssistantType } from '@/services/AssistantService';
+import { Assistants } from './AssistenteSelector';
 
 interface CreateConversationModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (title: string) => void;
+  onCreate: (title: string, type: AssistantType) => void;
 }
 
 export default function CreateConversationModal({ open, onClose, onCreate }: CreateConversationModalProps) {
   const [title, setTitle] = useState('');
+  const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.GENERAL)
 
   const handleCreate = () => {
     if (title.trim()) {
-      onCreate(title.trim());
+      onCreate(title.trim(), assistantType);
       setTitle('');
       onClose();
     }
@@ -48,13 +51,27 @@ export default function CreateConversationModal({ open, onClose, onCreate }: Cre
             Nova conversa
           </Typography>
 
-        <TextField
-          fullWidth
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Sugestões de fidelização"
-          sx={{ backgroundColor: '#fff', mb: 3 }}
-        />
+        <FormControl fullWidth>
+          <TextField
+            value={title}
+            label="Título"
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+        </FormControl>
+        <FormControl fullWidth>
+          <InputLabel>Escolha um agente</InputLabel>
+          <Select
+            value={assistantType}
+            label="Escolha um agente"
+            onChange={(e) => setAssistantType(e.target.value as AssistantType)}
+            sx={{ mb: 3 }}
+            >
+            {Assistants.map(assistant => (
+              <MenuItem key={assistant.type} value={assistant.type}>{assistant.label}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
           <Button

@@ -6,35 +6,41 @@ import {
 } from '@mui/material';
 import { useState, ReactElement } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { AssistantType } from '@/services/AssistantService';
 
-const assistentes = [
-  {
-    id: 'dados',
-    label: 'Assistente de dados',
-    description: 'Solicite análises baseadas nos dados da sua empresa',
-    icon: '📊',
+export const Assistants = [{
+    id: 'geral',
+    label: 'Assistente geral',
+    description: 'Converse sobre assuntos além de sua empresa',
+    type: AssistantType.GENERAL,
+    icon: '🤖',
   },
   {
     id: 'compras',
     label: 'Assistente de compras',
     description: 'Planeje as compras da sua empresa',
+    type: AssistantType.SHOPPING,
     icon: '🛒',
   },
   {
-    id: 'geral',
-    label: 'Assistente geral',
-    description: 'Converse sobre assuntos além de sua empresa',
-    icon: '🤖',
+    id: 'dados',
+    label: 'Assistente de dados',
+    description: 'Solicite análises baseadas nos dados da sua empresa',
+    type: AssistantType.DATA,
+    icon: '📊',
   },
 ];
 
-interface AssistenteSelectorProps {
+interface AssistantSelectorProps {
+  assistantType: AssistantType;
   className?: string;
+  onSelectAssistantType: (type: AssistantType)=>void;
 }
 
-export default function AssistenteSelector({className}: AssistenteSelectorProps): ReactElement {
+export default function AssistantSelector({assistantType, className, onSelectAssistantType}: AssistantSelectorProps): ReactElement {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [current, setCurrent] = useState('geral');
+  const [current, setCurrent] = useState((Assistants.find(assitant => assitant.type === assistantType)?.id ||'geral'));
+
 
   const open = Boolean(anchorEl);
   const handleOpen = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -44,11 +50,12 @@ export default function AssistenteSelector({className}: AssistenteSelectorProps)
 
   const handleSelect = (id: string) => {
     setCurrent(id);
+    onSelectAssistantType((Assistants.find((assistant)=>assistant.id === id)?.type || AssistantType.GENERAL))
     handleClose();
   };
 
-  const selected = assistentes.find((a) => a.id === current);
-
+  const selected = Assistants.find((a) => a.id === (Assistants.find(assitant => assitant.type === assistantType)?.id ||'geral'));
+  console.log("AssistantSelector selected:", selected)
   return (
     <Box className={className}>
       <Box
@@ -97,7 +104,7 @@ export default function AssistenteSelector({className}: AssistenteSelectorProps)
         <Typography fontWeight={600} fontSize="0.9rem" color="#555" mb={1}>
           Assistentes
         </Typography>
-        {assistentes.map((a) => (
+        {Assistants.map((a) => (
           <Box
             key={a.id}
             onClick={() => handleSelect(a.id)}
