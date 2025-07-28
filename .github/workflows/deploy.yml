@@ -1,4 +1,5 @@
-name: Deploy via Self-Hosted Runner (EC2)
+# .github/workflows/deploy.yaml
+name: Deploy para EC2
 
 on:
   push:
@@ -7,16 +8,10 @@ on:
 
 jobs:
   deploy:
-    name: Rodar script de deploy na EC2
-    runs-on: self-hosted  # se você adicionou label personalizada, use: self-hosted && ec2
-    steps:
-      - name: Checkout do código (obrigatório para o GitHub Actions)
-        uses: actions/checkout@v4
+    runs-on: self-hosted
 
-      - name: Rodar script deploy no diretório /home/automation/web-main
+    steps:
+      - name: Executar script de deploy
         run: |
-          echo "🚀 Iniciando deploy em /home/automation/web-main"
           cd /home/automation/web-main
-          chmod +x deploy
-          ./deploy
-          echo "✅ Deploy finalizado com sucesso!"
+          ./deploy.sh
