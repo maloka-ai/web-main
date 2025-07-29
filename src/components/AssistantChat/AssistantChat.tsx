@@ -3,7 +3,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, IconButton, Paper, Button, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -109,7 +108,7 @@ export default function AssistantChat() {
 
     console.log('New message received:', responseMessage.content);
 
-    setMessages([...messages.splice(0, -1), responseMessage]);
+    setMessages([...messages.splice(0, messages.length - 1), responseMessage]);
   };
 
   const handleCreateConversation = async (title: string, type: AssistantType) => {
