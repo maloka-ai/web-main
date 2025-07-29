@@ -46,7 +46,7 @@ const assistantService = {
     return response.data;
   },
   async sendMessage(thread_id: string, message: string): Promise<AssistanteMessage> {
-    const response = await api.post<AssistanteMessage>(`/assistants/threads/${thread_id}/aks`, {
+    const response = await api.post<AssistanteMessage>(`/assistants/threads/${thread_id}/ask`, {
       message,
     });
     return response.data;
