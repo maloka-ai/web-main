@@ -7751,6 +7751,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"markdown-to-jsx@npm:^7.7.12":
+  version: 7.7.12
+  resolution: "markdown-to-jsx@npm:7.7.12"
+  peerDependencies:
+    react: ">= 0.14.0"
+  checksum: 10c0/fa3fa2ea2fadb1a4eef96c3d4343c8570a16492b3e5f2f38316f9a0828cf03d0073cfea19f6b62c8eb5791bc4b0bb162c6a718bbd24285e8e9f70dbf91ff53a9
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -10746,6 +10755,7 @@ __metadata:
     eslint-config-next: "npm:15.3.2"
     eslint-config-prettier: "npm:^10.1.5"
     eslint-plugin-storybook: "npm:^0.12.0"
+    markdown-to-jsx: "npm:^7.7.12"
     next: "npm:^15.3.2"
     prettier: "npm:^3.5.3"
     react: "npm:^19.1.0"

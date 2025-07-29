@@ -12,6 +12,7 @@ import assistantService, { Assistant, AssistanteMessage, AssistantThreadResume, 
 import { ArrowLeft, ArrowRight } from '@mui/icons-material';
 import CreateConversationModal from './CreateConversationModal';
 import AssistantSelector from './AssistenteSelector';
+import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
 
 interface Message {
   content: string;
@@ -22,17 +23,6 @@ interface Conversation {
   id: string;
   title: string;
 }
-
-const conversationsMock = [
-  {
-    id: "6bb7af3e-3bda-4ef9-9aad-373f9d503d33",
-    title: "Destaque dos clientes campeões",
-  },
-  {
-    id: "9af45b37-e544-4a19-8ba2-4c0a0eb1ea90",
-    title: "Alerta de Produtos com Baixo Estoque"
-  }
-]
 
 export default function AssistantChat() {
   const [input, setInput] = useState('');
@@ -174,7 +164,7 @@ export default function AssistantChat() {
         <Box className={styles.messageArea}>
           {messages.map((msg, index) => (
             <Box key={index} className={msg.role === 'user' ? styles.userMsg : styles.botMsg}>
-              {msg.content}
+              <MarkdownMUI>{msg.content}</MarkdownMUI>
             </Box>
           ))}
         </Box>
