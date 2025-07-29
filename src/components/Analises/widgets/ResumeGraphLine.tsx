@@ -33,6 +33,21 @@ export default function ResumeGraphLine({
 }: ResumeGraphLineProps) {
   const [open, setOpen] = useState(false);
 
+  const meanValue = data.length > 0
+  ? data.reduce((acc, curr) => acc + curr.value, 0) / data.length
+  : 0;
+  const lastValue = data[data.length-1].value;
+
+  const getStrokeColor = ()=>{
+    if (lastValue < meanValue*0.95 ) {
+      return '#f44336';
+    } else if ( lastValue > meanValue*1.05) {
+      return '#78a27f';
+    } else {
+      return '#f3b52e';
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -65,7 +80,7 @@ export default function ResumeGraphLine({
         />
       </Box>
 
-       <Typography fontSize="auto" fontWeight={700} color="#78a27f"
+       <Typography fontSize="auto" fontWeight={700} color={getStrokeColor()}
           sx={{
             maxWidth: '100%', // ou um valor como '240px'
             fontSize: 'clamp(1rem, 1.8vw, 2rem)',
@@ -100,7 +115,7 @@ export default function ResumeGraphLine({
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#78a27f"
+              stroke={getStrokeColor()}
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}

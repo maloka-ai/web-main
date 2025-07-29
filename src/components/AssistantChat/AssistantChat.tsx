@@ -95,9 +95,6 @@ export default function AssistantChat() {
       return;
     }
 
-
-    console.log('New message received:', responseMessage.content);
-
     setMessages([...messages.splice(0, messages.length - 1), responseMessage]);
   };
 

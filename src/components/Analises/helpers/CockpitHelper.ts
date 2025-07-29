@@ -28,7 +28,7 @@ export function clientsMakeGraphs(
   const last3QuarterlyRecurrence = customerQuarterlyRecurrence.slice(-3).map(cqr => {
     return {
       name: `${cqr.ano}Q${cqr.trimestre}`,
-      value: cqr.taxa_recorrencia.toFixed(0)
+      value: Number(cqr.taxa_recorrencia.toFixed(2)),
     }
   })
   const xLabelMapLast3QuarterlyRecurrence: { [key: string]: string } = last3QuarterlyRecurrence.reduce((acc, qr) => {
@@ -39,7 +39,7 @@ export function clientsMakeGraphs(
   const last3AnnualRecurrence = customerAnnualRecurrence.slice(-3).map(cqr => {
     return {
       name: `${cqr.ano}`,
-      value: cqr.taxa_retencao.toFixed(0)
+      value: Number(cqr.taxa_retencao.toFixed(2))
     }
   })
   const xLabelMapLast3AnnualRecurrence: { [key: string]: string } = last3AnnualRecurrence.reduce((acc, qr) => {
@@ -47,7 +47,11 @@ export function clientsMakeGraphs(
     return acc;
   }, {} as { [key: string]: string });
 
-
+  const last3AnnualRecurrenceMean = customerAnnualRecurrence.slice(-3).length > 0
+  ? customerAnnualRecurrence.slice(-3).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
+  : 0;
+  const currentAnnualRevenue = customerAnnualRecurrence[customerAnnualRecurrence.length - 1].taxa_retencao;
+  const last3AnnualRecurrenceGain = (currentAnnualRevenue - last3AnnualRecurrenceMean) / Math.abs(currentAnnualRevenue - last3AnnualRecurrenceMean)
 
   return [
     {
@@ -71,9 +75,9 @@ export function clientsMakeGraphs(
       type: GraphType.LINE,
       title: "Taxa de Retenção Anual",
       subtitle: "Últimos 3 anos",
-      gain: 8,
+      gain: last3AnnualRecurrenceGain,
       data: last3AnnualRecurrence,
-      value: "64%",
+      value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
     }
   ]
@@ -98,14 +102,40 @@ export function salesMakeGraphs(
     return [];
   }
 
+
   const currentAnnualRevenue = annualRevenues[annualRevenues.length - 1].total_de_faturamento;
   const currentProductAnnualRevenue = annualRevenues[annualRevenues.length - 1].faturamento_em_produtos;
   const currentServiceAnnualRevenue = annualRevenues[annualRevenues.length - 1].faturameno_em_servicos;
   const currentMonthlyRevenue = monthlyRevenue
-    .filter(mr => mr.mes === currentMonth && mr.ano === currentYear)
-    .reduce((acc, mr) => acc + mr.total_venda, 0);
+  .filter(mr => mr.mes === currentMonth && mr.ano === currentYear)
+  .reduce((acc, mr) => acc + mr.total_venda, 0);
   const lastCurrentAnnualRevenue = annualRevenues[annualRevenues.length - 1]
-  return [
+  const hasToDismemberSales = !!lastCurrentAnnualRevenue.faturameno_em_servicos;
+
+  const graphs = [
+    {
+      type: GraphType.LINE,
+      title: "Receita Anual",
+      subtitle: "Últimos 5 anos",
+      data: annualRevenues.slice(-5).map(ar => ({
+        name: ar.ano.toString(),
+        value: ar.total_de_faturamento,
+      })),
+      gain: (annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento) / Math.abs(annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento),
+      value: formatCurrency(lastCurrentAnnualRevenue.total_de_faturamento),
+      xLabelMap: xLabelMapLast3Years,
+    },
+    {
+      type: GraphType.LINE,
+      title: "Receita Mensal",
+      subtitle: "Últimos 3 meses",
+      data: monthlyRevenue.slice(-3).map(mr => ({
+        name: mr.ano.toString(),
+        value: mr.total_venda,
+      })),
+      value: formatCurrency(monthlyRevenue[monthlyRevenue.length - 1].total_venda),
+      xLabelMap: xLabelMapLast3Years,
+    },
     {
       type: GraphType.LINE,
       title: "Ticket Médio",
@@ -122,7 +152,7 @@ export function salesMakeGraphs(
       title: "Valor Médio Produto",
       data: annualRevenues.map(ar => ({
         name: ar.ano.toString(),
-        value: ar.qtd_vendas_produtos ? ar.faturamento_em_produtos / ar.qtd_vendas_produtos : 0
+        value: ar.qtd_vendas_produtos ? Number((ar.faturamento_em_produtos / ar.qtd_vendas_produtos).toFixed(2)) : 0
       })),
       value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
       xLabelMap: xLabelMapLast3Years,
@@ -158,6 +188,7 @@ export function salesMakeGraphs(
       data: formatCurrency(currentServiceAnnualRevenue),
     }
   ]
+  return graphs;
 }
 
 export function stockMakeGraphs(
@@ -182,7 +213,7 @@ export function stockMakeGraphs(
     const mes = (date.getMonth() + 1).toString().padStart(2, '0');
     return {
       name: `${dia}/${mes}`,
-      value: rupturaPercentage,
+      value: Number(rupturaPercentage.toFixed(2)),
     };
   });
 
@@ -206,11 +237,17 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% SKUs por Curva ABC",
       data: [
-        { name: 'A', value: currentStock.percent_sku_grupo_a },
-        { name: 'B', value: currentStock.percent_sku_grupo_b },
-        { name: 'C', value: currentStock.percent_sku_grupo_c },
+        { name: 'A', value: Number(currentStock.percent_sku_grupo_a.toFixed(2)) },
+        { name: 'B', value: Number(currentStock.percent_sku_grupo_b.toFixed(2)) },
+        { name: 'C', value: Number(currentStock.percent_sku_grupo_c.toFixed(2)) },
       ],
-      value: `${currentStock.percent_sku_grupo_a.toFixed(0)}% ${currentStock.percent_sku_grupo_b.toFixed(0)}% ${currentStock.percent_sku_grupo_c.toFixed(0)}%`,
+      value: `${
+        Number(currentStock.percent_sku_grupo_a.toFixed(2))
+      }% ${
+        Number(currentStock.percent_sku_grupo_b.toFixed(2))
+      }% ${
+        Number(currentStock.percent_sku_grupo_c.toFixed(2))
+      }%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',
@@ -221,11 +258,17 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% Venda por Curva ABC",
       data: [
-        { name: 'A', value: currentStock.percent_venda_grupo_a },
-        { name: 'B', value: currentStock.percent_venda_grupo_b },
-        { name: 'C', value: currentStock.percent_venda_grupo_c },
+        { name: 'A', value: Number(currentStock.percent_venda_grupo_a.toFixed(2)) },
+        { name: 'B', value: Number(currentStock.percent_venda_grupo_b.toFixed(2)) },
+        { name: 'C', value: Number(currentStock.percent_venda_grupo_c.toFixed(2)) },
       ],
-      value: `${currentStock.percent_venda_grupo_a.toFixed(0)}% ${currentStock.percent_venda_grupo_b.toFixed(0)}% ${currentStock.percent_venda_grupo_c.toFixed(0)}%`,
+      value: `${
+        Number(currentStock.percent_venda_grupo_a.toFixed(2))
+      }% ${
+        Number(currentStock.percent_venda_grupo_b.toFixed(2))
+      }% ${
+        Number(currentStock.percent_venda_grupo_c.toFixed(2))
+      }%`,
       xLabelMap: {
         'A': 'Grupo A',
         'B': 'Grupo B',
@@ -236,7 +279,7 @@ export function stockMakeGraphs(
       type: GraphType.LINE,
       title: "% Ruptura (Estoque ativo)",
       data: rupturaPercentages,
-      value: `${rupturaPercentages.slice(-1)[0].value.toFixed(0)}%`,
+      value: `${Number(rupturaPercentages.slice(-1)[0].value.toFixed(2))}%`,
       hideXAxis: true,
     }
   ]

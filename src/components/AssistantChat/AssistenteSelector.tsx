@@ -55,7 +55,7 @@ export default function AssistantSelector({assistantType, className, onSelectAss
   };
 
   const selected = Assistants.find((a) => a.id === (Assistants.find(assitant => assitant.type === assistantType)?.id ||'geral'));
-  console.log("AssistantSelector selected:", selected)
+
   return (
     <Box className={className}>
       <Box
