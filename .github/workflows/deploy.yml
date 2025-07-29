@@ -13,5 +13,5 @@ jobs:
     steps:
       - name: Executar script de deploy
         run: |
-          cd /home/automation/web-main
+          cd /home/ubuntu/web-main
           ./deploy.sh
