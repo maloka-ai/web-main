@@ -87,14 +87,14 @@ export default function AssistantChat() {
     ];
     setMessages(newMessages as AssistanteMessage[]);
     let responseMessage
-    // let title;
-    // if (inputMessage.length > 150) {
-    //   title = inputMessage.substring(0, 150) + '...';
-    // }else {
-    //   title = inputMessage;
-    // }
+    let title;
+    if (inputMessage.length > 150) {
+      title = inputMessage.substring(0, 150) + '...';
+    }else {
+      title = inputMessage;
+    }
     if (!activeConversationId || conversations.find(c => c.thread_id===activeConversationId)?.assistant_id !== assistantType) {
-      const newConversation = await assistantService.createConversation(assistantType)
+      const newConversation = await assistantService.createConversation(assistantType, title)
       setActiveConversationId(newConversation.thread_id);
       responseMessage = await assistantService.sendMessage(newConversation.thread_id, inputMessage);
     }else{
@@ -114,7 +114,7 @@ export default function AssistantChat() {
 
   const handleCreateConversation = async (title: string, type: AssistantType) => {
 
-    const newConversation = await assistantService.createConversation(type);
+    const newConversation = await assistantService.createConversation(type, title);
     setActiveConversationId(newConversation.thread_id);
     setMessages([]);
   };

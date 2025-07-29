@@ -34,9 +34,10 @@ const assistantService = {
     const response = await api.get<Assistant[]>('/assistants');
     return response.data;
   },
-  async createConversation(assistant_id: string): Promise<AssistantThread> {
+  async createConversation(assistant_id: string, title: string): Promise<AssistantThread> {
     const response = await api.post<AssistantThread>('/assistants/threads', {
       assistant_id,
+      title,
     });
     return response.data;
   },
