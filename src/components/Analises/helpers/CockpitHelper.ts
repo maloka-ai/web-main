@@ -47,11 +47,11 @@ export function clientsMakeGraphs(
     return acc;
   }, {} as { [key: string]: string });
 
-  const last3AnnualRecurrenceMean = customerAnnualRecurrence.slice(-3).length > 0
-  ? customerAnnualRecurrence.slice(-3).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
+  const last5AnnualRecurrenceMean = customerAnnualRecurrence.slice(-5).length > 0
+  ? customerAnnualRecurrence.slice(-5).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
   : 0;
   const currentAnnualRevenue = customerAnnualRecurrence[customerAnnualRecurrence.length - 1].taxa_retencao;
-  const last3AnnualRecurrenceGain = (currentAnnualRevenue - last3AnnualRecurrenceMean) / Math.abs(currentAnnualRevenue - last3AnnualRecurrenceMean)
+  const last5AnnualRecurrenceGain = (currentAnnualRevenue - last5AnnualRecurrenceMean) / Math.abs(currentAnnualRevenue - last5AnnualRecurrenceMean)
 
   return [
     {
@@ -75,7 +75,7 @@ export function clientsMakeGraphs(
       type: GraphType.LINE,
       title: "Taxa de Retenção Anual",
       subtitle: "Últimos 3 anos",
-      gain: last3AnnualRecurrenceGain,
+      gain: last5AnnualRecurrenceGain,
       data: last3AnnualRecurrence,
       value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
@@ -116,7 +116,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Receita Anual",
-      subtitle: "Últimos 5 anos",
+      subtitle: "Crescimento em relação ao ano anterior:",
       data: annualRevenues.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.total_de_faturamento,
@@ -128,9 +128,9 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Receita Mensal",
-      subtitle: "Últimos 3 meses",
-      data: monthlyRevenue.slice(-3).map(mr => ({
-        name: mr.ano.toString(),
+      subtitle: "Últimos 5 meses",
+      data: monthlyRevenue.slice(-5).map(mr => ({
+        name: (mr.mes+1).toString().padStart(2,"0"),
         value: mr.total_venda,
       })),
       value: formatCurrency(monthlyRevenue[monthlyRevenue.length - 1].total_venda),
@@ -140,7 +140,7 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: "Ticket Médio",
       subtitle: "Últimos 3 anos",
-      data: annualRevenues.slice(-3).map(ar => ({
+      data: annualRevenues.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
       })),
