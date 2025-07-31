@@ -147,26 +147,28 @@ export function salesMakeGraphs(
       value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
       xLabelMap: xLabelMapLast3Years,
     },
-    {
-      type: GraphType.LINE,
-      title: "Valor Médio Produto",
-      data: annualRevenues.map(ar => ({
-        name: ar.ano.toString(),
-        value: ar.qtd_vendas_produtos ? Number((ar.faturamento_em_produtos / ar.qtd_vendas_produtos).toFixed(2)) : 0
-      })),
-      value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
-      xLabelMap: xLabelMapLast3Years,
-    },
-    {
-      type: GraphType.LINE,
-      title: "Valor Médio Serviço",
-      data: annualRevenues.map(ar => ({
-        name: ar.ano.toString(),
-        value: ar.qtd_vendas_servicos ? ar.faturameno_em_servicos / ar.qtd_vendas_servicos : 0
-      })),
-      value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
-      xLabelMap: xLabelMapLast3Years,
-    },
+    ...(hasToDismemberSales ? [
+      {
+        type: GraphType.LINE,
+        title: "Valor Médio Produto",
+        data: annualRevenues.map(ar => ({
+          name: ar.ano.toString(),
+          value: ar.qtd_vendas_produtos ? Number((ar.faturamento_em_produtos / ar.qtd_vendas_produtos).toFixed(2)) : 0
+        })),
+        value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
+        xLabelMap: xLabelMapLast3Years,
+      },
+      {
+        type: GraphType.LINE,
+        title: "Valor Médio Serviço",
+        data: annualRevenues.map(ar => ({
+          name: ar.ano.toString(),
+          value: ar.qtd_vendas_servicos ? ar.faturameno_em_servicos / ar.qtd_vendas_servicos : 0
+        })),
+        value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
+        xLabelMap: xLabelMapLast3Years,
+      },
+    ] : []),
     {
       type: GraphType.KPI,
       title: "Faturamento Total Anual",
@@ -177,16 +179,19 @@ export function salesMakeGraphs(
       title: "Faturamento Total Mensal",
       data: formatCurrency(currentMonthlyRevenue),
     },
-    {
-      type: GraphType.KPI,
-      title: "Faturamento Produto Anual",
-      data: formatCurrency(currentProductAnnualRevenue),
-    },
-    {
-      type: GraphType.KPI,
-      title: "Faturamento Serviço Anual",
-      data: formatCurrency(currentServiceAnnualRevenue),
-    }
+    ...(hasToDismemberSales ? [
+      {
+        type: GraphType.KPI,
+        title: "Faturamento Produto Anual",
+        data: formatCurrency(currentProductAnnualRevenue),
+      },
+      {
+        type: GraphType.KPI,
+        title: "Faturamento Serviço Anual",
+        data: formatCurrency(currentServiceAnnualRevenue),
+      },
+    ] : []),
+
   ]
   return graphs;
 }
