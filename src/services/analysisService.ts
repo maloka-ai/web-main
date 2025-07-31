@@ -1,4 +1,5 @@
 import api from '@/utils/api';
+import { get } from 'node:http';
 
 export interface SegmentacaoCliente {
   id_cliente: number;
@@ -43,11 +44,20 @@ export interface AnnualRevenue {
 export interface MonthlyRevenue {
   id: number;
   mes: number;
-  id_loja: number;
   total_venda: number;
   ano: number;
-  nome: string;
+  id_loja: number;
+  nome_loja: string;
   cliente: string;
+}
+
+export interface DailyRevenue {
+  dia: number;
+  mes: number;
+  ano: number;
+  total_venda: number;
+  id_loja: number;
+  loja: string;
 }
 
 export interface StockMetrics {
@@ -117,7 +127,6 @@ export interface CustomerQuarterlyRecurrence {
 }
 
 
-
 export interface CustomerAnnualRecurrence {
     id: number;
     ano: number;
@@ -156,8 +165,12 @@ export const analysisService = {
     const response = await api.get<AnnualRevenue[]>('/sales/faturamento/anual');
     return response.data;
   },
-  async getMonthlyRevenues(): Promise<MonthlyRevenue[]> {
-    const response = await api.get<MonthlyRevenue[]>('/sales/faturamento/mensal');
+  async getMonthlyRevenues(year?: number): Promise<MonthlyRevenue[]> {
+    const response = await api.get<MonthlyRevenue[]>(`/sales/faturamento/mensal${year ? `?ano=${year}` : ''}`);
+    return response.data;
+  },
+  async getDailyRevenues(year: number, month?: number): Promise<DailyRevenue[]> {
+    const response = await api.get<DailyRevenue[]>(`/sales/faturamento/diario?ano=${year}${month ? `&mes=${month}` : ''}`);
     return response.data;
   },
   async getStockMetrics(): Promise<StockMetrics[]> {

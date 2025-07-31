@@ -15,6 +15,8 @@ export default function CockpitPage() {
   const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<CustomerAnnualRecurrence[]>([]);
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
   const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
+  const [currentYearDailyRevenues, setCurrentYearDailyRevenues] = useState<any[]>([]);
+  const [lastYearDailyRevenues, setLastYearDailyRevenues] = useState<any[]>([]);
   const [stock, setStock] = useState<any[]>([]);
   const [cockpitAlert, setCockpitAlert] = useState<CockpitAlert[]>([]);
 
@@ -36,6 +38,15 @@ export default function CockpitPage() {
 
     analysisService.getMonthlyRevenues()
       .then(setMonthlyRevenues)
+      .catch(console.error);
+
+    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth())
+      .then(setCurrentYearDailyRevenues)
+      .catch(console.error);
+
+    // analysisService.getDailyRevenues((new Date()).getFullYear() - 1, (new Date()).getMonth()) // TODO: Wait for API to populate last year data
+    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth() - 1)
+      .then(setLastYearDailyRevenues)
       .catch(console.error);
 
     analysisService.getStockMetrics()
@@ -72,7 +83,7 @@ export default function CockpitPage() {
           <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1} mt={2}>
             Vendas
           </Typography>
-          {(!annualRevenues && !monthlyRevenues)? (
+          {(!annualRevenues && !monthlyRevenues && !currentYearDailyRevenues && !lastYearDailyRevenues)? (
             <Box
               sx={{
                 width: '100%',
@@ -101,7 +112,7 @@ export default function CockpitPage() {
                   {
                     annualRevenues &&
                     monthlyRevenues &&
-                    salesMakeGraphs(annualRevenues, monthlyRevenues).map((graph, index) => (
+                    salesMakeGraphs(annualRevenues, monthlyRevenues, currentYearDailyRevenues, lastYearDailyRevenues).map((graph, index) => (
                       <RenderGraph key={index} graph={graph} index={index} />
                     ))
                   }

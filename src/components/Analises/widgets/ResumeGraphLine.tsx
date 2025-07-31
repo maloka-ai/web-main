@@ -22,6 +22,7 @@ interface ResumeGraphLineProps {
   hideXAxis?: boolean;
 }
 
+
 export default function ResumeGraphLine({
   titulo,
   subtitulo,
