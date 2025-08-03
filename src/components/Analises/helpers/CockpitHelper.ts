@@ -12,6 +12,9 @@ type Graphs = {
   value?: string;
   xLabelMap?: { [key: string]: string };
   hideXAxis?: boolean;
+  xAxisAngle?: number;
+  secondData?: any[];
+  tooltipFormatter?: (value: number, name?: string) => string;
 }
 
 function fillMissingDays(data: DailyRevenue[], year: number, month: number): DailyRevenue[] {
@@ -172,8 +175,10 @@ export function salesMakeGraphs(
 
   let accumulatedCurrent = 0;
   let accumulatedPrevious = 0;
+  const currentYearRevenuesData: { name: string; value: number }[] = [];
+  const previousYearRevenuesData: { name: string; value: number }[] = [];
 
-  const monthlyRevenueComparison = Array.from({ length: currentMonth - 1 }, (_, i) => {
+  for (let i = 0; i < currentMonth - 1; i++) {
     const month = i + 1;
 
     const current = currentYearMonthlyRevenue.find(mr => mr.mes === month)?.total_venda ?? 0;
@@ -182,16 +187,33 @@ export function salesMakeGraphs(
     accumulatedCurrent += current;
     accumulatedPrevious += previous;
 
-    return {
-      name: monthNamesPt[i],
-      value: accumulatedCurrent - accumulatedPrevious,
-    };
-  });
+    const name = monthNamesPt[i];
+
+    currentYearRevenuesData.push({ name, value: accumulatedCurrent });
+    previousYearRevenuesData.push({ name, value: accumulatedPrevious });
+  }
 
   accumulatedCurrent = 0;
   accumulatedPrevious = 0;
 
-  console.log(currentYearDailyRevenuesFilled, lastYearDailyRevenuesFilled)
+  const currentYearDailyRevenuesData: { name: string; value: number }[] = [];
+  const lastYearDailyRevenuesData: { name: string; value: number }[] = [];
+
+  for (let i = 0; i < currentYearDailyRevenuesFilled.length; i++) {
+    if (new Date().getDate() < i + 1) {
+      break;
+    }
+    const current = currentYearDailyRevenuesFilled[i]?.total_venda ?? 0;
+    const previous = lastYearDailyRevenuesFilled[i]?.total_venda ?? 0;
+
+    accumulatedCurrent += current;
+    accumulatedPrevious += previous;
+
+    const name = currentYearDailyRevenuesFilled[i].dia.toString().padStart(2, "0");
+
+    currentYearDailyRevenuesData.push({ name, value: accumulatedCurrent });
+    lastYearDailyRevenuesData.push({ name, value: accumulatedPrevious });
+  }
 
   const dailyRevenueComparison = Array.from({ length: currentYearDailyRevenuesFilled.length }, (_, i) => {
     const current = currentYearDailyRevenuesFilled[i]?.total_venda ?? 0;
@@ -219,6 +241,7 @@ export function salesMakeGraphs(
       gain: (annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento) / Math.abs(annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento),
       value: formatCurrency(lastCurrentAnnualRevenue.total_de_faturamento),
       xLabelMap: xLabelMapLast5Years,
+      tooltipFormatter: (value: number) => formatCurrency(value)
     },
     {
       type: GraphType.LINE,
@@ -230,6 +253,7 @@ export function salesMakeGraphs(
       })),
       value: formatCurrency(monthlyRevenue[monthlyRevenue.length - 1].total_venda),
       xLabelMap: xLabelMapLast5Years,
+      tooltipFormatter: (value: number) => formatCurrency(value)
     },
     {
       type: GraphType.LINE,
@@ -241,12 +265,14 @@ export function salesMakeGraphs(
       })),
       value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
       xLabelMap: xLabelMapLast5Years,
+      tooltipFormatter: (value: number) => formatCurrency(value)
     },
     {
       type: GraphType.LINE,
       title: `Receita Anual Acumulada ${currentYear - 1} x ${currentYear}`,
       subtitle: `Comparação até ${(currentMonth-1).toString().padStart(2, "0")}/${currentYear}`,
-      data: monthlyRevenueComparison,
+      data: currentYearRevenuesData,
+      secondData: previousYearRevenuesData,
       gain: growthRateMonthly,
       value: formatCurrency(currentMonthlyAccumulated),
       xLabelMap: Object.fromEntries(
@@ -255,13 +281,15 @@ export function salesMakeGraphs(
           return [m, m];
         })
       ),
+      tooltipFormatter: (value: number) => formatCurrency(value)
     },
     {
       type: GraphType.LINE,
       // title: `Receita Mensal Acumulada ${currentYear - 1} x ${currentYear}`, // TODO: Wait for API to populate last year data
       title: `Receita Mensal Acumulada ${monthNamesPt[currentMonth - 2]} x ${monthNamesPt[currentMonth-1]}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
-      data: dailyRevenueComparison,
+      data: currentYearDailyRevenuesData,
+      secondData: lastYearDailyRevenuesData,
       gain: growthRateDaily,
       value: formatCurrency(currentYearDailyAccumulated),
       xLabelMap: Object.fromEntries(
@@ -270,6 +298,8 @@ export function salesMakeGraphs(
           return [d, d];
         }
       )),
+      xAxisAngle: -45,
+      tooltipFormatter: (value: number) => formatCurrency(value)
     },
     ...(hasToDismemberSales ? [
       {
@@ -281,6 +311,7 @@ export function salesMakeGraphs(
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
         xLabelMap: xLabelMapLast5Years,
+        tooltipFormatter: (value: number) => formatCurrency(value)
       },
       {
         type: GraphType.LINE,
@@ -291,6 +322,7 @@ export function salesMakeGraphs(
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
         xLabelMap: xLabelMapLast5Years,
+        tooltipFormatter: (value: number) => formatCurrency(value)
       },
     ] : []),
     ...(hasToDismemberSales ? [
@@ -353,46 +385,22 @@ export function stockMakeGraphs(
       ).toString(),
     },
     {
-      type: GraphType.LINE,
+      type: GraphType.PIE,
       title: "% SKUs por Curva ABC",
       data: [
-        { name: 'A', value: Number(currentStock.percent_sku_grupo_a.toFixed(2)) },
-        { name: 'B', value: Number(currentStock.percent_sku_grupo_b.toFixed(2)) },
-        { name: 'C', value: Number(currentStock.percent_sku_grupo_c.toFixed(2)) },
+        { name: 'Grupo A', value: Number(currentStock.percent_sku_grupo_a.toFixed(2)) },
+        { name: 'Grupo B', value: Number(currentStock.percent_sku_grupo_b.toFixed(2)) },
+        { name: 'Grupo C', value: Number(currentStock.percent_sku_grupo_c.toFixed(2)) },
       ],
-      value: `${
-        Number(currentStock.percent_sku_grupo_a.toFixed(2))
-      }% ${
-        Number(currentStock.percent_sku_grupo_b.toFixed(2))
-      }% ${
-        Number(currentStock.percent_sku_grupo_c.toFixed(2))
-      }%`,
-      xLabelMap: {
-        'A': 'Grupo A',
-        'B': 'Grupo B',
-        'C': 'Grupo C',
-      }
     },
     {
-      type: GraphType.LINE,
+      type: GraphType.PIE,
       title: "% Venda por Curva ABC",
       data: [
-        { name: 'A', value: Number(currentStock.percent_venda_grupo_a.toFixed(2)) },
-        { name: 'B', value: Number(currentStock.percent_venda_grupo_b.toFixed(2)) },
-        { name: 'C', value: Number(currentStock.percent_venda_grupo_c.toFixed(2)) },
+        { name: 'Grupo A', value: Number(currentStock.percent_venda_grupo_a.toFixed(2)) },
+        { name: 'Grupo B', value: Number(currentStock.percent_venda_grupo_b.toFixed(2)) },
+        { name: 'Grupo C', value: Number(currentStock.percent_venda_grupo_c.toFixed(2)) },
       ],
-      value: `${
-        Number(currentStock.percent_venda_grupo_a.toFixed(2))
-      }% ${
-        Number(currentStock.percent_venda_grupo_b.toFixed(2))
-      }% ${
-        Number(currentStock.percent_venda_grupo_c.toFixed(2))
-      }%`,
-      xLabelMap: {
-        'A': 'Grupo A',
-        'B': 'Grupo B',
-        'C': 'Grupo C',
-      }
     },
     {
       type: GraphType.LINE,

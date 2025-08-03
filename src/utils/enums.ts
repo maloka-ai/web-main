@@ -4,4 +4,5 @@ export enum GraphType {
   BAR = 'bar',
   SCATTER = 'scatter',
   KPI = 'kpi',
+  PIE = 'pie',
 }

@@ -34,10 +34,31 @@ export default function AssistantChat() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.GENERAL)
 
+  const updateListConversations = async () => {
+    const data = await assistantService
+      .listConversations()
+      .catch((error) => {
+        console.error('Error fetching conversations:', error);
+      });
+
+    if (!data || !Array.isArray(data)) {
+      console.error('Invalid conversations data:', data);
+      return;
+    }
+    setConversations(data);
+    return data;
+  };
+
   useEffect(() => {
     if (!activeConversationId) return;
 
-    setAssistantType(conversations.find(conversation => conversation.thread_id===activeConversationId)?.assistant_id || AssistantType.GENERAL)
+    updateListConversations().then((conversations_) => {
+      if (!conversations_ || !Array.isArray(conversations_)) {
+        console.error('Invalid conversations data:', conversations_);
+        return;
+      }
+      setAssistantType(conversations_.find(conversation => conversation.thread_id===activeConversationId)?.assistant_id || assistantType)
+    });
 
     assistantService.listMessages(activeConversationId).then((data) => {
       if (!data || !Array.isArray(data)) {
@@ -53,15 +74,7 @@ export default function AssistantChat() {
   }, [activeConversationId]);
 
   useEffect(() => {
-    assistantService.listConversations().then((data) => {
-      if (!data || !Array.isArray(data)) {
-        console.error('Invalid conversations data:', data);
-        return;
-      }
-      setConversations(data);
-    }).catch((error) => {
-      console.error('Error fetching conversations:', error);
-    });
+    updateListConversations();
   }, [drawerOpen]);
 
   const handleSend = async () => {
@@ -83,7 +96,7 @@ export default function AssistantChat() {
       title = inputMessage;
     }
     if (!activeConversationId || conversations.find(c => c.thread_id===activeConversationId)?.assistant_id !== assistantType) {
-      const newConversation = await assistantService.createConversation(assistantType, title)
+      const newConversation = await assistantService.createConversation(assistantType, title);
       setActiveConversationId(newConversation.thread_id);
       responseMessage = await assistantService.sendMessage(newConversation.thread_id, inputMessage);
     }else{
@@ -95,7 +108,12 @@ export default function AssistantChat() {
       return;
     }
 
-    setMessages([...messages.splice(0, messages.length - 1), responseMessage]);
+    setMessages(
+      (prevMessages) => [
+        ...prevMessages.slice(0, -1), // Remove the last "Analisando..." message
+        { content: responseMessage.content, role: 'assistant' }
+      ] as AssistanteMessage[]
+    );
   };
 
   const handleCreateConversation = async (title: string, type: AssistantType) => {

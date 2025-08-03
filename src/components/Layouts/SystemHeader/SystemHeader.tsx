@@ -5,8 +5,11 @@ import { Box, Typography } from '@mui/material';
 import TuneIcon from '@mui/icons-material/Tune';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Image from 'next/image';
+import UserAccount from '../UserAccount/UserAccount';
 
 export default function HeaderSistema() {
+  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') ?? '' : '';
+
   return (
     <Box
       sx={{
@@ -28,8 +31,7 @@ export default function HeaderSistema() {
           <Typography variant="body2" sx={{ fontSize: '0.95rem', color: '#4b4b4b' }}>Configurações</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <AccountCircleIcon sx={{ fontSize: 20, color: '#a36e4f' }} />
-          <Typography variant="body2" sx={{ fontSize: '0.95rem', color: '#4b4b4b' }}>Conta</Typography>
+          <UserAccount email={userEmail} />
         </Box>
       </Box>
     </Box>

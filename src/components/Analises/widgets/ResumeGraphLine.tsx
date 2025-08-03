@@ -20,6 +20,9 @@ interface ResumeGraphLineProps {
   gain?: number;
   xLabelMap?: Record<string, string>;
   hideXAxis?: boolean;
+  xAxisAngle?: number;
+  secondData?: DataPoint[];
+  tooltipFormatter?: (value: number, name?: string) => string;
 }
 
 
@@ -31,6 +34,9 @@ export default function ResumeGraphLine({
   gain,
   xLabelMap,
   hideXAxis,
+  xAxisAngle,
+  secondData,
+  tooltipFormatter,
 }: ResumeGraphLineProps) {
   const [open, setOpen] = useState(false);
 
@@ -105,6 +111,7 @@ export default function ResumeGraphLine({
               tick={{ fill: '#666' }}
               padding={{ left: 24, right: 24 }}
               tickFormatter={(name) => xLabelMap?.[name] || name}
+              angle={xAxisAngle ?? 0}
             />
             <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
             <Tooltip
@@ -112,7 +119,21 @@ export default function ResumeGraphLine({
               wrapperStyle={{ zIndex: 1000 }}
               labelStyle={{ display: 'none' }}
               cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
+              formatter={(value: number, name: string) =>
+                tooltipFormatter ? tooltipFormatter(value, name) : value
+              }
             />
+            {secondData && (
+              <Line
+                type="monotone"
+                dataKey="value"
+                data={secondData}
+                stroke="#ccc"
+                strokeWidth={1}
+                dot={false}
+                isAnimationActive={false}
+              />
+            )}
             <Line
               type="monotone"
               dataKey="value"

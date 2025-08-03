@@ -3,6 +3,7 @@ import api from '@/utils/api'
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const USER_EMAIL_KEY = 'user_email';
 
 export interface LoginPayload {
   email: string;
@@ -21,6 +22,7 @@ export const authService = {
 
     localStorage.setItem(ACCESS_TOKEN_KEY, response.data.access_token);
     localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
+    localStorage.setItem(USER_EMAIL_KEY, payload.email);
 
     return response.data;
   },
