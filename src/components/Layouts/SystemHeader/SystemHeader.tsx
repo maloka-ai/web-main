@@ -3,7 +3,6 @@
 
 import { Box, Typography } from '@mui/material';
 import TuneIcon from '@mui/icons-material/Tune';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Image from 'next/image';
 import UserAccount from '../UserAccount/UserAccount';
 

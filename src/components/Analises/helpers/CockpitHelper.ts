@@ -21,7 +21,7 @@ function fillMissingDays(data: DailyRevenue[], year: number, month: number): Dai
   const daysInMonth = new Date(year, month, 0).getDate(); // `month` 1-indexado
   const filled: DailyRevenue[] = [];
 
-  for (let day = 1; day <= daysInMonth; day++) {
+  for (let day = 1; day <= daysInMonth && day <= new Date().getDate(); day++) {
     const found = data.find(d => d.mes === month && d.dia === day);
     if (found) {
       filled.push(found);
@@ -78,11 +78,17 @@ export function clientsMakeGraphs(
     return acc;
   }, {} as { [key: string]: string });
 
+  const last3QuarterlyRecurrenceMean = customerQuarterlyRecurrence.slice(-3).length > 0
+    ? customerQuarterlyRecurrence.slice(-3).reduce((acc, curr) => acc + curr.taxa_recorrencia, 0) / customerQuarterlyRecurrence.slice(-3).length
+    : 0;
+  const currentQuarterlyRecurrence = customerQuarterlyRecurrence[customerQuarterlyRecurrence.length - 1].taxa_recorrencia;
+  const last3QuarterlyRecurrenceGain = Number(((currentQuarterlyRecurrence - last3QuarterlyRecurrenceMean) * 100 / last3QuarterlyRecurrenceMean).toFixed(2));
+
   const last5AnnualRecurrenceMean = customerAnnualRecurrence.slice(-5).length > 0
   ? customerAnnualRecurrence.slice(-5).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
   : 0;
   const currentAnnualRevenue = customerAnnualRecurrence[customerAnnualRecurrence.length - 1].taxa_retencao;
-  const last5AnnualRecurrenceGain = (currentAnnualRevenue - last5AnnualRecurrenceMean) / Math.abs(currentAnnualRevenue - last5AnnualRecurrenceMean)
+  const last5AnnualRecurrenceGain = Number(((currentAnnualRevenue - last5AnnualRecurrenceMean) * 100 / last5AnnualRecurrenceMean).toFixed(2));
 
   return [
     {
@@ -98,14 +104,16 @@ export function clientsMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Taxa de Recorrência Trimestral",
+      subtitle: "vs Últimos trimestre",
       data: last3QuarterlyRecurrence,
       value: `${last3QuarterlyRecurrence[2].value}%`,
+      gain: last3QuarterlyRecurrenceGain,
       xLabelMap: xLabelMapLast3QuarterlyRecurrence,
     },
     {
       type: GraphType.LINE,
       title: "Taxa de Retenção Anual",
-      subtitle: "Últimos 3 anos",
+      subtitle: "vs Último ano",
       gain: last5AnnualRecurrenceGain,
       data: last3AnnualRecurrence,
       value: `${currentAnnualRevenue.toFixed(2)}%`,
@@ -129,6 +137,8 @@ export function salesMakeGraphs(
   // const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear - 1, currentMonth); // TODO: Wait for API to populate last year data
   const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear, currentMonth - 2);
 
+  console.log("currentYearDailyRevenuesFilled", currentYearDailyRevenuesFilled);
+  console.log("lastYearDailyRevenuesFilled", lastYearDailyRevenuesFilled);
   const currentYearMonthlyRevenue = monthlyRevenue.filter(mr => mr.ano === currentYear);
   const lastYearMonthlyRevenue = monthlyRevenue.filter(mr => mr.ano === currentYear - 1);
 
@@ -167,11 +177,11 @@ export function salesMakeGraphs(
 
   const growthRateMonthly = lastYearMonthlyAccumulated === 0
     ? 0
-    : (currentMonthlyAccumulated - lastYearMonthlyAccumulated) / Math.abs(currentMonthlyAccumulated - lastYearMonthlyAccumulated);
+    : Number(((currentMonthlyAccumulated - lastYearMonthlyAccumulated) * 100 / lastYearMonthlyAccumulated).toFixed(2));
 
   const growthRateDaily = lastYearDailyAccumulated === 0
     ? 0
-    : (currentYearDailyAccumulated - lastYearDailyAccumulated) / Math.abs(currentYearDailyAccumulated - lastYearDailyAccumulated);
+    : Number(((currentYearDailyAccumulated - lastYearDailyAccumulated) * 100 / lastYearDailyAccumulated).toFixed(2));
 
   let accumulatedCurrent = 0;
   let accumulatedPrevious = 0;
@@ -228,17 +238,25 @@ export function salesMakeGraphs(
     };
   });
 
+  console.log("Receita Anual", [
+    annualRevenues[annualRevenues.length - 1].total_de_faturamento,
+    annualRevenues[annualRevenues.length - 2].total_de_faturamento,
+    (annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento) / Math.abs(annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento)
+  ])
+
 
   const graphs = [
     {
       type: GraphType.LINE,
       title: "Receita Anual",
-      subtitle: "Ultimos 5 anos",
+      subtitle: "vs Último ano",
       data: annualRevenues.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.total_de_faturamento,
       })),
-      gain: (annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento) / Math.abs(annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento),
+      gain: Number(((
+        annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento
+      ) * 100 / annualRevenues[annualRevenues.length - 2].total_de_faturamento).toFixed(2)),
       value: formatCurrency(lastCurrentAnnualRevenue.total_de_faturamento),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
@@ -246,23 +264,29 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Receita Mensal",
-      subtitle: "Últimos 5 meses",
+      subtitle: "vs Último mês",
       data: monthlyRevenue.slice(-5).map(mr => ({
         name: monthNamesPt[mr.mes - 1],
         value: mr.total_venda,
       })),
       value: formatCurrency(monthlyRevenue[monthlyRevenue.length - 1].total_venda),
+      gain: Number(((
+        monthlyRevenue[monthlyRevenue.length - 1].total_venda - monthlyRevenue[monthlyRevenue.length - 2].total_venda
+      ) * 100 / monthlyRevenue[monthlyRevenue.length - 2].total_venda).toFixed(2)),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
     },
     {
       type: GraphType.LINE,
       title: "Ticket Médio",
-      subtitle: "Últimos 3 anos",
+      subtitle: "vs Último mês",
       data: annualRevenues.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
       })),
+      gain: Number(((
+        annualRevenues[annualRevenues.length - 1].ticket_medio_anual - annualRevenues[annualRevenues.length - 2].ticket_medio_anual
+      ) * 100 / annualRevenues[annualRevenues.length - 2].ticket_medio_anual).toFixed(2)),
       value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
@@ -305,22 +329,30 @@ export function salesMakeGraphs(
       {
         type: GraphType.LINE,
         title: "Valor Médio Produto",
-        data: annualRevenues.map(ar => ({
+        subtitle: "vs Último ano",
+        data: annualRevenues.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
           name: ar.ano.toString(),
           value: ar.qtd_vendas_produtos ? Number((ar.faturamento_em_produtos / ar.qtd_vendas_produtos).toFixed(2)) : 0
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
+        gain: Number(((
+          annualRevenues[annualRevenues.length - 1].ticket_medio_anual - annualRevenues[annualRevenues.length - 2].ticket_medio_anual
+        ) * 100 / annualRevenues[annualRevenues.length - 2].ticket_medio_anual).toFixed(2)),
         xLabelMap: xLabelMapLast5Years,
         tooltipFormatter: (value: number) => formatCurrency(value)
       },
       {
         type: GraphType.LINE,
         title: "Valor Médio Serviço",
-        data: annualRevenues.map(ar => ({
+        subtitle: "vs Último ano",
+        data: annualRevenues.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
           name: ar.ano.toString(),
           value: ar.qtd_vendas_servicos ? ar.faturameno_em_servicos / ar.qtd_vendas_servicos : 0
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
+        gain: Number(((
+          annualRevenues[annualRevenues.length - 1].faturameno_em_servicos - annualRevenues[annualRevenues.length - 2].faturameno_em_servicos
+        ) * 100 / annualRevenues[annualRevenues.length - 2].faturameno_em_servicos).toFixed(2)),
         xLabelMap: xLabelMapLast5Years,
         tooltipFormatter: (value: number) => formatCurrency(value)
       },

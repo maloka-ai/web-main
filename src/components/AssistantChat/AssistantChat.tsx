@@ -190,11 +190,19 @@ export default function AssistantChat() {
             fullWidth
             placeholder="Escreva aqui sua solicitação"
             multiline
+            key={assistantType}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Impede quebra de linha
+                handleSend();
+              }
+            }}
             className={styles.inputField}
             sx={{
+              borderRadius: '12px',
+              backgroundColor: '#ffff',
               '& .MuiInputBase-root': {
                 backgroundColor: '#f9f8f4',
                 borderRadius: '12px',

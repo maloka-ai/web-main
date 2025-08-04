@@ -98,9 +98,9 @@ export default function ResumeGraphLine({
           {valor}
         </Typography>
 
-      <Box sx={{ height: 150, width: '100%' }}>
+      <Box sx={{ height: 200, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 10, bottom: 5, left: 0, right: 0 }}>
+          <LineChart data={data} margin={{ top: secondData ? 80 : 40, bottom: 5, left: 0, right: 0 }}>
             <XAxis
               dataKey="name"
               interval={0}
@@ -123,6 +123,15 @@ export default function ResumeGraphLine({
                 tooltipFormatter ? tooltipFormatter(value, name) : value
               }
             />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={getStrokeColor()}
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+              connectNulls
+            />
             {secondData && (
               <Line
                 type="monotone"
@@ -134,15 +143,7 @@ export default function ResumeGraphLine({
                 isAnimationActive={false}
               />
             )}
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={getStrokeColor()}
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
-              connectNulls
-            />
+
           </LineChart>
         </ResponsiveContainer>
       </Box>
