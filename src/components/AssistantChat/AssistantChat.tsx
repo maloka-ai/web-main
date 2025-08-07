@@ -199,7 +199,6 @@ export default function AssistantChat() {
                 handleSend();
               }
             }}
-            className={styles.inputField}
             sx={{
               borderRadius: '12px',
               backgroundColor: '#ffff',

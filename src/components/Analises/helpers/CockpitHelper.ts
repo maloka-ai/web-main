@@ -40,6 +40,112 @@ function fillMissingDays(data: DailyRevenue[], year: number, month: number): Dai
   return filled;
 }
 
+function groupRevenueDailyByDate(data: DailyRevenue[]) {
+  const grouped = Object.values(
+    data.reduce((acc, item) => {
+      const key = `${item.ano}-${item.mes}-${item.dia}`;
+      if (!acc[key]) {
+        acc[key] = {
+          dia: item.dia,
+          mes: item.mes,
+          ano: item.ano,
+          total_venda: 0,
+          id_loja: 0,
+          loja: 'N/A',
+        };
+      }
+      acc[key].total_venda += item.total_venda;
+      return acc;
+    }, {} as Record<string, DailyRevenue>)
+  );
+
+  return grouped.sort((a, b) =>
+    a.ano !== b.ano
+      ? a.ano - b.ano
+      : a.mes !== b.mes
+      ? a.mes - b.mes
+      : a.dia - b.dia
+  );
+}
+
+function groupRevenueMonthlyByMonthYear(data: MonthlyRevenue[]) {
+  const grouped = Object.values(
+    data.reduce((acc, item) => {
+      const key = `${item.ano}-${item.mes}`;
+      if (!acc[key]) {
+        acc[key] = {
+          mes: item.mes,
+          ano: item.ano,
+          total_venda: 0,
+          id_loja: item.id_loja,
+          nome_loja: item.nome_loja,
+          cliente: item.cliente || 'N/A',
+          id: item.id || 0,
+        };
+      }
+      acc[key].total_venda += item.total_venda;
+      return acc;
+    }, {} as Record<string, MonthlyRevenue>)
+  );
+
+  // Ordenar por ano, depois mês
+  return grouped.sort((a, b) =>
+    a.ano !== b.ano ? a.ano - b.ano : a.mes - b.mes
+  );
+}
+
+function groupRevenueAnnualByYear(data: AnnualRevenue[]) {
+  const grouped = Object.values(
+    data.reduce((acc, item) => {
+      const key = `${item.ano}`;
+      if (!acc[key]) {
+        acc[key] = {
+          ano: item.ano,
+          faturamento_em_produtos: 0,
+          faturameno_em_servicos: 0,
+          total_de_faturamento: 0,
+          qtd_vendas_produtos: 0,
+          qtd_vendas_servicos: 0,
+          total_venda_itens: 0,
+          qtd_vendas_ano: 0,
+          ticket_medio_anual: 0,
+          faturamento_cliente_cadastrado: 0,
+          faturamento_cliente_sem_cadastro: 0,
+          total_faturamento_clientes: 0,
+          diferenca_totais: 0,
+          cliente: item.cliente,
+          percent_de_evolução_ticket_medio: null,
+          percent_faturamento_em_produtos: 0,
+          percent_faturameno_em_servicos: 0,
+          percent_evolução_faturameno_em_servicos: null,
+          percent_evolução_faturamento_em_produtos: null,
+          percent_evolução_total_de_faturamento: null,
+          percent_faturamento_cliente_cadastrado: 0,
+          percent_faturamento_cliente_sem_cadastro: 0,
+        };
+      }
+
+      acc[key].faturamento_em_produtos += item.faturamento_em_produtos;
+      acc[key].faturameno_em_servicos += item.faturameno_em_servicos;
+      acc[key].total_de_faturamento += item.total_de_faturamento;
+      acc[key].qtd_vendas_produtos += item.qtd_vendas_produtos;
+      acc[key].qtd_vendas_servicos += item.qtd_vendas_servicos;
+      acc[key].total_venda_itens += item.total_venda_itens;
+      acc[key].qtd_vendas_ano += item.qtd_vendas_ano;
+      acc[key].ticket_medio_anual += item.ticket_medio_anual;
+      acc[key].faturamento_cliente_cadastrado += item.faturamento_cliente_cadastrado;
+      acc[key].faturamento_cliente_sem_cadastro += item.faturamento_cliente_sem_cadastro;
+      acc[key].total_faturamento_clientes += item.total_faturamento_clientes;
+      acc[key].diferenca_totais += item.diferenca_totais;
+
+      return acc;
+    }, {} as Record<string, AnnualRevenue>)
+  );
+
+  // Ordena por ano
+  return grouped.sort((a, b) => a.ano - b.ano);
+}
+
 const monthNamesPt = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
   "Jul", "Ago", "Set", "Out", "Nov", "Dez"
@@ -133,14 +239,17 @@ export function salesMakeGraphs(
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  const currentYearDailyRevenuesFilled = fillMissingDays(currentYearDailyRevenues, currentYear, currentMonth - 1);
+  const currentYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(currentYearDailyRevenues), currentYear, currentMonth - 1);
   // const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear - 1, currentMonth); // TODO: Wait for API to populate last year data
-  const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear, currentMonth - 2);
+  const lastYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(lastYearDailyRevenues), currentYear, currentMonth - 2);
+
+  const annualRevenuesGrouped = groupRevenueAnnualByYear(annualRevenues);
+  const monthlyRevenueGrouped = groupRevenueMonthlyByMonthYear(monthlyRevenue);
 
   console.log("currentYearDailyRevenuesFilled", currentYearDailyRevenuesFilled);
   console.log("lastYearDailyRevenuesFilled", lastYearDailyRevenuesFilled);
-  const currentYearMonthlyRevenue = monthlyRevenue.filter(mr => mr.ano === currentYear);
-  const lastYearMonthlyRevenue = monthlyRevenue.filter(mr => mr.ano === currentYear - 1);
+  const currentYearMonthlyRevenue = monthlyRevenueGrouped.filter(mr => mr.ano === currentYear);
+  const lastYearMonthlyRevenue = monthlyRevenueGrouped.filter(mr => mr.ano === currentYear - 1);
 
   const xLabelMapLast5Years = Object.fromEntries(
     Array.from({ length: 5 }, (_, i) => {
@@ -150,15 +259,15 @@ export function salesMakeGraphs(
   );
 
 
-  if (annualRevenues.length === 0 || monthlyRevenue.length === 0) {
+  if (annualRevenuesGrouped.length === 0 || monthlyRevenueGrouped.length === 0) {
     return [];
   }
 
 
-  const currentProductAnnualRevenue = annualRevenues[annualRevenues.length - 1].faturamento_em_produtos;
-  const currentServiceAnnualRevenue = annualRevenues[annualRevenues.length - 1].faturameno_em_servicos;
+  const currentProductAnnualRevenue = annualRevenuesGrouped[annualRevenuesGrouped.length - 1].faturamento_em_produtos;
+  const currentServiceAnnualRevenue = annualRevenuesGrouped[annualRevenuesGrouped.length - 1].faturameno_em_servicos;
 
-  const lastCurrentAnnualRevenue = annualRevenues[annualRevenues.length - 1]
+  const lastCurrentAnnualRevenue = annualRevenuesGrouped[annualRevenuesGrouped.length - 1]
   const hasToDismemberSales = !!lastCurrentAnnualRevenue.faturameno_em_servicos;
 
   const currentMonthlyAccumulated = currentYearMonthlyRevenue
@@ -239,10 +348,15 @@ export function salesMakeGraphs(
   });
 
   console.log("Receita Anual", [
-    annualRevenues[annualRevenues.length - 1].total_de_faturamento,
-    annualRevenues[annualRevenues.length - 2].total_de_faturamento,
-    (annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento) / Math.abs(annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento)
+    annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento,
+    annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento,
+    (annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento) / Math.abs(annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento)
   ])
+
+  // Ordenar por ano e mês
+  const sortedMonthlyRevenue = monthlyRevenueGrouped.sort(
+    (a, b) => a.ano !== b.ano ? a.ano - b.ano : a.mes - b.mes
+  );
 
 
   const graphs = [
@@ -250,13 +364,13 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: "Receita Anual",
       subtitle: "vs Último ano",
-      data: annualRevenues.slice(-5).map(ar => ({
+      data: annualRevenuesGrouped.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.total_de_faturamento,
       })),
       gain: Number(((
-        annualRevenues[annualRevenues.length - 1].total_de_faturamento - annualRevenues[annualRevenues.length - 2].total_de_faturamento
-      ) * 100 / annualRevenues[annualRevenues.length - 2].total_de_faturamento).toFixed(2)),
+        annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento
+      ) * 100 / annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento).toFixed(2)),
       value: formatCurrency(lastCurrentAnnualRevenue.total_de_faturamento),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
@@ -265,14 +379,15 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: "Receita Mensal",
       subtitle: "vs Último mês",
-      data: monthlyRevenue.slice(-5).map(mr => ({
+      data: sortedMonthlyRevenue.slice(-5).map(mr => ({
         name: monthNamesPt[mr.mes - 1],
         value: mr.total_venda,
       })),
-      value: formatCurrency(monthlyRevenue[monthlyRevenue.length - 1].total_venda),
+      value: formatCurrency(sortedMonthlyRevenue[sortedMonthlyRevenue.length - 1].total_venda),
       gain: Number(((
-        monthlyRevenue[monthlyRevenue.length - 1].total_venda - monthlyRevenue[monthlyRevenue.length - 2].total_venda
-      ) * 100 / monthlyRevenue[monthlyRevenue.length - 2].total_venda).toFixed(2)),
+        sortedMonthlyRevenue[sortedMonthlyRevenue.length - 1].total_venda -
+        sortedMonthlyRevenue[sortedMonthlyRevenue.length - 2].total_venda
+      ) * 100 / sortedMonthlyRevenue[sortedMonthlyRevenue.length - 2].total_venda).toFixed(2)),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
     },
@@ -280,13 +395,13 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: "Ticket Médio",
       subtitle: "vs Último mês",
-      data: annualRevenues.slice(-5).map(ar => ({
+      data: annualRevenuesGrouped.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
       })),
       gain: Number(((
-        annualRevenues[annualRevenues.length - 1].ticket_medio_anual - annualRevenues[annualRevenues.length - 2].ticket_medio_anual
-      ) * 100 / annualRevenues[annualRevenues.length - 2].ticket_medio_anual).toFixed(2)),
+        annualRevenuesGrouped[annualRevenuesGrouped.length - 1].ticket_medio_anual - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].ticket_medio_anual
+      ) * 100 / annualRevenuesGrouped[annualRevenuesGrouped.length - 2].ticket_medio_anual).toFixed(2)),
       value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value)
@@ -330,14 +445,14 @@ export function salesMakeGraphs(
         type: GraphType.LINE,
         title: "Valor Médio Produto",
         subtitle: "vs Último ano",
-        data: annualRevenues.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
+        data: annualRevenuesGrouped.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
           name: ar.ano.toString(),
           value: ar.qtd_vendas_produtos ? Number((ar.faturamento_em_produtos / ar.qtd_vendas_produtos).toFixed(2)) : 0
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_produtos ? lastCurrentAnnualRevenue.faturamento_em_produtos / lastCurrentAnnualRevenue.qtd_vendas_produtos : 0),
         gain: Number(((
-          annualRevenues[annualRevenues.length - 1].ticket_medio_anual - annualRevenues[annualRevenues.length - 2].ticket_medio_anual
-        ) * 100 / annualRevenues[annualRevenues.length - 2].ticket_medio_anual).toFixed(2)),
+          annualRevenuesGrouped[annualRevenuesGrouped.length - 1].ticket_medio_anual - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].ticket_medio_anual
+        ) * 100 / annualRevenuesGrouped[annualRevenuesGrouped.length - 2].ticket_medio_anual).toFixed(2)),
         xLabelMap: xLabelMapLast5Years,
         tooltipFormatter: (value: number) => formatCurrency(value)
       },
@@ -345,14 +460,14 @@ export function salesMakeGraphs(
         type: GraphType.LINE,
         title: "Valor Médio Serviço",
         subtitle: "vs Último ano",
-        data: annualRevenues.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
+        data: annualRevenuesGrouped.filter((ar) => ar.ano > new Date().getFullYear() - 5).map(ar => ({
           name: ar.ano.toString(),
           value: ar.qtd_vendas_servicos ? ar.faturameno_em_servicos / ar.qtd_vendas_servicos : 0
         })),
         value: formatCurrency(lastCurrentAnnualRevenue.qtd_vendas_servicos ? lastCurrentAnnualRevenue.faturameno_em_servicos / lastCurrentAnnualRevenue.qtd_vendas_servicos : 0),
         gain: Number(((
-          annualRevenues[annualRevenues.length - 1].faturameno_em_servicos - annualRevenues[annualRevenues.length - 2].faturameno_em_servicos
-        ) * 100 / annualRevenues[annualRevenues.length - 2].faturameno_em_servicos).toFixed(2)),
+          annualRevenuesGrouped[annualRevenuesGrouped.length - 1].faturameno_em_servicos - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].faturameno_em_servicos
+        ) * 100 / annualRevenuesGrouped[annualRevenuesGrouped.length - 2].faturameno_em_servicos).toFixed(2)),
         xLabelMap: xLabelMapLast5Years,
         tooltipFormatter: (value: number) => formatCurrency(value)
       },
