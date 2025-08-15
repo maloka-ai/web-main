@@ -62,7 +62,7 @@ export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
         </Box>
 
         {/* Tabs mock */}
-        {categorias && (
+        {/* {categorias && (
           <Box sx={{ display: 'flex', gap: '0.5rem', mt: 2 }}>
             {categorias.map((cat, idx) => (
               <Chip
@@ -73,9 +73,9 @@ export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
               />
             ))}
           </Box>
-        )}
+        )} */}
 
-        <Box mt={3}>
+        {/* <Box mt={3}>
           <Typography fontWeight={600} fontSize="1rem" color="#4b4b4b" gutterBottom>
             Análise do Assistente
           </Typography>
@@ -119,7 +119,7 @@ export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
               </Button>
             ))}
           </Box>
-        </Box>
+        </Box> */}
       </Box>
     </Modal>
   );

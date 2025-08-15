@@ -24,6 +24,22 @@ interface Conversation {
   title: string;
 }
 
+
+function downloadCSV(csvString: string, filename = 'dados.csv') {
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function AssistantChat() {
   const [input, setInput] = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -180,6 +196,27 @@ export default function AssistantChat() {
           {messages.map((msg, index) => (
             <Box key={index} className={msg.role === 'user' ? styles.userMsg : styles.botMsg}>
               <MarkdownMUI>{msg.content}</MarkdownMUI>
+              {/* Botão para baixar a planilha */}
+              {msg.spreadsheet_metadata && (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  sx={{ marginTop: '8px', color: '#df8157', borderColor: '#df8157' }}
+                  onClick={() => {
+                    if (msg.spreadsheet_metadata) {
+                      assistantService.downloadSpreadsheet(msg.id)
+                        .then((csvData) => {
+                          downloadCSV(csvData, `spreadsheet_${msg.id}.csv`);
+                        })
+                        .catch((error) => {
+                          console.error('Error downloading spreadsheet:', error);
+                        });
+                    }
+                  }}
+                >
+                  Baixar Planilha
+                </Button>
+              )}
             </Box>
           ))}
         </Box>

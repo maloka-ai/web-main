@@ -107,7 +107,7 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
         </Box>
 
         {/* Tabs mock */}
-        {categorias && (
+        {/*{categorias && (
           <Box sx={{ display: 'flex', gap: '0.5rem', mt: 2 }}>
             {categorias.map((cat, idx) => (
               <Chip
@@ -164,7 +164,7 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
               </Button>
             ))}
           </Box>
-        </Box>
+        </Box> */}
       </Box>
     </Modal>
   );
