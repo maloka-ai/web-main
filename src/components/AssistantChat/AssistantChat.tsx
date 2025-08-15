@@ -141,7 +141,7 @@ export default function AssistantChat() {
             <Typography variant="h6" className={styles.drawerTitle}>Histórico</Typography>
           </Box>
           <List>
-            {conversations.map(({thread_id: id}) => (
+            {conversations.map(({thread_id: id, title}) => (
                 <ListItem
                   key={`${id}`}
                   className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
@@ -149,7 +149,7 @@ export default function AssistantChat() {
                     setActiveConversationId(id);
                     setDrawerOpen(false);
                   }}>
-                    <span className={styles.conversationName}>{id}</span>
+                    <span className={styles.conversationName}>{title}</span>
                 </ListItem>
               ))}
           </List>

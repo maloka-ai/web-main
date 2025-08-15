@@ -245,9 +245,6 @@ export function salesMakeGraphs(
 
   const annualRevenuesGrouped = groupRevenueAnnualByYear(annualRevenues);
   const monthlyRevenueGrouped = groupRevenueMonthlyByMonthYear(monthlyRevenue);
-
-  console.log("currentYearDailyRevenuesFilled", currentYearDailyRevenuesFilled);
-  console.log("lastYearDailyRevenuesFilled", lastYearDailyRevenuesFilled);
   const currentYearMonthlyRevenue = monthlyRevenueGrouped.filter(mr => mr.ano === currentYear);
   const lastYearMonthlyRevenue = monthlyRevenueGrouped.filter(mr => mr.ano === currentYear - 1);
 
@@ -347,11 +344,6 @@ export function salesMakeGraphs(
     };
   });
 
-  console.log("Receita Anual", [
-    annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento,
-    annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento,
-    (annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento) / Math.abs(annualRevenuesGrouped[annualRevenuesGrouped.length - 1].total_de_faturamento - annualRevenuesGrouped[annualRevenuesGrouped.length - 2].total_de_faturamento)
-  ])
 
   // Ordenar por ano e mês
   const sortedMonthlyRevenue = monthlyRevenueGrouped.sort(

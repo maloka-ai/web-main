@@ -11,6 +11,7 @@ export interface AssistantThread {
   assistant_id: AssistantType,
   user_id: string,
   created_at: Date,
+  title: string,
 }
 export type AssistantThreadResume = Omit<AssistantThread, 'user_id' >
 
