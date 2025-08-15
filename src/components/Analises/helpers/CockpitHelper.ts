@@ -188,7 +188,8 @@ export function clientsMakeGraphs(
     ? customerQuarterlyRecurrence.slice(-3).reduce((acc, curr) => acc + curr.taxa_recorrencia, 0) / customerQuarterlyRecurrence.slice(-3).length
     : 0;
   const currentQuarterlyRecurrence = customerQuarterlyRecurrence[customerQuarterlyRecurrence.length - 1].taxa_recorrencia;
-  const last3QuarterlyRecurrenceGain = Number(((currentQuarterlyRecurrence - last3QuarterlyRecurrenceMean) * 100 / last3QuarterlyRecurrenceMean).toFixed(2));
+  const lastQuarterlyRecurrence = customerQuarterlyRecurrence[customerQuarterlyRecurrence.length - 2].taxa_recorrencia;
+  const last3QuarterlyRecurrenceGain = Number(((currentQuarterlyRecurrence - lastQuarterlyRecurrence) * 100 / lastQuarterlyRecurrence).toFixed(2));
 
   const last5AnnualRecurrenceMean = customerAnnualRecurrence.slice(-5).length > 0
   ? customerAnnualRecurrence.slice(-5).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
