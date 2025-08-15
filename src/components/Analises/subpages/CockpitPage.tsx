@@ -40,12 +40,12 @@ export default function CockpitPage() {
       .then(setMonthlyRevenues)
       .catch(console.error);
 
-    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth())
+    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth() + 1)
       .then(setCurrentYearDailyRevenues)
       .catch(console.error);
 
     // analysisService.getDailyRevenues((new Date()).getFullYear() - 1, (new Date()).getMonth()) // TODO: Wait for API to populate last year data
-    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth() - 1)
+    analysisService.getDailyRevenues((new Date()).getFullYear(), (new Date()).getMonth())
       .then(setLastYearDailyRevenues)
       .catch(console.error);
 

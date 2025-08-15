@@ -239,9 +239,9 @@ export function salesMakeGraphs(
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  const currentYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(currentYearDailyRevenues), currentYear, currentMonth - 1);
+  const currentYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(currentYearDailyRevenues), currentYear, currentMonth);
   // const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear - 1, currentMonth); // TODO: Wait for API to populate last year data
-  const lastYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(lastYearDailyRevenues), currentYear, currentMonth - 2);
+  const lastYearDailyRevenuesFilled = fillMissingDays(groupRevenueDailyByDate(lastYearDailyRevenues), currentYear, currentMonth - 1);
 
   const annualRevenuesGrouped = groupRevenueAnnualByYear(annualRevenues);
   const monthlyRevenueGrouped = groupRevenueMonthlyByMonthYear(monthlyRevenue);
