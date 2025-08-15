@@ -194,7 +194,8 @@ export function clientsMakeGraphs(
   ? customerAnnualRecurrence.slice(-5).reduce((acc, curr) => acc + curr.taxa_retencao, 0) / last3AnnualRecurrence.length
   : 0;
   const currentAnnualRevenue = customerAnnualRecurrence[customerAnnualRecurrence.length - 1].taxa_retencao;
-  const last5AnnualRecurrenceGain = Number(((currentAnnualRevenue - last5AnnualRecurrenceMean) * 100 / last5AnnualRecurrenceMean).toFixed(2));
+  const lastAnnualRevenue = customerAnnualRecurrence[customerAnnualRecurrence.length - 2].taxa_retencao;
+  const lastAnnualRecurrenceGain = Number(((currentAnnualRevenue - lastAnnualRevenue) * 100 / lastAnnualRevenue).toFixed(2));
 
   return [
     {
@@ -220,7 +221,7 @@ export function clientsMakeGraphs(
       type: GraphType.LINE,
       title: "Taxa de Retenção Anual",
       subtitle: "vs Último ano",
-      gain: last5AnnualRecurrenceGain,
+      gain: lastAnnualRecurrenceGain,
       data: last3AnnualRecurrence,
       value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
