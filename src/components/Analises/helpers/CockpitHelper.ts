@@ -386,7 +386,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: "Ticket Médio",
-      subtitle: "vs Último mês",
+      subtitle: "vs Último ano",
       data: annualRevenuesGrouped.slice(-5).map(ar => ({
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
