@@ -21,7 +21,7 @@ function fillMissingDays(data: DailyRevenue[], year: number, month: number): Dai
   const daysInMonth = new Date(year, month, 0).getDate(); // `month` 1-indexado
   const filled: DailyRevenue[] = [];
 
-  for (let day = 1; day <= daysInMonth && day <= new Date().getDate(); day++) {
+  for (let day = 1; day <= daysInMonth && day <= new Date().getDate() - 1; day++) {
     const found = data.find(d => d.mes === month && d.dia === day);
     if (found) {
       filled.push(found);

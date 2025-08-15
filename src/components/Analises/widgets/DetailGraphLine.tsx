@@ -144,11 +144,20 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
           </LineChart>
             </ResponsiveContainer>
           </Box>
-          {graph.gain && (<Typography mt={1} fontSize="0.9rem" color="#4b4b4b">
-            vs Meta{' '}
-            <span style={{ color: graph.gain>= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-            {graph.gain >= 0 ? '+' : ''}{graph.gain}%
-            </span>
+          {graph.subtitulo && (
+            <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
+              {graph.subtitulo}
+              {graph.gain && (<span
+                style={{
+                  color: graph.gain >= 0 ? '#4caf50' : '#f44336',
+                  fontWeight: 600,
+                marginLeft: '0.5rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {graph.gain >= 0 ? '+' : ''}
+              {graph.gain}%
+            </span>)}
           </Typography>)}
         </Box>
 
