@@ -303,13 +303,13 @@ export function salesMakeGraphs(
     const current = currentYearMonthlyRevenue.find(mr => mr.mes === month)?.total_venda ?? 0;
     const previous = lastYearMonthlyRevenue.find(mr => mr.mes === month)?.total_venda ?? 0;
 
-    accumulatedCurrent += current;
-    accumulatedPrevious += previous;
+    // accumulatedCurrent += current;
+    // accumulatedPrevious += previous;
 
     const name = monthNamesPt[i];
 
-    currentYearRevenuesData.push({ name, value: accumulatedCurrent });
-    previousYearRevenuesData.push({ name, value: accumulatedPrevious });
+    currentYearRevenuesData.push({ name, value: current });
+    previousYearRevenuesData.push({ name, value: previous });
   }
 
   accumulatedCurrent = 0;
@@ -325,13 +325,13 @@ export function salesMakeGraphs(
     const current = currentYearDailyRevenuesFilled[i]?.total_venda ?? 0;
     const previous = lastYearDailyRevenuesFilled[i]?.total_venda ?? 0;
 
-    accumulatedCurrent += current;
-    accumulatedPrevious += previous;
+    // accumulatedCurrent += current;
+    // accumulatedPrevious += previous;
 
     const name = currentYearDailyRevenuesFilled[i].dia.toString().padStart(2, "0");
 
-    currentYearDailyRevenuesData.push({ name, value: accumulatedCurrent });
-    lastYearDailyRevenuesData.push({ name, value: accumulatedPrevious });
+    currentYearDailyRevenuesData.push({ name, value: current });
+    lastYearDailyRevenuesData.push({ name, value: previous });
   }
 
   const dailyRevenueComparison = Array.from({ length: currentYearDailyRevenuesFilled.length }, (_, i) => {
@@ -408,7 +408,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      title: `Receita Anual Acumulada ${currentYear - 1} x ${currentYear}`,
+      title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
       subtitle: `Comparação até ${(currentMonth-1).toString().padStart(2, "0")}/${currentYear}`,
       data: currentYearRevenuesData,
       secondData: previousYearRevenuesData,
@@ -425,7 +425,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       // title: `Receita Mensal Acumulada ${currentYear - 1} x ${currentYear}`, // TODO: Wait for API to populate last year data
-      title: `Receita Mensal Acumulada ${monthNamesPt[currentMonth - 2]} x ${monthNamesPt[currentMonth-1]}`,
+      title: `Receita Mensal ${monthNamesPt[currentMonth - 2]} x ${monthNamesPt[currentMonth-1]}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
