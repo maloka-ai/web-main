@@ -94,7 +94,18 @@ export default function ResumeGraphLine({
         <DetalheGraphLine
           open={open}
           onClose={() => setOpen(false)}
-          graph={{ titulo, subtitulo, valor, data, gain }}
+          graph={{
+            titulo,
+            subtitulo,
+            valor,
+            data,
+            gain,
+            secondData,
+            xLabelMap,
+            hideXAxis,
+            xAxisAngle,
+            tooltipFormatter
+          }}
         />
       </Box>
 

@@ -12,6 +12,11 @@ interface GraphData {
   subtitulo?: string;
   valor?: string;
   gain?: number;
+  xLabelMap?: Record<string, string>;
+  hideXAxis?: boolean;
+  xAxisAngle?: number;
+  secondData?: { name: string; value: number }[];
+  tooltipFormatter?: (value: number, name?: string) => string;
 }
 
 interface DetalheKPIProps {
@@ -22,6 +27,11 @@ interface DetalheKPIProps {
 
 export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIProps) {
 
+  const meanValue = graph.data.length > 0
+  ? graph.data.reduce((acc, curr) => acc + curr.value, 0) / graph.data.length
+  : 0;
+  const lastValue = graph.data[graph.data.length-1].value;
+
   const sugestoes: string[] = [
     'Aumentar a frequência de postagens',
     'Melhorar a segmentação de anúncios',
@@ -29,6 +39,27 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
   ];
   const descricao: string = 'Análise detalhada do desempenho deste KPI ao longo do tempo, considerando as metas estabelecidas e as variações observadas.';
   const categorias: string[] = ['Marketing', 'Vendas', 'Suporte'];
+
+  const getStrokeColor = ()=>{
+    let value_a, value_b;
+    if (graph.secondData){
+      value_a = meanValue;
+      value_b = graph.secondData.length > 0
+      ? graph.secondData.reduce((acc, curr) => acc + curr.value, 0) / graph.secondData.length
+      : 0;
+    } else {
+      value_a = lastValue;
+      value_b = meanValue;
+    }
+
+    if (value_a < value_b * 0.95 ) {
+      return '#f44336';
+    } else if ( value_a > value_b * 1.05) {
+      return '#78a27f';
+    } else {
+      return '#f3b52e';
+    }
+  }
 
   return (
     <Modal open={open} onClose={()=>{}}>
@@ -66,36 +97,51 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
           }
           <Box sx={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={graph.data}
-                margin={{ top: 10, bottom: 20, left: 10, right: 10 }}
-              >
-                <XAxis
-                  dataKey="name"
-                  interval={0}
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={12}
-                  tick={{ fill: '#666' }}
-                  padding={{ left: 10, right: 10 }}
-                />
-                <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                <Tooltip
-                  contentStyle={{ fontSize: '0.8rem' }}
-                  wrapperStyle={{ zIndex: 1000 }}
-                  labelStyle={{ display: 'none' }}
-                  cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#78a27f"
-                  strokeWidth={2}
-                  dot={false}
-                  isAnimationActive={false}
-                  connectNulls
-                />
-              </LineChart>
+               <LineChart data={graph.data} margin={{ top: graph.secondData ? 80 : 40, bottom: 5, left: 0, right: 0 }}>
+            <XAxis
+              dataKey="name"
+              interval={0}
+              tickLine={false}
+              axisLine={false}
+              hide={graph.hideXAxis}
+              fontSize={12}
+              tick={{ fill: '#666' }}
+              padding={{ left: 24, right: 24 }}
+              tickFormatter={(name) => graph.xLabelMap?.[name] || name}
+              angle={graph.xAxisAngle ?? 0}
+            />
+            <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+            <Tooltip
+              contentStyle={{ fontSize: '0.8rem' }}
+              wrapperStyle={{ zIndex: 1000 }}
+              labelStyle={{ display: 'none' }}
+              cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
+              formatter={(value: number, name: string) =>
+                graph.tooltipFormatter ? graph.tooltipFormatter(value, name) : value
+              }
+            />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={getStrokeColor()}
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+              connectNulls
+            />
+            {graph.secondData && (
+              <Line
+                type="monotone"
+                dataKey="value"
+                data={graph.secondData}
+                stroke="#ccc"
+                strokeWidth={1}
+                dot={false}
+                isAnimationActive={false}
+              />
+            )}
+
+          </LineChart>
             </ResponsiveContainer>
           </Box>
           {graph.gain && (<Typography mt={1} fontSize="0.9rem" color="#4b4b4b">
