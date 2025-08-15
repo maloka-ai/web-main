@@ -14,6 +14,8 @@ import CreateConversationModal from './CreateConversationModal';
 import AssistantSelector from './AssistenteSelector';
 import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
 
+import * as XLSX from 'xlsx';
+
 interface Message {
   content: string;
   role: 'user' | 'assistant';
@@ -25,18 +27,29 @@ interface Conversation {
 }
 
 
-function downloadCSV(csvString: string, filename = 'dados.csv') {
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
+  // Converte a string CSV para um worksheet
+  const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
 
+  // Cria um novo workbook com a worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
+
+  // Gera o array buffer
+  const arrayBuffer = XLSX.write(workbook, {
+    bookType: 'xlsx',
+    type: 'array',
+  });
+
+  // Cria o Blob manualmente a partir do array
+  const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+  // Inicia o download
   const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-
-  document.body.removeChild(link);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -206,7 +219,7 @@ export default function AssistantChat() {
                     if (msg.spreadsheet_metadata) {
                       assistantService.downloadSpreadsheet(msg.id)
                         .then((csvData) => {
-                          downloadCSV(csvData, `spreadsheet_${msg.id}.csv`);
+                          downloadCSVasXLSX(csvData, `spreadsheet_${msg.id}.xlsx`);
                         })
                         .catch((error) => {
                           console.error('Error downloading spreadsheet:', error);
