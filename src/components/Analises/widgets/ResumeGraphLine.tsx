@@ -46,9 +46,20 @@ export default function ResumeGraphLine({
   const lastValue = data[data.length-1].value;
 
   const getStrokeColor = ()=>{
-    if (lastValue < meanValue*0.95 ) {
+    let value_a, value_b;
+    if (secondData){
+      value_a = meanValue;
+      value_b = secondData.length > 0
+      ? secondData.reduce((acc, curr) => acc + curr.value, 0) / secondData.length
+      : 0;
+    } else {
+      value_a = lastValue;
+      value_b = meanValue;
+    }
+
+    if (value_a < value_b * 0.95 ) {
       return '#f44336';
-    } else if ( lastValue > meanValue*1.05) {
+    } else if ( value_a > value_b * 1.05) {
       return '#78a27f';
     } else {
       return '#f3b52e';
