@@ -2,11 +2,37 @@
 'use client';
 
 import { ReactElement } from 'react';
-import { Box, Typography, Skeleton } from '@mui/material';
+import { Box, Typography, Skeleton, IconButton } from '@mui/material';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
-import { CockpitAlert } from '@/services/analysisService';
+import { analysisService, CockpitAlert } from '@/services/analysisService';
 
+import * as XLSX from 'xlsx';
+import { FileDownload, FileDownloadOutlined } from '@mui/icons-material';
+
+function downloadArrayAsXLSX<T extends Record<string, any>>(data: T[], filename = 'relatorio.xlsx') {
+  if (!data || data.length === 0) {
+    console.warn('Dados vazios. Nada para exportar.');
+    return;
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Detalhes');
+
+  const arrayBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([arrayBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 interface ActionsAlertProps {
   cockpitAlert: CockpitAlert[];
@@ -76,6 +102,21 @@ function AlertaSkeleton() {
 }
 
 export default function AlertasEAcoes({ cockpitAlert }: ActionsAlertProps): ReactElement{
+
+
+  async function handleDownloadAlertDetail(subpath: string, filename: string) {
+    try {
+      const detail = await analysisService.getCockpitAlertDetail(subpath);
+
+      if (!Array.isArray(detail)) {
+        throw new Error('Resposta do detalhe não é um array');
+      }
+
+      downloadArrayAsXLSX(detail, filename);
+    } catch (error) {
+      console.error('Erro ao baixar detalhes do alerta:', error);
+    }
+  }
 
 
   if (!cockpitAlert.length){
@@ -177,7 +218,12 @@ export default function AlertasEAcoes({ cockpitAlert }: ActionsAlertProps): Reac
               }}
             >
               {item.acao}
-              <PlayArrowOutlinedIcon sx={{ color: '#df8157' }} />
+              <IconButton>
+                <FileDownloadOutlined
+                  onClick={() => handleDownloadAlertDetail(item.link_detalhamento, `alerta_${item.descricao.toLowerCase().replace(/\s+/g, '_')}.xlsx`)}
+                  sx={{ color: '#df8157' }}
+                />
+              </IconButton>
             </Box>
 
           </Box>

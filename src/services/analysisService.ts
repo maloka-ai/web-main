@@ -180,5 +180,9 @@ export const analysisService = {
   async getCockpitAlert(): Promise<CockpitAlert[]> {
     const response = await api.get<CockpitAlert[]>('/cockpit/alertas');
     return response.data;
+  },
+  async getCockpitAlertDetail(subpath_detail: string): Promise<any> {
+    const response = await api.get<any>(`${subpath_detail}`);
+    return response.data;
   }
 };
