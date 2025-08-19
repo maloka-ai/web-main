@@ -140,7 +140,12 @@ export default function AssistantChat() {
     setMessages(
       (prevMessages) => [
         ...prevMessages.slice(0, -1), // Remove the last "Analisando..." message
-        { content: responseMessage.content, role: 'assistant' }
+        {
+          content: responseMessage.content,
+          role: 'assistant',
+          spreadsheet_metadata: responseMessage.spreadsheet_metadata,
+          id: responseMessage.id
+        },
       ] as AssistanteMessage[]
     );
   };
