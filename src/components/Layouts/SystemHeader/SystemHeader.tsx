@@ -25,10 +25,10 @@ export default function HeaderSistema() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <TuneIcon sx={{ fontSize: 20, color: '#a36e4f' }} />
           <Typography variant="body2" sx={{ fontSize: '0.95rem', color: '#4b4b4b' }}>Configurações</Typography>
-        </Box>
+        </Box> */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <UserAccount email={userEmail} />
         </Box>

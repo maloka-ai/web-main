@@ -31,10 +31,10 @@ export default function HeaderAnalises({ current, onNavigate }: Props) {
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#fff', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#fff', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
           <SearchIcon fontSize="small" sx={{ color: '#9c5d40' }} />
           <InputBase placeholder="" sx={{ marginLeft: '0.5rem', fontSize: '0.9rem' }} />
-        </Box>
+        </Box> */}
       </Box>
 
     </Box>
