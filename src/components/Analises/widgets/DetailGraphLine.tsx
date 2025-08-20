@@ -110,7 +110,7 @@ export default function DetalheGraphLine({ open, onClose, graph }: DetalheKPIPro
               tickFormatter={(name) => graph.xLabelMap?.[name] || name}
               angle={graph.xAxisAngle ?? 0}
             />
-            <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+            <YAxis hide />
             <Tooltip
               contentStyle={{ fontSize: '0.8rem' }}
               wrapperStyle={{ zIndex: 1000 }}
