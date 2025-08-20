@@ -122,7 +122,7 @@ export default function ResumeGraphLine({
 
       <Box sx={{ height: 200, width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: secondData ? 80 : 40, bottom: 5, left: 0, right: 0 }}>
+          <LineChart data={data} margin={{ top: secondData ? 80 : 40, bottom: 10, left: 0, right: 0 }}>
             <XAxis
               dataKey="name"
               interval={0}
@@ -135,7 +135,7 @@ export default function ResumeGraphLine({
               tickFormatter={(name) => xLabelMap?.[name] || name}
               angle={xAxisAngle ?? 0}
             />
-            <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+            <YAxis hide />
             <Tooltip
               contentStyle={{ fontSize: '0.8rem' }}
               wrapperStyle={{ zIndex: 1000 }}
