@@ -143,7 +143,7 @@ export default function AlertasEAcoes({ cockpitAlert }: ActionsAlertProps): Reac
       // padding: '1rem 0',
       // overflowY: 'auto',
     }}>
-      {cockpitAlert.map((item, index) => (
+      {cockpitAlert.map((item, index) => Number(item.indicador) !== 0 &&(
         <Box key={index} sx={{display: 'flex', width: '100%', maxWidth: '350px', position: 'relative', justifyContent: 'end' }}>
           <Box
             sx={{
