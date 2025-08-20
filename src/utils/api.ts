@@ -14,23 +14,12 @@ api.interceptors.request.use(config => {
 
 api.interceptors.response.use(
   response => response,
-  async error => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const newToken = await authService.refreshToken();
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
-      } catch (err) {
-        authService.logout();
-        window.location.href = '/v0/login';
-        return Promise.reject(err);
-      }
+  error => {
+    if (error.response?.status === 401) {
+      authService.logout();
+      window.location.href = '/v0/login';
+      return Promise.reject(error);
     }
-
     return Promise.reject(error);
   }
 );
