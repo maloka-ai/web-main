@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { StyledEngineProvider } from '@mui/material/styles';
 import "./globals.css";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import theme from "@/theme";
 
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
-
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,12 +22,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <StyledEngineProvider injectFirst>
-      <html lang="en">
-        <body className={`${poppins.variable}`}>
-          {children}
-        </body>
-      </html>
-    </StyledEngineProvider>
+    <html lang="pt-BR">
+      <body className={`${poppins.variable}`}>
+        <AppRouterCacheProvider options={{ enableCssLayer: true, key: "css" }}>
+          <CssBaseline />
+          <ThemeProvider theme={theme}>{children}</ThemeProvider>
+        </AppRouterCacheProvider>
+      </body>
+    </html>
   );
 }
