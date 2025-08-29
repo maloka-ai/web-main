@@ -1,19 +1,41 @@
-// app/components/Analises/HeaderAnalises.tsx
 'use client';
 
-import { Box, Typography, IconButton, InputBase } from '@mui/material';
+import {
+  Box,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListSubheader
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useState } from 'react';
+import { AnalysisSubPages } from '@/utils/enums';
+import { AnalisysMenuConfig, AnalysisSubpagesConfig } from './Analises';
 
 interface Props {
-  current: 'cockpit';
-  onNavigate: (page: 'cockpit') => void;
+  current: AnalysisSubPages;
+  menu: string;
+  onNavigate: (page: AnalysisSubPages, menu: string) => void;
 }
 
-export default function HeaderAnalises({ current, onNavigate }: Props) {
+export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSelect = (page: AnalysisSubPages, menu: string) => {
+    onNavigate(page, menu);
+    handleMenuClose();
+  };
+
   return (
     <Box
       sx={{
@@ -26,17 +48,45 @@ export default function HeaderAnalises({ current, onNavigate }: Props) {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <IconButton onClick={handleMenuOpen}>
+          <MenuIcon />
+        </IconButton>
         <Typography variant="h6" fontWeight={500} color="#324b4b">
-          <span style={{ color: '#9c5d40', marginRight: '0.25rem' }}>|</span> Painel <strong>• Cockpit</strong>
+          {menu}
+          <span style={{ color: '#9c5d40', margin: '0 0.25rem' }}>|</span>
+          <strong>{AnalysisSubpagesConfig[current].title}</strong>
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        </Box>
-        {/* <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#fff', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>
-          <SearchIcon fontSize="small" sx={{ color: '#9c5d40' }} />
-          <InputBase placeholder="" sx={{ marginLeft: '0.5rem', fontSize: '0.9rem' }} />
-        </Box> */}
       </Box>
 
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            minWidth: '240px',
+            borderRadius: '12px',
+          },
+        }}
+      >
+        {AnalisysMenuConfig.map((section) => (
+          <Box key={section.title}>
+            <ListSubheader disableSticky disableGutters
+              sx={{
+                paddingLeft: '1rem',
+                lineHeight: '28px',
+              }}
+            >
+              {section.title}
+            </ListSubheader>
+            {section.items.map(item => (
+              <MenuItem key={item.page} onClick={() => handleSelect(item.page, section.title)}>
+                {item.title}
+              </MenuItem>
+            ))}
+          </Box>
+        ))}
+      </Menu>
     </Box>
   );
 }

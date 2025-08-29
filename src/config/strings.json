@@ -1,0 +1,15 @@
+{
+  "analysis-panel-title": "Painel",
+  "analysis-cockpit-title": "Cockpit",
+  "analysis-know-your-customer-title": "Conheça seu cliente",
+  "analysis-customers-more-or-less-active-customers": "Clientes mais ou menos ativos",
+  "analysis-customers-more-less-active-customers-graph-title": "Segmentação de clientes",
+  "analysis-customers-probability-of-return": "Probabilidade de retorno",
+  "analysis-customers-probability-of-return-graph-title": "Probabilidade de retorno dos clientes",
+  "analysis-customers-recurring-purchase": "Compra recorrente",
+  "analysis-customers-recurring-purchase-graph-title": "Clientes com compras recorrentes",
+  "analysis-customers-annual-retention": "Retenção anual",
+  "analysis-customers-annual-retention-graph-title": "Taxa de retenção anual dos clientes",
+  "analysis-customers-business-growth": "Crescimento do negócio",
+  "analysis-customers-business-growth-graph-title": "Crescimento do negócio ao longo do tempo"
+}

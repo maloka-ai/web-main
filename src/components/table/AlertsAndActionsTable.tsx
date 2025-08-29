@@ -141,7 +141,7 @@ export function AlertsAndActionsTable({
     },
     muiTableBodyRowProps: { hover: true },
     muiTableBodyCellProps: {
-      sx: { borderBottom: "1px solid #E6DCCB", py: "10px" },
+      sx: { borderBottom: "1px solid #E6DCCB", py: "10px"},
     },
     initialState: { showColumnFilters: true },
     localization: MRT_Localization_PT_BR,
