@@ -1,45 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Box, Divider, Skeleton, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 import {
   MaterialReactTable,
   type MRT_ColumnDef,
-  MRT_TablePagination,
   useMaterialReactTable,
 } from "material-react-table";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 
 import api from "@/utils/api";
-import { PaginationFooter } from "@/components/table/PaginationFooter";
 import { CockpitAlert } from "@/services/analysisService";
-// app/mui-theme.ts
-
-// ------------------------------------------------------------
-// Tipos do domínio
-// ------------------------------------------------------------
-export type LinhaTabela = {
-  codigo: string;
-  cliente: string;
-  referenciaDias: number;
-  frequencia: number;
-  valor: number; // em reais
-};
-
-export type PageResult = { rows: LinhaTabela[]; total: number };
-export type FetchPageFn = (
-  page: number,
-  pageSize: number,
-) => Promise<PageResult>;
-
-// ------------------------------------------------------------
-// Util: formatador de moeda BRL
-// ------------------------------------------------------------
-const fmtBRL = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+import { formatTitleHeaderTable } from "@/utils/format";
 
 export function AlertsAndActionsTable({
   alert,
@@ -93,16 +66,9 @@ export function AlertsAndActionsTable({
     [stableKeys],
   );
 
-  const snakeToTitle = (s: string) =>
-    s
-      .split("_")
-      .filter(Boolean)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-
   const columns = React.useMemo<MRT_ColumnDef<RowAny>[]>(() => {
     return keys.map((k, index) => {
-      const header = snakeToTitle(k);
+      const header = formatTitleHeaderTable(k);
       const currency = /valor|preco|price|amount|total/i.test(k);
       const align: "left" | "center" | "right" = currency ? "right" : "left";
 
@@ -121,7 +87,7 @@ export function AlertsAndActionsTable({
         },
       } as MRT_ColumnDef<RowAny>;
     });
-  }, [keys, snakeToTitle]);
+  }, [keys]);
 
   const rowCount = raw.length;
   const totalPages = Math.max(1, Math.ceil(rowCount / ps));
@@ -132,7 +98,6 @@ export function AlertsAndActionsTable({
     return raw;
   }, [raw, pageIndex, ps]);
 
-  // ★ monta dados visíveis: se estiver carregando, injeta linhas-skeleton
   const dataForTable = React.useMemo<RowAny[]>(() => {
     if (isLoading) {
       const cols = keys;
@@ -147,7 +112,7 @@ export function AlertsAndActionsTable({
 
   const table = useMaterialReactTable<RowAny>({
     columns,
-    data: dataForTable, // ★ usa os dados com skeleton
+    data: dataForTable,
     // manualPagination: true,
     rowCount,
     enableColumnActions: false,
