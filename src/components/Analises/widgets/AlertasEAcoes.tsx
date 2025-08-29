@@ -12,6 +12,20 @@ import * as XLSX from "xlsx";
 import { FileDownloadOutlined } from "@mui/icons-material";
 import DetailsAlertsAndActions from "@/components/Analises/widgets/DetailsAlertsAndActions";
 
+export async function handleDownloadAlertDetail(subpath: string, filename: string) {
+  try {
+    const detail = await analysisService.getCockpitAlertDetail(subpath);
+
+    if (!Array.isArray(detail)) {
+      throw new Error("Resposta do detalhe não é um array");
+    }
+
+    downloadArrayAsXLSX(detail, filename);
+  } catch (error) {
+    console.error("Erro ao baixar detalhes do alerta:", error);
+  }
+}
+
 function downloadArrayAsXLSX<T extends Record<string, any>>(
   data: T[],
   filename = "relatorio.xlsx",
@@ -127,19 +141,7 @@ export default function AlertasEAcoes({
     setAlertDetails(null);
   }
 
-  async function handleDownloadAlertDetail(subpath: string, filename: string) {
-    try {
-      const detail = await analysisService.getCockpitAlertDetail(subpath);
 
-      if (!Array.isArray(detail)) {
-        throw new Error("Resposta do detalhe não é um array");
-      }
-
-      downloadArrayAsXLSX(detail, filename);
-    } catch (error) {
-      console.error("Erro ao baixar detalhes do alerta:", error);
-    }
-  }
 
   if (!cockpitAlert.length) {
     return (

@@ -3,14 +3,15 @@
 import { Box, Typography } from '@mui/material';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import AlertasEAcoes from '../widgets/AlertasEAcoes';
-import { use, useEffect, useState } from 'react';
-import { analysisService, CockpitAlert, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, SegmentacaoCliente } from '@/services/analysisService';
+import { useEffect, useState } from 'react';
+import { analysisService, CockpitAlert, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, CustomerSegmentation } from '@/services/analysisService';
 import { clientsMakeGraphs, salesMakeGraphs, stockMakeGraphs } from '../helpers/CockpitHelper';
-import RenderGraph from '../widgets/RenderGraph';
+import ResumeGraph from '../widgets/ResumeGraph';
+import { GraphData } from '@/utils/graphics';
 
 export default function CockpitPage() {
 
-  const [clientes, setClientes] = useState<SegmentacaoCliente[]>([]);
+  const [customer, setCustomer] = useState<CustomerSegmentation[]>([]);
   const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] = useState<CustomerQuarterlyRecurrence[]>([]);
   const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<CustomerAnnualRecurrence[]>([]);
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
@@ -22,7 +23,7 @@ export default function CockpitPage() {
 
   useEffect(() => {
     analysisService.getSegmentacaoClientes()
-      .then(setClientes)
+      .then(setCustomer)
       .catch(console.error)
 
     analysisService.getCustomerQuarterlyRecurrence((new Date()).getFullYear() - 1)
@@ -113,7 +114,7 @@ export default function CockpitPage() {
                     annualRevenues &&
                     monthlyRevenues &&
                     salesMakeGraphs(annualRevenues, monthlyRevenues, currentYearDailyRevenues, lastYearDailyRevenues).map((graph, index) => (
-                      <RenderGraph key={index} graph={graph} index={index} />
+                      <ResumeGraph key={`sales-resume-graph-${index}`} graph={{...graph, index} as GraphData}/>
                     ))
                   }
               </Box>
@@ -153,7 +154,7 @@ export default function CockpitPage() {
                 {
                   stock &&
                   stockMakeGraphs(stock).map((graph, index) => (
-                    <RenderGraph key={index} graph={graph} index={index} />
+                    <ResumeGraph key={`stock-resume-graph-${index}`} graph={{...graph, index} as GraphData}/>
                   ))
                 }
             </Box>
@@ -188,8 +189,8 @@ export default function CockpitPage() {
               display: 'grid',
               gap: '1rem',
               gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))' }}>
-                {clientes && customerQuarterlyRecurrence && customerAnnualRecurrence && clientsMakeGraphs(clientes, customerQuarterlyRecurrence, customerAnnualRecurrence).map((graph, index) => (
-                  <RenderGraph key={index} graph={graph} index={index} />
+                {customer && customerQuarterlyRecurrence && customerAnnualRecurrence && clientsMakeGraphs(customer, customerQuarterlyRecurrence, customerAnnualRecurrence).map((graph, index) => (
+                  <ResumeGraph key={`clients-resume-graph-${index}`} graph={{...graph, index} as GraphData}/>
                 ))}
 
             </Box>

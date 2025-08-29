@@ -1,4 +1,3 @@
-// app/components/Analises/widgets/DetalheKPI.tsx
 'use client';
 
 import { Modal, Box, Typography, IconButton, Chip, Button } from '@mui/material';
@@ -6,27 +5,41 @@ import CloseIcon from '@mui/icons-material/Close';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import RenderGraphic from './RenderGraphic';
+import { GraphData } from '@/utils/graphics';
 
-interface KPIData {
-  titulo: string;
-  data: string;
-}
 
-interface DetailsKPIProps {
+
+interface DetailGraphProps {
   open: boolean;
   onClose: () => void;
-  kpi: KPIData;
+  graph: GraphData;
 }
 
-export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
+export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) {
 
-  const sugestoes: string[] = [
-    'Aumentar a frequência de postagens',
-    'Melhorar a segmentação de anúncios',
-    'Analisar concorrência para ajustar estratégias',
-  ];
-  const descricao: string = 'Análise detalhada do desempenho deste KPI ao longo do tempo, considerando as metas estabelecidas e as variações observadas.';
-  const categorias: string[] = ['Marketing', 'Vendas', 'Suporte'];
+  const {
+    type,
+    index,
+    title,
+    subtitle,
+    value,
+    gain,
+    data,
+    secondData,
+    xLabelMap,
+    hideXAxis,
+    xAxisAngle,
+    tooltipFormatter,
+  } = graph;
+
+  // const sugestoes: string[] = [
+  //   'Aumentar a frequência de postagens',
+  //   'Melhorar a segmentação de anúncios',
+  //   'Analisar concorrência para ajustar estratégias',
+  // ];
+  // const descricao: string = 'Análise detalhada do desempenho deste KPI ao longo do tempo, considerando as metas estabelecidas e as variações observadas.';
+  // const categorias: string[] = ['Marketing', 'Vendas', 'Suporte'];
 
   return (
     <Modal open={open} onClose={()=>{}}>
@@ -53,16 +66,48 @@ export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
           fontWeight={500}
           mb={1}
           sx={{ color: '#4b4b4b' }}
-        >{kpi.titulo}</Typography>
+        >{title}</Typography>
 
         <Box>
-          <Typography variant="h3" fontWeight={600} color="#78a27f">
-            {kpi.data}
-          </Typography>
+          {value !== 'undefined' && (
+            <Typography variant="h3" fontWeight={600} color="#78a27f">
+              {value}
+            </Typography>
+          )
+          }
+          <Box sx={{ height: 200 }}>
+            <RenderGraphic
+              graph={{
+                type,
+                data,
+                secondData,
+                xLabelMap,
+                hideXAxis,
+                xAxisAngle,
+                tooltipFormatter
+              }}
+              index={index}
+            />
+          </Box>
+          {subtitle && (
+            <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
+              {subtitle}
+              {gain && (<span
+                style={{
+                  color: gain >= 0 ? '#4caf50' : '#f44336',
+                  fontWeight: 600,
+                marginLeft: '0.5rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {gain >= 0 ? '+' : ''}
+              {gain}%
+            </span>)}
+          </Typography>)}
         </Box>
 
         {/* Tabs mock */}
-        {/* {categorias && (
+        {/*{categorias && (
           <Box sx={{ display: 'flex', gap: '0.5rem', mt: 2 }}>
             {categorias.map((cat, idx) => (
               <Chip
@@ -73,9 +118,9 @@ export default function DetailsKPI({ open, onClose, kpi }: DetailsKPIProps) {
               />
             ))}
           </Box>
-        )} */}
+        )}
 
-        {/* <Box mt={3}>
+        <Box mt={3}>
           <Typography fontWeight={600} fontSize="1rem" color="#4b4b4b" gutterBottom>
             Análise do Assistente
           </Typography>

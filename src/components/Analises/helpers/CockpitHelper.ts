@@ -1,7 +1,6 @@
-import { analysisService, AnnualRevenue, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, DailyRevenue, MonthlyRevenue, SegmentacaoCliente, StockMetrics } from "@/services/analysisService";
+import { analysisService, AnnualRevenue, CustomerAnnualRecurrence, CustomerQuarterlyRecurrence, DailyRevenue, MonthlyRevenue, CustomerSegmentation, StockMetrics } from "@/services/analysisService";
 import { GraphType } from "@/utils/enums";
 import { formatCurrency } from "@/utils/format";
-import { DataPoint } from "../widgets/ResumeGraphLine";
 
 type Graphs = {
   type: GraphType;
@@ -152,7 +151,7 @@ const monthNamesPt = [
 ];
 
 export function clientsMakeGraphs(
-  clients: SegmentacaoCliente[],
+  clients: CustomerSegmentation[],
   customerQuarterlyRecurrence: CustomerQuarterlyRecurrence[],
   customerAnnualRecurrence: CustomerAnnualRecurrence[],
 ): Graphs[] {

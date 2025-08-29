@@ -1,7 +1,7 @@
 // app/components/Layout/UserAccountDropdown.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -12,11 +12,26 @@ import {
 import { useRouter } from 'next/navigation';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-function UserAccount({ email }: { email: string }) {
-
+function UserAccount({ email: propEmail }: { email?: string | null }) {
+  const [mounted, setMounted] = useState(false);
+  const [email, setEmail] = useState<string>('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
+
+
+  useEffect(() => {
+    setMounted(true);
+    const fromProp = (propEmail ?? '').trim();
+    if (fromProp) setEmail(fromProp);
+    else {
+      try {
+        setEmail(localStorage.getItem('email') || '');
+      } catch {}
+    }
+  }, [propEmail]);
+
+  if (!mounted) return null;
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
