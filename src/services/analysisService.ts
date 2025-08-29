@@ -1,7 +1,7 @@
 import api from '@/utils/api';
 import { get } from 'node:http';
 
-export interface SegmentacaoCliente {
+export interface CustomerSegmentation {
   id_cliente: number;
   recencia: number;
   frequencia: number;
@@ -149,8 +149,8 @@ export interface CockpitAlert {
 
 
 export const analysisService = {
-  async getSegmentacaoClientes(): Promise<SegmentacaoCliente[]> {
-    const response = await api.get<SegmentacaoCliente[]>('/customer/segmentacao/clientes_por_segmento');
+  async getSegmentacaoClientes(): Promise<CustomerSegmentation[]> {
+    const response = await api.get<CustomerSegmentation[]>('/customer/segmentacao/clientes_por_segmento');
     return response.data;
   },
   async getCustomerQuarterlyRecurrence(inital_year: number): Promise<CustomerQuarterlyRecurrence[]> {

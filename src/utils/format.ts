@@ -16,3 +16,7 @@ export function formatTitleHeaderTable(snake: string) {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
+
+export function formatNumber(n: number) {
+  return n.toLocaleString('pt-BR');
+}
