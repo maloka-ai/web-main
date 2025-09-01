@@ -213,7 +213,7 @@ export default function AlertasEAcoes({
                 </Box>
                 <Box>
                   <Typography fontWeight={600} fontSize="0.95rem" color="#333">
-                    {item.titulo} asdf
+                    {item.titulo}
                   </Typography>
                   <Typography fontSize="0.85rem" color="#777">
                     {item.descricao}
