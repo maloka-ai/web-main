@@ -40,6 +40,11 @@ export default function ResumeGraphLine({
 }: ResumeGraphLineProps) {
   const [open, setOpen] = useState(false);
 
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
   const meanValue = data.length > 0
   ? data.reduce((acc, curr) => acc + curr.value, 0) / data.length
   : 0;
