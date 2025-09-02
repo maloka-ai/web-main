@@ -10,34 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Fazer checkout do código
+      # 1. Checkout do código
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # 2️⃣ Configurar Node.js
+      # 2. Configurar Node.js
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: yarn
 
-      # 3️⃣ Instalar dependências e buildar aplicação
-      - name: Instalar dependências e buildar aplicação
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
+      # 3. Instalar dependências
+      - name: Instalar dependências
+        run: yarn install --frozen-lockfile
 
-      # 4️⃣ Preparar pacote (sem node_modules)
-      - name: Preparar pacote para deploy
+      # 4. Buildar aplicação
+      - name: Buildar aplicação
+        run: yarn build
+
+      # 5. Preparar pacote para deploy
+      - name: Preparar pacote
         run: |
           mkdir -p release
-          cp -r .next public package.json yarn.lock release/
+          cp -r .next public package.json yarn.lock node_modules release/
           cd release
           tar -czf ../web-main.tar.gz .
-          mv ../web-main.tar.gz ..
           cd ..
 
-      # 5️⃣ Copiar pacote para EC2
+      # 6. Copiar pacote para EC2
       - name: Copiar pacote para EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -47,7 +48,7 @@ jobs:
           source: "web-main.tar.gz"
           target: "/home/ubuntu/"
 
-      # 6️⃣ Executar deploy no servidor (com yarn install)
+      # 7. Executar deploy no servidor
       - name: Executar deploy no servidor
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,12 +56,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Garantir que o script de deploy está executável
             chmod +x /home/ubuntu/web-main/deploy.sh
-            
-            # Rodar o deploy
             /home/ubuntu/web-main/deploy.sh
-            
-            # Instalar dependências no servidor (se ainda não estiverem)
-            cd /home/ubuntu/web-main
-            yarn install --frozen-lockfile
