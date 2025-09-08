@@ -1,24 +1,41 @@
-FROM node:18-alpine
+FROM alpine:3.19 AS base
 
+# Next.js app lives here
 WORKDIR /app
 
-# Copia todos os arquivos necessários do Yarn PnP
-COPY . .
+# Set production environment
+ENV NODE_ENV="production"
 
-# Define o carregamento do .pnp.cjs no Node
-ENV NODE_OPTIONS="--require ./.pnp.cjs"
 
-# Instala Yarn globalmente
-RUN corepack enable && corepack prepare yarn@stable --activate
+# Throw-away build stage to reduce size of final image
+FROM base AS build
 
-# Instala dependências (modo Plug'n'Play)
-RUN yarn install
+# Install packages needed to build node modules
+RUN apk -U add build-base gyp pkgconfig python3 nodejs npm
 
-# Gera a build
-RUN yarn build
+# Install node modules
+COPY --link package-lock.json package.json ./
+RUN npm ci --include=dev
 
-# Expõe a porta
-EXPOSE 3000
+# Copy application code
+COPY --link . .
 
-# Start do app
-CMD ["yarn", "start"]
+# Build application
+RUN npm run build
+
+# Remove development dependencies
+RUN npm prune --omit=dev
+
+
+FROM base AS run
+
+# Install node.js
+RUN apk add nodejs
+
+# Copy built app
+COPY --from=build /app/.next/standalone /app
+COPY --from=build /app/.next/static /app/.next/static
+#COPY --from=build /app/public /app/public
+
+# Run the app
+CMD [ "node", "server.js" ]
