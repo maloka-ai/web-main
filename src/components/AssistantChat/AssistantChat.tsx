@@ -1,52 +1,45 @@
 // app/components/AssistantChat.tsx
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, TextField, IconButton, Paper, Button, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { useEffect, useRef, useState } from "react";
+import {
+  Box,
+  Button,
+  IconButton,
+  List,
+  ListItem,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import { ArrowLeft, ArrowRight } from "@mui/icons-material";
 
-import styles from './assistantChat.module.css';
-import assistantService, { Assistant, AssistanteMessage, AssistantThreadResume, AssistantType } from '@/services/AssistantService';
-import { ArrowLeft, ArrowRight } from '@mui/icons-material';
-import CreateConversationModal from './CreateConversationModal';
-import AssistantSelector from './AssistenteSelector';
-import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
+import styles from "./assistantChat.module.css";
+import assistantService, {
+  AssistanteMessage,
+  AssistantThreadResume,
+  AssistantType,
+} from "@/services/AssistantService";
 
-import * as XLSX from 'xlsx';
+import CreateConversationModal from "./CreateConversationModal";
+import AssistantSelector from "./AssistenteSelector";
+import MarkdownMUI from "../MarkdownMUI/MarkdownMUI";
 
-interface Message {
-  content: string;
-  role: 'user' | 'assistant';
-}
+import * as XLSX from "xlsx";
 
-interface Conversation {
-  id: string;
-  title: string;
-}
-
-
-function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
-  // Converte a string CSV para um worksheet
-  const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
-
-  // Cria um novo workbook com a worksheet
+function downloadCSVasXLSX(csvString: string, filename = "dados.xlsx") {
+  const worksheet = XLSX.read(csvString, { type: "string" }).Sheets.Sheet1;
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
-
-  // Gera o array buffer
-  const arrayBuffer = XLSX.write(workbook, {
-    bookType: 'xlsx',
-    type: 'array',
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Planilha");
+  const arrayBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([arrayBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
-
-  // Cria o Blob manualmente a partir do array
-  const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-  // Inicia o download
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
@@ -54,111 +47,278 @@ function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
 }
 
 export default function AssistantChat() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [messages, setMessages] = useState<AssistanteMessage[]>([]);
-  const [conversations, setConversations] = useState<AssistantThreadResume[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.GENERAL)
+  const [conversations, setConversations] = useState<AssistantThreadResume[]>(
+    [],
+  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
+  const [assistantType, setAssistantType] = useState<AssistantType>(
+    AssistantType.GENERAL,
+  );
 
+  // ===== Scroll & Anchoring Refs/State =====
+  const messageAreaRef = useRef<HTMLDivElement | null>(null);
+
+  // ID da última mensagem do usuário (âncora) e seu nó
+  const [lastUserMsgId, setLastUserMsgId] = useState<string | null>(null);
+  const lastUserMsgRef = useRef<HTMLDivElement | null>(null);
+
+  // Autoscroll durante streaming por chunk (desliga quando a msg do usuário encosta no topo)
+  const [chunkAutoScroll, _setChunkAutoScroll] = useState(false);
+
+  const chunkAutoScrollRef = useRef(chunkAutoScroll);
+
+  const lastScrollTsRef = useRef(0);
+  const SCROLL_THROTTLE_MS = 80;
+  // ===== ================ =====
+
+  const tryScrollThrottled = () => {
+    const now = performance.now();
+    if (now - lastScrollTsRef.current < SCROLL_THROTTLE_MS) return;
+    lastScrollTsRef.current = now;
+
+    if (userMsgReachedTop(0)) {
+      setChunkAutoScroll(false);
+    } else {
+      scrollToUserMessage("auto");
+    }
+  };
+
+  const setChunkAutoScroll = (v: boolean | ((prev: boolean) => boolean)) => {
+    // suporta set direto ou com função
+    const next =
+      typeof v === "function"
+        ? (v as (p: boolean) => boolean)(chunkAutoScrollRef.current)
+        : v;
+    chunkAutoScrollRef.current = next;
+    _setChunkAutoScroll(next);
+  };
+
+  const scrollToUserMessage = (behavior: ScrollBehavior = "smooth") => {
+    const container = messageAreaRef.current;
+    const target = lastUserMsgRef.current;
+    if (!container || !target) return;
+
+    const cRect = container.getBoundingClientRect();
+    const tRect = target.getBoundingClientRect();
+
+    // alinhar o topo da msg com o topo do container (ajuste um padding se quiser)
+    const padding = 8; // px
+    const delta = tRect.top - cRect.top - padding;
+
+    container.scrollTo({
+      top: container.scrollTop + delta,
+      behavior,
+    });
+  };
+  const userMsgReachedTop = (threshold = 10) => {
+    const area = messageAreaRef.current;
+    const node = lastUserMsgRef.current;
+    if (!area || !node) return false;
+    const areaTop = area.getBoundingClientRect().top;
+    const nodeTop = node.getBoundingClientRect().top;
+    return nodeTop <= areaTop + threshold;
+  };
+
+  // Atualiza lista de conversas
   const updateListConversations = async () => {
-    const data = await assistantService
-      .listConversations()
-      .catch((error) => {
-        console.error('Error fetching conversations:', error);
-      });
-
+    const data = await assistantService.listConversations().catch((error) => {
+      console.error("Error fetching conversations:", error);
+    });
     if (!data || !Array.isArray(data)) {
-      console.error('Invalid conversations data:', data);
+      console.error("Invalid conversations data:", data);
       return;
     }
     setConversations(data);
     return data;
   };
 
+  // Carrega mensagens quando muda a conversa ativa
   useEffect(() => {
     if (!activeConversationId) return;
 
     updateListConversations().then((conversations_) => {
       if (!conversations_ || !Array.isArray(conversations_)) {
-        console.error('Invalid conversations data:', conversations_);
+        console.error("Invalid conversations data:", conversations_);
         return;
       }
-      setAssistantType(conversations_.find(conversation => conversation.thread_id===activeConversationId)?.assistant_id || assistantType)
+      setAssistantType(
+        conversations_.find((c) => c.thread_id === activeConversationId)
+          ?.assistant_id || assistantType,
+      );
     });
 
     assistantService.listMessages(activeConversationId).then((data) => {
       if (!data || !Array.isArray(data)) {
-        console.error('Invalid messages data:', data);
+        console.error("Invalid messages data:", data);
         return;
       }
-      if (data.length === 0) {
-        setMessages([]);
-        return;
-      }
-      setMessages(data);
+      setMessages(data.length ? data : []);
     });
   }, [activeConversationId]);
 
+  //Atualiza as ultimas conversas
   useEffect(() => {
     updateListConversations();
   }, [drawerOpen]);
 
+  //// Efeito para scrollar a tela quando usuário fazer nova pergunta
+  useEffect(() => {
+    if (lastUserMsgId) {
+      scrollToUserMessage("smooth");
+    }
+  }, [lastUserMsgId]);
+
   const handleSend = async () => {
     const inputMessage = input.trim();
     if (!inputMessage) return;
-    setInput('');
-    const newMessages = [
+    setInput("");
+
+    // Cria mensagem do usuário + placeholder do assistente
+    const userMsgId = crypto.randomUUID();
+    const assistantPlaceholderId = crypto.randomUUID();
+
+    const newMessages: AssistanteMessage[] = [
       ...messages,
-      { content: input, role: 'user' },
-      { content: 'Analisando...', role: 'assistant' }
-
+      {
+        content: inputMessage,
+        role: "user",
+        id: userMsgId,
+        spreadsheet_metadata: null,
+        created_at: new Date(),
+        thread_id: activeConversationId ?? "",
+        user_id: "",
+      },
+      {
+        content: "",
+        role: "assistant",
+        id: assistantPlaceholderId,
+        spreadsheet_metadata: null,
+        created_at: new Date(),
+        thread_id: activeConversationId ?? "",
+        user_id: "",
+      },
     ];
-    setMessages(newMessages as AssistanteMessage[]);
-    let responseMessage
-    let title;
-    if (inputMessage.length > 150) {
-      title = inputMessage.substring(0, 150) + '...';
-    }else {
-      title = inputMessage;
-    }
-    if (!activeConversationId || conversations.find(c => c.thread_id===activeConversationId)?.assistant_id !== assistantType) {
-      const newConversation = await assistantService.createConversation(assistantType, title);
-      setActiveConversationId(newConversation.thread_id);
-      responseMessage = await assistantService.sendMessage(newConversation.thread_id, inputMessage);
-    }else{
-      responseMessage = await assistantService.sendMessage(activeConversationId, inputMessage);
+    setMessages(newMessages);
+    setLastUserMsgId(userMsgId);
+
+    // Define título da conversa (se for criar)
+    const title =
+      inputMessage.length > 150
+        ? inputMessage.substring(0, 150) + "..."
+        : inputMessage;
+
+    const isNewConversation =
+      !activeConversationId ||
+      conversations.find((c) => c.thread_id === activeConversationId)
+        ?.assistant_id !== assistantType;
+
+    let conversationId: string = activeConversationId || "";
+
+    if (isNewConversation) {
+      const newConversation = await assistantService.createConversation(
+        assistantType,
+        title,
+      );
+      conversationId = newConversation.thread_id;
     }
 
-    if (!responseMessage) {
-      console.error('Invalid response message:', responseMessage);
-      return;
-    }
+    if (assistantType === AssistantType.GENERAL) {
+      setChunkAutoScroll(true);
 
-    setMessages(
-      (prevMessages) => [
-        ...prevMessages.slice(0, -1), // Remove the last "Analisando..." message
+      await assistantService.sendMessageStreaming(
+        inputMessage,
+        conversationId ?? "",
+        {
+          onChunk: (chunk) => {
+            setMessages((prev) => {
+              const copy = [...prev];
+              const last = copy[copy.length - 1];
+              if (last?.role === "assistant") {
+                last.content += chunk;
+              }
+              return copy;
+            });
+
+            // Enquanto estiver em autoscroll, rola para o fim,
+            // mas para quando a msg do usuário encostar no topo.
+            if (!chunkAutoScrollRef.current) return;
+            // aguarda layout antes de verificar/rolar
+            requestAnimationFrame(() => {
+              tryScrollThrottled();
+            });
+          },
+          onError: (err) => {
+            //////////// FAZER COMPONENTE PARA ERRO
+            console.error("Invalid response message:", err);
+            setMessages((prevMessages) => [
+              ...prevMessages.slice(0, -1), // remove mensagem
+            ]);
+            setChunkAutoScroll(false);
+          },
+          onDone: () => {
+            setChunkAutoScroll(false);
+          },
+        },
+      );
+    } else {
+      // ===== RESPOSTA INTEIRA =====
+      const responseMessage = await assistantService.sendMessage(
+        conversationId,
+        inputMessage,
+      );
+
+      if (!responseMessage) {
+        //////////// FAZER COMPONENTE PARA ERRO
+        console.error("Invalid response message:", responseMessage);
+        setMessages((prevMessages) => [
+          ...prevMessages.slice(0, -1), // remove mensagem
+        ]);
+        return;
+      }
+
+      setMessages((prevMessages) => [
+        ...prevMessages.slice(0, -1), // remove placeholder vazio
         {
           content: responseMessage.content,
-          role: 'assistant',
+          role: "assistant",
           spreadsheet_metadata: responseMessage.spreadsheet_metadata,
-          id: responseMessage.id
+          id: responseMessage.id,
+          thread_id: responseMessage.thread_id,
+          user_id: responseMessage.user_id,
+          created_at: responseMessage.created_at,
         },
-      ] as AssistanteMessage[]
-    );
+      ]);
+
+      // Ao receber a resposta inteira, rola até a mensagem do usuário (âncora)
+      requestAnimationFrame(() => {
+        scrollToUserMessage("smooth");
+      });
+    }
   };
 
-  const handleCreateConversation = async (title: string, type: AssistantType) => {
-
-    const newConversation = await assistantService.createConversation(type, title);
+  const handleCreateConversation = async (
+    title: string,
+    type: AssistantType,
+  ) => {
+    const newConversation = await assistantService.createConversation(
+      type,
+      title,
+    );
     setActiveConversationId(newConversation.thread_id);
     setMessages([]);
   };
 
   return (
-    <Box className={`${styles.wrapper} ${expanded ? styles['wrapper-expanded'] : ''}`}>
+    <Box
+      className={`${styles.wrapper} ${expanded ? styles["wrapper-expanded"] : ""}`}
+    >
       <IconButton
         className={styles.toggleButton}
         onClick={() => setExpanded(!expanded)}
@@ -166,29 +326,39 @@ export default function AssistantChat() {
         {expanded ? <ArrowLeft /> : <ArrowRight />}
       </IconButton>
 
-      <Box className={styles.drawerOverlay} style={{ display: drawerOpen ? 'block' : 'none' }}>
+      {/* Drawer de Histórico */}
+      <Box
+        className={styles.drawerOverlay}
+        style={{ display: drawerOpen ? "block" : "none" }}
+      >
         <Box className={styles.drawer}>
           <Box className={styles.drawerHeader}>
             <IconButton onClick={() => setDrawerOpen(false)}>
               <MenuOpenIcon />
             </IconButton>
-            <Typography variant="h6" className={styles.drawerTitle}>Histórico</Typography>
+            <Typography variant="h6" className={styles.drawerTitle}>
+              Histórico
+            </Typography>
           </Box>
           <List>
-            {conversations.map(({thread_id: id, title}) => (
-                <ListItem
-                  key={`${id}`}
-                  className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
-                  onClick={() => {
-                    setActiveConversationId(id);
-                    setDrawerOpen(false);
-                  }}>
-                    <span className={styles.conversationName}>{title}</span>
-                </ListItem>
-              ))}
+            {conversations.map(({ thread_id: id, title }) => (
+              <ListItem
+                key={`${id}`}
+                className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ""}`}
+                onClick={() => {
+                  setActiveConversationId(id);
+                  setDrawerOpen(false);
+                }}
+              >
+                <span className={styles.conversationName}>{title}</span>
+              </ListItem>
+            ))}
           </List>
         </Box>
-        <Box className={styles.drawerBackdrop} onClick={() => setDrawerOpen(false)} />
+        <Box
+          className={styles.drawerBackdrop}
+          onClick={() => setDrawerOpen(false)}
+        />
       </Box>
 
       <CreateConversationModal
@@ -197,7 +367,11 @@ export default function AssistantChat() {
         onCreate={handleCreateConversation}
       />
 
-      <Paper elevation={3} className={styles.chatContainer}>
+      <Paper
+        elevation={3}
+        className={styles.chatContainer}
+        sx={{ position: "relative" }}
+      >
         <Box className={styles.header}>
           <IconButton onClick={() => setDrawerOpen(true)}>
             <MenuOpenIcon />
@@ -210,71 +384,118 @@ export default function AssistantChat() {
           </IconButton>
         </Box>
 
-        <Box className={styles.messageArea}>
-          {messages.map((msg, index) => (
-            <Box key={index} className={msg.role === 'user' ? styles.userMsg : styles.botMsg}>
-              <MarkdownMUI>{msg.content}</MarkdownMUI>
-              {/* Botão para baixar a planilha */}
-              {msg.spreadsheet_metadata && (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  sx={{ marginTop: '8px', color: '#df8157', borderColor: '#df8157' }}
-                  onClick={() => {
-                    if (msg.spreadsheet_metadata) {
-                      assistantService.downloadSpreadsheet(msg.id)
-                        .then((csvData) => {
-                          downloadCSVasXLSX(csvData, `spreadsheet_${msg.id}.xlsx`);
-                        })
-                        .catch((error) => {
-                          console.error('Error downloading spreadsheet:', error);
-                        });
-                    }
-                  }}
-                >
-                  Baixar Planilha
-                </Button>
-              )}
-            </Box>
-          ))}
+        {/* Área de mensagens */}
+        <Box className={styles.messageArea} ref={messageAreaRef}>
+          {messages.map((msg, index) => {
+            const isGeneratingMessage =
+              msg.role === "assistant" &&
+              index === messages.length - 1 &&
+              !msg.content;
+
+            // Ref para a última mensagem do usuário (âncora)
+            const maybeUserRefProps =
+              msg.role === "user" && msg.id === lastUserMsgId
+                ? { ref: lastUserMsgRef }
+                : {};
+
+            if (isGeneratingMessage) {
+              return (
+                <Box key={msg.id} className={styles.botMsg}>
+                  Analisando
+                  <span className={styles.typingDots} aria-label="digitando" />
+                </Box>
+              );
+            }
+
+            return (
+              <Box
+                key={msg.id}
+                {...maybeUserRefProps}
+                className={msg.role === "user" ? styles.userMsg : styles.botMsg}
+              >
+                <MarkdownMUI>{msg.content}</MarkdownMUI>
+
+                {msg.spreadsheet_metadata && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    sx={{
+                      marginTop: "8px",
+                      color: "#df8157",
+                      borderColor: "#df8157",
+                    }}
+                    onClick={() => {
+                      if (msg.spreadsheet_metadata) {
+                        assistantService
+                          .downloadSpreadsheet(msg.id)
+                          .then((csvData) => {
+                            downloadCSVasXLSX(
+                              csvData,
+                              `spreadsheet_${msg.id}.xlsx`,
+                            );
+                          })
+                          .catch((error) => {
+                            console.error(
+                              "Error downloading spreadsheet:",
+                              error,
+                            );
+                          });
+                      }
+                    }}
+                  >
+                    Baixar Planilha
+                  </Button>
+                )}
+              </Box>
+            );
+          })}
         </Box>
 
+        {/* Input */}
         <Box className={styles.inputArea}>
           <Box className={styles.inputWrapper}>
-          <TextField
-            fullWidth
-            placeholder="Escreva aqui sua solicitação"
-            multiline
-            key={assistantType}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Impede quebra de linha
-                handleSend();
-              }
-            }}
-            sx={{
-              borderRadius: '12px',
-              backgroundColor: '#ffff',
-              '& .MuiInputBase-root': {
-                backgroundColor: '#f9f8f4',
-                borderRadius: '12px',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '& textarea': {
-                minHeight: '70px',
-                maxHeight: '200px',
-                overflowY: 'scroll',
-                marginBottom: '40px',
-              },
-            }}
-          />
-          <AssistantSelector assistantType={assistantType} className={styles.inputSelector} onSelectAssistantType={(type)=>setAssistantType(type)}/>
+            <TextField
+              fullWidth
+              placeholder="Escreva aqui sua solicitação"
+              multiline
+              key={assistantType}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              sx={{
+                borderRadius: "12px",
+                backgroundColor: "#ffff",
+                "& .MuiInputBase-root": {
+                  backgroundColor: "#f9f8f4",
+                  borderRadius: "12px",
+                  border: "none !important",
+                  boxShadow: "none !important",
+                },
+                "& textarea": {
+                  minHeight: "70px",
+                  maxHeight: "200px",
+                  overflowY: "scroll",
+                  marginBottom: "40px",
+                },
+              }}
+            />
+            <AssistantSelector
+              assistantType={assistantType}
+              className={styles.inputSelector}
+              onSelectAssistantType={(type) => setAssistantType(type)}
+            />
           </Box>
-          <IconButton className={styles.sendButton} onClick={handleSend} color="primary">
-            <ArrowUpwardIcon sx={{color: '#fff'}} />
+          <IconButton
+            className={styles.sendButton}
+            onClick={handleSend}
+            color="primary"
+          >
+            <ArrowUpwardIcon sx={{ color: "#fff" }} />
           </IconButton>
         </Box>
       </Paper>
