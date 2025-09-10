@@ -211,3 +211,30 @@
 .toggleButton:hover {
   background-color: #cfccc1;
 }
+
+
+/* cursor piscando (opcional) */
+.cursorBlink {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* “... ” animado usando steps + width */
+.typingDots::after {
+  content: '...';
+  display: inline-block;
+  overflow: hidden;
+  width: 0ch;                 /* começa sem pontos */
+  vertical-align: bottom;
+  animation: dots 1.2s steps(4, end) infinite;
+}
+
+/* Vai de 0 → 3 caracteres e volta pro início automaticamente (loop) */
+@keyframes dots {
+  0%   { width: 0ch; }
+  100% { width: 3ch; }
+}
