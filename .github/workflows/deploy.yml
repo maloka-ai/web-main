@@ -3,7 +3,7 @@ name: Deploy para EC2
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   build-and-deploy:
