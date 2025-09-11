@@ -46,6 +46,14 @@ function downloadCSVasXLSX(csvString: string, filename = "dados.xlsx") {
   URL.revokeObjectURL(url);
 }
 
+function TypingIndicator() {
+  return (
+    <div className={styles.containerSingleDot}>
+      <span className={styles.singleDot}></span>
+    </div>
+  );
+}
+
 export default function AssistantChat() {
   const [input, setInput] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -61,6 +69,8 @@ export default function AssistantChat() {
   const [assistantType, setAssistantType] = useState<AssistantType>(
     AssistantType.GENERAL,
   );
+  const [isGeneratingMessage, setIsGeneratingMessage] =
+    useState<boolean>(false);
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -177,8 +187,9 @@ export default function AssistantChat() {
 
   const handleSend = async () => {
     const inputMessage = input.trim();
-    if (!inputMessage) return;
+    if (!inputMessage || isGeneratingMessage) return;
     setInput("");
+    setIsGeneratingMessage(true);
 
     // Cria mensagem do usuário + placeholder do assistente
     const userMsgId = crypto.randomUUID();
@@ -269,9 +280,11 @@ export default function AssistantChat() {
             ...prevMessages.slice(0, -1), // remove mensagem
           ]);
           setChunkAutoScroll(false);
+          setIsGeneratingMessage(false);
         },
         onDone: () => {
           setChunkAutoScroll(false);
+          setIsGeneratingMessage(false);
         },
       },
     );
@@ -467,9 +480,14 @@ export default function AssistantChat() {
           <IconButton
             className={styles.sendButton}
             onClick={handleSend}
+            disabled={isGeneratingMessage}
             color="primary"
           >
-            <ArrowUpwardIcon sx={{ color: "#fff" }} />
+            {isGeneratingMessage ? (
+              <TypingIndicator />
+            ) : (
+              <ArrowUpwardIcon sx={{ color: "#fff" }} />
+            )}{" "}
           </IconButton>
         </Box>
       </Paper>

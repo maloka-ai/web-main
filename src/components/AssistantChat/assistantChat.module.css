@@ -238,3 +238,40 @@
   0%   { width: 0ch; }
   100% { width: 3ch; }
 }
+
+.typingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+}
+/*ANIMAÇÃO PARA BOTÃO ENQUANTO ESPERA RESPOSTA*/
+.singleDot {
+  display: inline-block;
+  width: 10px;     /* tamanho do círculo */
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fff; /* branco */
+  animation: pulse 1s infinite ease-in-out;
+}
+
+
+.containerSingleDot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
