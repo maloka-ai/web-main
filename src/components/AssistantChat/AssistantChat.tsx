@@ -229,82 +229,52 @@ export default function AssistantChat() {
       conversationId = newConversation.thread_id;
     }
 
-    if (assistantType === AssistantType.GENERAL) {
-      setChunkAutoScroll(true);
+    setChunkAutoScroll(true);
 
-      await assistantService.sendMessageStreaming(
-        inputMessage,
-        conversationId ?? "",
-        {
-          onChunk: (chunk) => {
+    await assistantService.sendMessageStreaming(
+      inputMessage,
+      conversationId ?? "",
+      {
+        onChunk: (chunk) => {
+          setMessages((prev) => {
+            const i = prev.length - 1;
+            const last = prev[i];
 
-            setMessages((prev) => {
-              const i = prev.length - 1;
-              const last = prev[i];
+            if (i >= 0 && last?.role === "assistant") {
+              const updated = {
+                ...last,
+                content: (last.content ?? "") + chunk,
+              };
+              return [...prev.slice(0, i), updated];
+            }
 
-              if (i >= 0 && last?.role === "assistant") {
-                const updated = { ...last, content: (last.content ?? "") + chunk };
-                return [...prev.slice(0, i), updated];
-              }
+            return [
+              ...prev,
+              { role: "assistant", content: chunk } as AssistanteMessage,
+            ];
+          });
 
-              return [...prev, { role: "assistant", content: chunk } as AssistanteMessage];
-            });
-
-            // Enquanto estiver em autoscroll, rola para o fim,
-            // mas para quando a msg do usuário encostar no topo.
-            if (!chunkAutoScrollRef.current) return;
-            // aguarda layout antes de verificar/rolar
-            requestAnimationFrame(() => {
-              tryScrollThrottled();
-            });
-          },
-          onError: (err) => {
-            //////////// FAZER COMPONENTE PARA ERRO
-            console.error("Invalid response message:", err);
-            setMessages((prevMessages) => [
-              ...prevMessages.slice(0, -1), // remove mensagem
-            ]);
-            setChunkAutoScroll(false);
-          },
-          onDone: () => {
-            setChunkAutoScroll(false);
-          },
+          // Enquanto estiver em autoscroll, rola para o fim,
+          // mas para quando a msg do usuário encostar no topo.
+          if (!chunkAutoScrollRef.current) return;
+          // aguarda layout antes de verificar/rolar
+          requestAnimationFrame(() => {
+            tryScrollThrottled();
+          });
         },
-      );
-    } else {
-      // ===== RESPOSTA INTEIRA =====
-      const responseMessage = await assistantService.sendMessage(
-        conversationId,
-        inputMessage,
-      );
-
-      if (!responseMessage) {
-        //////////// FAZER COMPONENTE PARA ERRO
-        console.error("Invalid response message:", responseMessage);
-        setMessages((prevMessages) => [
-          ...prevMessages.slice(0, -1), // remove mensagem
-        ]);
-        return;
-      }
-
-      setMessages((prevMessages) => [
-        ...prevMessages.slice(0, -1), // remove placeholder vazio
-        {
-          content: responseMessage.content,
-          role: "assistant",
-          spreadsheet_metadata: responseMessage.spreadsheet_metadata,
-          id: responseMessage.id,
-          thread_id: responseMessage.thread_id,
-          user_id: responseMessage.user_id,
-          created_at: responseMessage.created_at,
+        onError: (err) => {
+          //////////// FAZER COMPONENTE PARA ERRO
+          console.error("Invalid response message:", err);
+          setMessages((prevMessages) => [
+            ...prevMessages.slice(0, -1), // remove mensagem
+          ]);
+          setChunkAutoScroll(false);
         },
-      ]);
-
-      // Ao receber a resposta inteira, rola até a mensagem do usuário (âncora)
-      requestAnimationFrame(() => {
-        scrollToUserMessage("smooth");
-      });
-    }
+        onDone: () => {
+          setChunkAutoScroll(false);
+        },
+      },
+    );
   };
 
   const handleCreateConversation = async (
