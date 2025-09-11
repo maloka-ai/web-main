@@ -19,18 +19,15 @@ jobs:
           node-version: 20
           cache: yarn
 
-      - name: Instalar dependências
-        run: yarn install
+      - name: Instalar dependências e buildar
+        run: |
+          yarn install
+          yarn build --no-lint
 
-      - name: Buildar aplicação
-        run: yarn build --no-lint
-
-      - name: Preparar artefato
+      - name: Preparar artefato para deploy
         run: |
           mkdir -p release
-          cp -r .next public package.json yarn.lock release/
-          # Copiar next.config.js (certifique de ter este arquivo na raiz)
-          [ -f next.config.js ] && cp next.config.js release/
+          cp -r .next public package.json yarn.lock next.config.js release/ 2>/dev/null || true
           cd release
           tar -czf ../web-main.tar.gz .
           cd ..
@@ -57,8 +54,8 @@ jobs:
             tar -xzf /home/ubuntu/web-main.tar.gz -C "$APP_DIR"
             cd "$APP_DIR"
 
-            echo "Instalando dependências..."
-            yarn install --frozen-lockfile
+            echo "Instalando dependências de produção..."
+            yarn install --production --frozen-lockfile
 
             echo "Iniciando app via PM2..."
             pm2 delete web-main || true
