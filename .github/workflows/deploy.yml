@@ -28,6 +28,8 @@ jobs:
         run: |
           mkdir -p release
           cp -r .next public package.json yarn.lock next.config.js release/ 2>/dev/null || true
+          # Incluir a pasta app se existir (Next.js App Router)
+          [ -d app ] && cp -r app release/
           cd release
           tar -czf ../web-main.tar.gz .
           cd ..
@@ -54,8 +56,9 @@ jobs:
             tar -xzf /home/ubuntu/web-main.tar.gz -C "$APP_DIR"
             cd "$APP_DIR"
 
-            echo "Instalando dependências de produção..."
-            yarn install --production --frozen-lockfile
+            echo "Instalando apenas dependências de produção com Yarn 3..."
+            # Yarn 3+ usa 'workspaces focus' para produção
+            yarn workspaces focus --production || yarn install --immutable --check-cache
 
             echo "Iniciando app via PM2..."
             pm2 delete web-main || true
