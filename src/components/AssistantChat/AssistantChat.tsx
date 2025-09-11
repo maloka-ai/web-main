@@ -238,6 +238,7 @@ export default function AssistantChat() {
         title,
       );
       conversationId = newConversation.thread_id;
+      setActiveConversationId(newConversation.thread_id);
     }
 
     setChunkAutoScroll(true);
