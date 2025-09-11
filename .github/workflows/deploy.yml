@@ -53,10 +53,19 @@ jobs:
           script: |
             APP_DIR="/home/ubuntu/web-main"
             mkdir -p "$APP_DIR"
+
+            # Extrai build dentro da pasta da aplicação, removendo conteúdo antigo
+            rm -rf "$APP_DIR"/*
             tar -xzf /home/ubuntu/web-main.tar.gz -C "$APP_DIR"
+
             cd "$APP_DIR"
-            # Reinicia o app com PM2
+
+            echo "Instalando dependências com yarn..."
+            yarn install --frozen-lockfile
+
+            echo "Reiniciando app no PM2..."
             pm2 delete web-main || true
             pm2 start "yarn start" --name web-main
+
             pm2 save
             pm2 list
