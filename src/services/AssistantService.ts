@@ -104,7 +104,7 @@ const assistantService = {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/assistantsthreads/${threadId}/ask_streaming`,
+        `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
         {
           method: "POST",
           headers: {
