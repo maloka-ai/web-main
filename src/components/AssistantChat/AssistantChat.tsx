@@ -46,6 +46,14 @@ function downloadCSVasXLSX(csvString: string, filename = "dados.xlsx") {
   URL.revokeObjectURL(url);
 }
 
+function TypingIndicator() {
+  return (
+    <div className={styles.containerSingleDot}>
+      <span className={styles.singleDot}></span>
+    </div>
+  );
+}
+
 export default function AssistantChat() {
   const [input, setInput] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -61,6 +69,8 @@ export default function AssistantChat() {
   const [assistantType, setAssistantType] = useState<AssistantType>(
     AssistantType.GENERAL,
   );
+  const [isGeneratingMessage, setIsGeneratingMessage] =
+    useState<boolean>(false);
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -177,8 +187,9 @@ export default function AssistantChat() {
 
   const handleSend = async () => {
     const inputMessage = input.trim();
-    if (!inputMessage) return;
+    if (!inputMessage || isGeneratingMessage) return;
     setInput("");
+    setIsGeneratingMessage(true);
 
     // Cria mensagem do usuário + placeholder do assistente
     const userMsgId = crypto.randomUUID();
@@ -227,84 +238,57 @@ export default function AssistantChat() {
         title,
       );
       conversationId = newConversation.thread_id;
+      setActiveConversationId(newConversation.thread_id);
     }
 
-    if (assistantType === AssistantType.GENERAL) {
-      setChunkAutoScroll(true);
+    setChunkAutoScroll(true);
 
-      await assistantService.sendMessageStreaming(
-        inputMessage,
-        conversationId ?? "",
-        {
-          onChunk: (chunk) => {
+    await assistantService.sendMessageStreaming(
+      inputMessage,
+      conversationId ?? "",
+      {
+        onChunk: (chunk) => {
+          setMessages((prev) => {
+            const i = prev.length - 1;
+            const last = prev[i];
 
-            setMessages((prev) => {
-              const i = prev.length - 1;
-              const last = prev[i];
+            if (i >= 0 && last?.role === "assistant") {
+              const updated = {
+                ...last,
+                content: (last.content ?? "") + chunk,
+              };
+              return [...prev.slice(0, i), updated];
+            }
 
-              if (i >= 0 && last?.role === "assistant") {
-                const updated = { ...last, content: (last.content ?? "") + chunk };
-                return [...prev.slice(0, i), updated];
-              }
+            return [
+              ...prev,
+              { role: "assistant", content: chunk } as AssistanteMessage,
+            ];
+          });
 
-              return [...prev, { role: "assistant", content: chunk } as AssistanteMessage];
-            });
-
-            // Enquanto estiver em autoscroll, rola para o fim,
-            // mas para quando a msg do usuário encostar no topo.
-            if (!chunkAutoScrollRef.current) return;
-            // aguarda layout antes de verificar/rolar
-            requestAnimationFrame(() => {
-              tryScrollThrottled();
-            });
-          },
-          onError: (err) => {
-            //////////// FAZER COMPONENTE PARA ERRO
-            console.error("Invalid response message:", err);
-            setMessages((prevMessages) => [
-              ...prevMessages.slice(0, -1), // remove mensagem
-            ]);
-            setChunkAutoScroll(false);
-          },
-          onDone: () => {
-            setChunkAutoScroll(false);
-          },
+          // Enquanto estiver em autoscroll, rola para o fim,
+          // mas para quando a msg do usuário encostar no topo.
+          if (!chunkAutoScrollRef.current) return;
+          // aguarda layout antes de verificar/rolar
+          requestAnimationFrame(() => {
+            tryScrollThrottled();
+          });
         },
-      );
-    } else {
-      // ===== RESPOSTA INTEIRA =====
-      const responseMessage = await assistantService.sendMessage(
-        conversationId,
-        inputMessage,
-      );
-
-      if (!responseMessage) {
-        //////////// FAZER COMPONENTE PARA ERRO
-        console.error("Invalid response message:", responseMessage);
-        setMessages((prevMessages) => [
-          ...prevMessages.slice(0, -1), // remove mensagem
-        ]);
-        return;
-      }
-
-      setMessages((prevMessages) => [
-        ...prevMessages.slice(0, -1), // remove placeholder vazio
-        {
-          content: responseMessage.content,
-          role: "assistant",
-          spreadsheet_metadata: responseMessage.spreadsheet_metadata,
-          id: responseMessage.id,
-          thread_id: responseMessage.thread_id,
-          user_id: responseMessage.user_id,
-          created_at: responseMessage.created_at,
+        onError: (err) => {
+          //////////// FAZER COMPONENTE PARA ERRO
+          console.error("Invalid response message:", err);
+          setMessages((prevMessages) => [
+            ...prevMessages.slice(0, -1), // remove mensagem
+          ]);
+          setChunkAutoScroll(false);
+          setIsGeneratingMessage(false);
         },
-      ]);
-
-      // Ao receber a resposta inteira, rola até a mensagem do usuário (âncora)
-      requestAnimationFrame(() => {
-        scrollToUserMessage("smooth");
-      });
-    }
+        onDone: () => {
+          setChunkAutoScroll(false);
+          setIsGeneratingMessage(false);
+        },
+      },
+    );
   };
 
   const handleCreateConversation = async (
@@ -497,9 +481,14 @@ export default function AssistantChat() {
           <IconButton
             className={styles.sendButton}
             onClick={handleSend}
+            disabled={isGeneratingMessage}
             color="primary"
           >
-            <ArrowUpwardIcon sx={{ color: "#fff" }} />
+            {isGeneratingMessage ? (
+              <TypingIndicator />
+            ) : (
+              <ArrowUpwardIcon sx={{ color: "#fff" }} />
+            )}{" "}
           </IconButton>
         </Box>
       </Paper>
