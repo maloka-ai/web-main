@@ -237,13 +237,17 @@ export default function AssistantChat() {
         conversationId ?? "",
         {
           onChunk: (chunk) => {
+
             setMessages((prev) => {
-              const copy = [...prev];
-              const last = copy[copy.length - 1];
-              if (last?.role === "assistant") {
-                last.content += chunk;
+              const i = prev.length - 1;
+              const last = prev[i];
+
+              if (i >= 0 && last?.role === "assistant") {
+                const updated = { ...last, content: (last.content ?? "") + chunk };
+                return [...prev.slice(0, i), updated];
               }
-              return copy;
+
+              return [...prev, { role: "assistant", content: chunk } as AssistanteMessage];
             });
 
             // Enquanto estiver em autoscroll, rola para o fim,
