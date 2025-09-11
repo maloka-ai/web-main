@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p release
           cp -r .next public package.json yarn.lock release/
-          # Copia next.config.js apenas se existir
+          # Copiar next.config.js (certifique de ter este arquivo na raiz)
           [ -f next.config.js ] && cp next.config.js release/
           cd release
           tar -czf ../web-main.tar.gz .
@@ -53,17 +53,14 @@ jobs:
           script: |
             APP_DIR="/home/ubuntu/web-main"
             mkdir -p "$APP_DIR"
-
-            # Extrai build dentro da pasta da aplicação, removendo conteúdo antigo
             rm -rf "$APP_DIR"/*
             tar -xzf /home/ubuntu/web-main.tar.gz -C "$APP_DIR"
-
             cd "$APP_DIR"
 
-            echo "Instalando dependências com yarn..."
+            echo "Instalando dependências..."
             yarn install --frozen-lockfile
 
-            echo "Reiniciando app no PM2..."
+            echo "Iniciando app via PM2..."
             pm2 delete web-main || true
             pm2 start "yarn start" --name web-main
 
