@@ -10,30 +10,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout do código
       - name: Checkout do código
         uses: actions/checkout@v4
 
+      # 2️⃣ Configurar Node.js
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: yarn
 
+      # 3️⃣ Instalar dependências e buildar
       - name: Instalar dependências e buildar
         run: |
           yarn install
           yarn build --no-lint
 
-      - name: Preparar artefato para deploy
+      # 4️⃣ Preparar artefato para deploy
+      - name: Preparar artefato
         run: |
           mkdir -p release
-          cp -r .next public package.json yarn.lock next.config.js release/ 2>/dev/null || true
-          # Incluir a pasta app se existir (Next.js App Router)
-          [ -d app ] && cp -r app release/
+          # Copiar build e arquivos necessários
+          cp -r .next public package.json yarn.lock next.config.ts release/ 2>/dev/null || true
+          # Incluir a pasta src/app do App Router
+          [ -d src/app ] && cp -r src/app release/app
           cd release
           tar -czf ../web-main.tar.gz .
           cd ..
 
+      # 5️⃣ Copiar artefato para EC2
       - name: Copiar artefato para EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -43,6 +49,7 @@ jobs:
           source: "web-main.tar.gz"
           target: "/home/ubuntu/"
 
+      # 6️⃣ Deploy na EC2
       - name: Deploy na EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -56,13 +63,16 @@ jobs:
             tar -xzf /home/ubuntu/web-main.tar.gz -C "$APP_DIR"
             cd "$APP_DIR"
 
-            echo "Instalando apenas dependências de produção com Yarn 3..."
-            # Yarn 3+ usa 'workspaces focus' para produção
+            echo "Instalando apenas dependências de produção com Yarn 3+..."
             yarn workspaces focus --production || yarn install --immutable --check-cache
 
-            echo "Iniciando app via PM2..."
+            echo "Limpando PM2 e portas antigas..."
             pm2 delete web-main || true
-            pm2 start "yarn start" --name web-main
 
+            # Certificar que nenhuma aplicação antiga está na porta 3000
+            fuser -k 3000/tcp || true
+
+            echo "Iniciando aplicação com PM2..."
+            pm2 start "yarn start" --name web-main
             pm2 save
             pm2 list
