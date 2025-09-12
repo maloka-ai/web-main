@@ -20,7 +20,6 @@ export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) 
 
   const {
     type,
-    index,
     title,
     subtitle,
     value,
@@ -86,7 +85,6 @@ export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) 
                 xAxisAngle,
                 tooltipFormatter
               }}
-              index={index}
             />
           </Box>
           {subtitle && (
