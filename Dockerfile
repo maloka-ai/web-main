@@ -1,24 +1,29 @@
-FROM node:18-alpine
+#Created By: igson mendes da silva
+
+# Base stage
+FROM node:18-alpine AS base
 
 WORKDIR /app
 
-# Copia todos os arquivos necessários do Yarn PnP
+ENV NODE_ENV=production
+
+# Build stage
+FROM base AS build
+RUN apk add --no-cache build-base python3 g++ make
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci --include=dev
+
+# Copy source code and build
 COPY . .
+RUN npm run build && npm prune --omit=dev
 
-# Define o carregamento do .pnp.cjs no Node
-ENV NODE_OPTIONS="--require ./.pnp.cjs"
+# Run stage
+FROM base AS run
+# Copy only the built output
+COPY --from=build /app/.next/standalone /app
+COPY --from=build /app/.next/static /app/.next/static
+COPY --from=build /app/public /app/public
 
-# Instala Yarn globalmente
-RUN corepack enable && corepack prepare yarn@stable --activate
-
-# Instala dependências (modo Plug'n'Play)
-RUN yarn install
-
-# Gera a build
-RUN yarn build
-
-# Expõe a porta
-EXPOSE 3000
-
-# Start do app
-CMD ["yarn", "start"]
+CMD ["node", "server.js"]
