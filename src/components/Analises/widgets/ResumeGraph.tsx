@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
-import DetalheGraphLine from './DetailGraphLine';
 import RenderGraphic from './RenderGraphic';
-import { GraphType } from '@/utils/enums';
 import { getStrokeColor, GraphData } from '@/utils/graphics';
 import DetailGraph from './DetailGraph';
 
