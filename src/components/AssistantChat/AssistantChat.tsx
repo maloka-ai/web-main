@@ -274,6 +274,21 @@ export default function AssistantChat() {
             tryScrollThrottled();
           });
         },
+        onMetadata: (meta) => {
+          setMessages((prev) => {
+            const i = prev.length - 1;
+            const last = prev[i];
+
+            if (i >= 0 && last?.role === "assistant") {
+              const updated = {
+                ...last,
+                ...meta,
+              } as AssistanteMessage;
+              return [...prev.slice(0, i), updated];
+            }
+            return prev;
+          });
+        },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
           console.error("Invalid response message:", err);
@@ -302,6 +317,22 @@ export default function AssistantChat() {
     setActiveConversationId(newConversation.thread_id);
     setMessages([]);
   };
+
+  async function handleDownloadMetada(msg: AssistanteMessage) {
+    if (msg.spreadsheet_metadata) {
+      try {
+        const msgId =
+          typeof msg.spreadsheet_metadata === "object" &&
+          "message_id" in msg.spreadsheet_metadata
+            ? msg.spreadsheet_metadata.message_id
+            : msg.id;
+        const csvData = await assistantService.downloadSpreadsheet(msgId);
+        downloadCSVasXLSX(csvData, `spreadsheet_${msg.id}.xlsx`);
+      } catch (error) {
+        console.error("Error downloading spreadsheet:", error);
+      }
+    }
+  }
 
   return (
     <Box
@@ -413,22 +444,7 @@ export default function AssistantChat() {
                       borderColor: "#df8157",
                     }}
                     onClick={() => {
-                      if (msg.spreadsheet_metadata) {
-                        assistantService
-                          .downloadSpreadsheet(msg.id)
-                          .then((csvData) => {
-                            downloadCSVasXLSX(
-                              csvData,
-                              `spreadsheet_${msg.id}.xlsx`,
-                            );
-                          })
-                          .catch((error) => {
-                            console.error(
-                              "Error downloading spreadsheet:",
-                              error,
-                            );
-                          });
-                      }
+                      handleDownloadMetada(msg);
                     }}
                   >
                     Baixar Planilha
