@@ -36,6 +36,95 @@ export enum AssistantType {
   SHOPPING = "2",
   DATA = "3",
 }
+type StreamingCallbacks = {
+  onChunk?: (chunk: string) => void;
+  onDone?: () => void;
+  onError?: (err: string) => void;
+  onMetadata?: (meta: object) => void; // <-- novo
+};
+
+const META_START = "__METADATA_SEND_START__";
+const META_END = "__METADATA_SEND_END__";
+
+function createMetadataParser(callbacks: StreamingCallbacks) {
+  let buffer = "";
+
+  // emite texto normal para o chat
+  const emitText = (text: string) => {
+    if (!text) return;
+    callbacks.onChunk?.(text);
+  };
+
+  // normaliza { spreadsheet_metadata: "<json>" } -> objeto
+  const normalizeMeta = (meta: any) => {
+    if (meta && typeof meta.spreadsheet_metadata === "string") {
+      try {
+        meta.spreadsheet_metadata = JSON.parse(meta.spreadsheet_metadata);
+      } catch (e) {
+        callbacks.onError?.(
+          "Falha ao parsear spreadsheet_metadata: " + (e as Error).message,
+        );
+      }
+    }
+    return meta;
+  };
+
+  // processa buffer; pode extrair 0..N blocos de metadata
+  const process = () => {
+    while (true) {
+      const s = buffer.indexOf(META_START);
+      if (s === -1) {
+        // não há START: emitir parte segura (evitar cortar marcador em formação)
+        const safeLen = Math.max(0, buffer.length - (META_START.length - 1));
+        if (safeLen > 0) {
+          emitText(buffer.slice(0, safeLen));
+          buffer = buffer.slice(safeLen);
+        }
+        break;
+      }
+
+      // texto antes do metadata
+      if (s > 0) {
+        emitText(buffer.slice(0, s));
+      }
+
+      const e = buffer.indexOf(META_END, s + META_START.length);
+      if (e === -1) {
+        // metadata incompleto; esperar próximo chunk
+        buffer = buffer.slice(s);
+        break;
+      }
+
+      // JSON entre START e END
+      const jsonStr = buffer.slice(s + META_START.length, e).trim();
+      try {
+        const rawMeta = JSON.parse(jsonStr);
+        const meta = normalizeMeta(rawMeta);
+        callbacks.onMetadata?.(meta);
+      } catch (err) {
+        callbacks.onError?.(
+          "Falha ao parsear metadados: " + (err as Error).message,
+        );
+      }
+
+      // remove bloco processado e continua
+      buffer = buffer.slice(e + META_END.length);
+    }
+  };
+
+  return {
+    push: (chunk: string) => {
+      buffer += chunk;
+      process();
+    },
+    flush: () => {
+      if (buffer) {
+        emitText(buffer);
+        buffer = "";
+      }
+    },
+  };
+}
 
 const assistantService = {
   async getAssistants(): Promise<Assistant[]> {
@@ -93,15 +182,10 @@ const assistantService = {
   async sendMessageStreaming(
     message: string,
     threadId: string,
-    callbacks: {
-      onChunk?: (chunk: string) => void;
-      onDone?: () => void;
-      onError?: (err: string) => void;
-    },
+    callbacks: StreamingCallbacks,
     signal?: AbortSignal,
   ) {
     const token = authService.getAccessToken();
-
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
@@ -117,11 +201,11 @@ const assistantService = {
       );
 
       if (!res.ok || !res.body) {
-        // opcional: tratar 401/403 aqui
         throw new Error(`HTTP ${res.status} ${res.statusText}`);
       }
 
-      // Preferir TextDecoderStream quando existir
+      const parser = createMetadataParser(callbacks);
+
       if ("TextDecoderStream" in window) {
         const reader = res.body
           .pipeThrough(new TextDecoderStream())
@@ -130,37 +214,26 @@ const assistantService = {
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            console.log("value", value);
-            const chunk: string = value ?? "";
-            if (chunk.includes("[error]") || chunk.includes("[bridge-error]")) {
-              callbacks.onError?.(chunk.trim());
-            } else {
-              callbacks.onChunk?.(chunk);
-            }
+            parser.push(value ?? "");
           }
         } finally {
           reader.releaseLock();
         }
       } else {
-        // Fallback para browsers sem TextDecoderStream
         const reader = res.body.getReader();
         const decoder = new TextDecoder("utf-8");
         try {
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            if (chunk.includes("[error]") || chunk.includes("[bridge-error]")) {
-              callbacks.onError?.(chunk.trim());
-            } else {
-              callbacks.onChunk?.(chunk);
-            }
+            parser.push(decoder.decode(value, { stream: true }));
           }
         } finally {
           reader.releaseLock();
         }
       }
 
+      parser.flush();
       callbacks.onDone?.();
     } catch (err: any) {
       callbacks.onError?.(err?.message ?? String(err));
