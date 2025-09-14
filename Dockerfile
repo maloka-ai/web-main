@@ -1,29 +1,18 @@
-#Created By: igson mendes da silva
-
-# Base stage
-FROM node:18-alpine AS base
-
+# =========================
+# Production image
+# =========================
+FROM node:18-alpine
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# Build stage
-FROM base AS build
-RUN apk add --no-cache build-base python3 g++ make
+# Copia o build pronto do Next.js e os assets
+COPY .next/standalone ./
+COPY .next/static ./.next/static
+COPY public ./public
+COPY package.json yarn.lock ./
 
-# Install dependencies
-COPY package*.json ./
-RUN npm ci --include=dev
+# Expõe porta do Next.js
+EXPOSE 3000
 
-# Copy source code and build
-COPY . .
-RUN npm run build && npm prune --omit=dev
-
-# Run stage
-FROM base AS run
-# Copy only the built output
-COPY --from=build /app/.next/standalone /app
-COPY --from=build /app/.next/static /app/.next/static
-COPY --from=build /app/public /app/public
-
+# Roda o servidor standalone do Next.js
 CMD ["node", "server.js"]
