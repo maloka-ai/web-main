@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react"
-import { getString } from "@/utils/strings"
-import { Typography } from "@mui/material"
-import { Box } from "@mui/system"
-
-import BarGraph from "../widgets/graphics/BarGraph"
-import DetailsAlertsAndActions from "../widgets/DetailsAlertsAndActions"
-import { analysisService, CockpitAlert, CustomerSegmentation } from "@/services/analysisService"
-import { handleDownloadAlertDetail } from "../widgets/AlertasEAcoes"
+import {useEffect, useState} from "react"
+import {getString} from "@/utils/strings"
+import {Typography} from "@mui/material"
+import {Box} from "@mui/system"
+import {analysisService, CustomerSegmentation} from "@/services/analysisService"
+import {handleDownloadAlertDetail} from "../widgets/AlertasEAcoes"
 import RenderGraphic from "../widgets/RenderGraphic"
-import { makeSegmentationCustomerGraphs } from "../helpers/CustomerMoreLessActiveHelper"
+import {makeSegmentationCustomerGraphs} from "../helpers/CustomerMoreLessActiveHelper"
+import DialogDetailsTable, {DetailsDialogTableProps} from "@/components/dialog/DialogDetailsTable";
 
 
 const CustomerMoreLessActivePage = () => {
-  const [alert, setAlert] = useState<CockpitAlert | null>(null);
-  const [segmentationCustomer, setSegmentationCustomer] = useState<CustomerSegmentation[]>([]);
+  const [detailsTable, setDetailsTable] =
+    useState<DetailsDialogTableProps | null>(null);
+  const [segmentationCustomer, setSegmentationCustomer] = useState<
+    CustomerSegmentation[]
+  >([]);
 
   useEffect(() => {
     analysisService.getSegmentacaoClientes()
@@ -22,13 +23,10 @@ const CustomerMoreLessActivePage = () => {
   }, [])
 
   const handleBarSelected = (name: string) => {
-    setAlert({
-      indicador: "0",
-      titulo: `Clientes do seguimento: ${name}`,
-      descricao: `Exibino clientes do segmento ${name}.`,
-      acao: "<ação>",
-      link_detalhamento: `/customer/segmentacao/clientes_por_segmento?segmento=${encodeURIComponent(name)}`,
-      tipo: "info",
+    setDetailsTable({
+      title: `Clientes do seguimento: ${name}`,
+      description: `Exibindo clientes do segmento ${name}.`,
+      linkDataTable: `/customer/segmentacao/clientes_por_segmento?segmento=${encodeURIComponent(name)}`,
     });
   };
 
@@ -47,7 +45,6 @@ const CustomerMoreLessActivePage = () => {
         >
           {getString("analysis-customers-more-less-active-customers-graph-title")}
         </Typography>
-
       </Box>
 
       {/* <BarGraph
@@ -79,23 +76,23 @@ const CustomerMoreLessActivePage = () => {
         graph={{ ...makeSegmentationCustomerGraphs(segmentationCustomer)[0], onBarSelected: handleBarSelected }}
       />
 
-      <DetailsAlertsAndActions
-        alert={alert}
-        open={!!alert}
+      <DialogDetailsTable
+        data={detailsTable}
+        open={!!detailsTable}
         onClose={() => {
-          setAlert(null);
+          setDetailsTable(null);
         }}
         onDownload={() =>
-          alert
+          detailsTable
             ? handleDownloadAlertDetail(
-                alert.link_detalhamento,
-                `alerta_${alert.descricao.toLowerCase().replace(/\s+/g, "_")}.xlsx`,
+                detailsTable.linkDataTable!,
+                `alerta_${detailsTable.description!.toLowerCase().replace(/\s+/g, "_")}.xlsx`,
               )
             : null
         }
       />
     </>
-  )
-}
+  );
+};
 
 export default CustomerMoreLessActivePage;

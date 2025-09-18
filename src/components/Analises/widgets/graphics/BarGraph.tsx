@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ResponsiveContainer,
@@ -12,12 +12,10 @@ import {
   CartesianGrid,
   Legend,
   LegendProps,
-} from 'recharts';
-import { useMemo } from 'react';
-import { BarDatum } from '@/utils/graphics';
-import { formatNumber } from '@/utils/format';
-
-
+} from "recharts";
+import { useMemo } from "react";
+import { BarDatum } from "@/utils/graphics";
+import { formatLabelBar, formatNumber } from "@/utils/format";
 
 export interface BarGraphProps {
   data: BarDatum[];
@@ -32,19 +30,40 @@ export interface BarGraphProps {
   barColors?: string[];
   height?: number;
   legendTitle?: string;
+  dataKey?: string;
 }
 
 const DEFAULT_COLORS = [
-  '#CFE5A7', '#D7B79A', '#B894D6', '#DDD39B', '#9AB6D3',
-  '#DFB1C8', '#BFE1B8', '#E6E29F', '#BFE2E6', '#C7857F',
+  "#CFE5A7",
+  "#D7B79A",
+  "#B894D6",
+  "#DDD39B",
+  "#9AB6D3",
+  "#DFB1C8",
+  "#BFE1B8",
+  "#E6E29F",
+  "#BFE2E6",
+  "#C7857F",
 ];
 
 function CustomTooltip({
-  active, payload, label, total, sampleLabel, secondValueLabel, fmt, fmt2,
+  active,
+  payload,
+  label,
+  total,
+  sampleLabel,
+  secondValueLabel,
+  fmt,
+  fmt2,
 }: {
-  active?: boolean; payload?: any[]; label?: string; total: number;
-  sampleLabel: string; secondValueLabel: string;
-  fmt?: (v: number, name?: string) => string; fmt2?: (v: number) => string;
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  total: number;
+  sampleLabel: string;
+  secondValueLabel: string;
+  fmt?: (v: number, name?: string) => string;
+  fmt2?: (v: number) => string;
 }) {
   if (!active || !payload || !payload.length) return null;
   const dp = payload[0]?.payload as BarDatum;
@@ -53,21 +72,30 @@ function CustomTooltip({
   const percent = total > 0 ? (value / total) * 100 : 0;
 
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
-      padding: '10px 12px', boxShadow: '0 4px 12px rgba(0,0,0,.08)',
-      color: '#374151', maxWidth: 260,
-    }}>
-      <div style={{ fontWeight: 700, color: '#16a34a', marginBottom: 6 }}>{label}</div>
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 8,
+        padding: "10px 12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,.08)",
+        color: "#374151",
+        maxWidth: 260,
+      }}
+    >
+      <div style={{ fontWeight: 700, color: "#16a34a", marginBottom: 6 }}>
+        {label}
+      </div>
       <div style={{ marginBottom: 4 }}>
-        <strong>{sampleLabel}:</strong> {fmt ? fmt(value, label) : formatNumber(value)}
+        <strong>{sampleLabel}:</strong>{" "}
+        {fmt ? fmt(value, label) : formatNumber(value)}
       </div>
       <div style={{ marginBottom: 4 }}>
         <strong>Percentual:</strong> {percent.toFixed(1)}%
       </div>
       {secondValue != null && (
         <div>
-          <strong>{secondValueLabel}:</strong>{' '}
+          <strong>{secondValueLabel}:</strong>{" "}
           {fmt2 ? fmt2(secondValue) : formatNumber(secondValue)}
         </div>
       )}
@@ -77,24 +105,33 @@ function CustomTooltip({
 
 function RightLegend({
   payload,
-  title = 'Título da legenda',
+  title = "Título da legenda",
 }: Partial<LegendProps> & { title?: string }) {
   return (
     <div style={{ paddingLeft: 12 }}>
-      <div style={{ fontWeight: 700, color: '#4b4b4b', marginBottom: 8 }}>
+      <div style={{ fontWeight: 700, color: "#4b4b4b", marginBottom: 8 }}>
         {title}
       </div>
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {(payload ?? []).map((entry: any, i: number) => (
-          <li key={i} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+          <li
+            key={i}
+            style={{ display: "flex", alignItems: "center", marginBottom: 6 }}
+          >
             <span
               style={{
-                width: 12, height: 12, borderRadius: 3, marginRight: 8,
-                backgroundColor: entry.color, border: '1px solid rgba(0,0,0,.1)',
-                display: 'inline-block',
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                marginRight: 8,
+                backgroundColor: entry.color,
+                border: "1px solid rgba(0,0,0,.1)",
+                display: "inline-block",
               }}
             />
-            <span style={{ color: '#4b4b4b', fontSize: 12 }}>{entry.value}</span>
+            <span style={{ color: "#4b4b4b", fontSize: 12 }}>
+              {entry.value}
+            </span>
           </li>
         ))}
       </ul>
@@ -107,29 +144,30 @@ export default function BarGraph({
   xLabelMap,
   hideXAxis,
   xAxisAngle,
-  sampleLabel = 'Clientes',
-  secondValueLabel = 'Ticket Médio',
+  sampleLabel = "Clientes",
+  secondValueLabel = "Ticket Médio",
   tooltipFormatter,
   secondValueFormatter,
   onBarSelected,
   barColors = DEFAULT_COLORS,
   height = 280,
-  legendTitle = 'Título da legenda',
+  legendTitle = "Título da legenda",
+  dataKey = "value",
 }: BarGraphProps) {
   const total = useMemo(
     () => data.reduce((acc, d) => acc + (d.value || 0), 0),
-    [data]
+    [data],
   );
 
   const legendPayload = useMemo(
     () =>
       data.map((d, i) => ({
         id: d.name,
-        type: 'square' as import('recharts').LegendType,
+        type: "square" as import("recharts").LegendType,
         value: d.name,
         color: barColors[i % barColors.length],
       })),
-    [data, barColors]
+    [data, barColors],
   );
 
   return (
@@ -152,16 +190,16 @@ export default function BarGraph({
           tickLine={false}
           axisLine={false}
           fontSize={12}
-          tick={{ fill: '#6b7280' }}
+          tick={{ fill: "#6b7280" }}
           padding={{ left: 16, right: 16 }}
           tickFormatter={(name) => xLabelMap?.[name] ?? name}
           angle={xAxisAngle ?? 0}
-          textAnchor={xAxisAngle ? 'end' : 'middle'}
+          textAnchor={xAxisAngle ? "end" : "middle"}
         />
-        <YAxis axisLine={{ stroke: '#ded9c6' }} />
+        <YAxis axisLine={{ stroke: "#ded9c6" }} />
 
         <Tooltip
-          cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+          cursor={{ fill: "rgba(0,0,0,0.04)" }}
           content={
             <CustomTooltip
               total={total}
@@ -190,16 +228,16 @@ export default function BarGraph({
             const name = data[index]?.name;
             if (name) onBarSelected?.(name);
           }}
-          style={{ cursor: onBarSelected ? 'pointer' : 'default' }}
+          style={{ cursor: onBarSelected ? "pointer" : "default" }}
         >
           {data.map((_, i) => (
             <Cell key={`cell-${i}`} fill={barColors[i % barColors.length]} />
           ))}
           <LabelList
-            dataKey="value"
+            dataKey={dataKey}
             position="top"
-            formatter={(v: number) => formatNumber(v)}
-            style={{ fill: '#111827', fontWeight: 600, fontSize: 12 }}
+            formatter={(v: unknown) => formatLabelBar(v)}
+            style={{ fill: "#111827", fontWeight: 600, fontSize: 12 }}
           />
         </Bar>
       </BarChart>
