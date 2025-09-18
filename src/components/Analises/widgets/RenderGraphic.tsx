@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { BarDatum, DataPoint, GraphData } from "@/utils/graphics";
 import Graphics from "./graphics";
@@ -11,11 +11,7 @@ interface RenderGraphicProps {
 export default function RenderGraphic({ graph }: RenderGraphicProps) {
   switch (graph.type) {
     case GraphType.KPI:
-      return (
-        <Graphics.KPI
-          data={String(graph.data)}
-        />
-      );
+      return <Graphics.KPI data={String(graph.data)} />;
     case GraphType.LINE:
       return (
         <Graphics.Line
@@ -47,6 +43,7 @@ export default function RenderGraphic({ graph }: RenderGraphicProps) {
           xAxisAngle={graph.xAxisAngle}
           height={graph.height}
           onBarSelected={graph.onBarSelected}
+          dataKey={graph.dataKey}
         />
       );
     default:

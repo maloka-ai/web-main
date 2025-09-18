@@ -17,6 +17,13 @@ export function formatTitleHeaderTable(snake: string) {
     .join(" ");
 }
 
+export function formatLabelBar(value: unknown): string {
+  if (typeof value === "number") {
+    return formatNumber(value);
+  }
+  return String(value);
+}
+
 export function formatNumber(n: number) {
-  return n.toLocaleString('pt-BR');
+  return n.toLocaleString("pt-BR");
 }

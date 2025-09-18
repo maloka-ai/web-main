@@ -13,4 +13,7 @@ export enum AnalysisSubPages {
   CUSTOMERS_RECURRING_PURCHASE = 'customers_recurring_purchase',
   CUSTOMERS_ANNUAL_RETENTION = 'customers_annual_retention',
   CUSTOMERS_BUSINESS_GROWTH = 'customers_business_growth',
+  STOCK_REPLENISHMENT = 'stock_replenishment',
+  STOCK_INACTIVE_ANALYSIS = 'stock_inactive_analysis',
+  STOCK_SKU_ANALYSIS = 'stock_sku_analysis',
 }

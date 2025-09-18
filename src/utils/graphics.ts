@@ -27,6 +27,7 @@ export interface GraphData {
   tooltipFormatter?: (value: number, name?: string) => string;
   secondValueFormatter?: (value: number) => string;
   onBarSelected?: (name: string) => void;
+  dataKey?: string;
 }
 
 export function getStrokeColor(data: DataPoint[], secondData?: DataPoint[]) {
