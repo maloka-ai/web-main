@@ -153,25 +153,15 @@ export interface StockSituation {
 
 export const analysisService = {
   async getSegmentacaoClientes(): Promise<CustomerSegmentation[]> {
-    const response = await api.get<CustomerSegmentation[]>(
-      "/customer/segmentacao/clientes_por_segmento",
-    );
+    const response = await api.get<CustomerSegmentation[]>("/customer/segmentacao/clientes_por_segmento");
     return response.data;
   },
-  async getCustomerQuarterlyRecurrence(
-    inital_year: number,
-  ): Promise<CustomerQuarterlyRecurrence[]> {
-    const response = await api.get<CustomerQuarterlyRecurrence[]>(
-      `/customer/recorrencia_trimestral?ano_inicial=${inital_year}`,
-    );
+  async getCustomerQuarterlyRecurrence(inital_year: number): Promise<CustomerQuarterlyRecurrence[]> {
+    const response = await api.get<CustomerQuarterlyRecurrence[]>(`/customer/recorrencia_trimestral?ano_inicial=${inital_year}`);
     return response.data;
   },
-  async getCustomerAnnualRecurrence(
-    inital_year: number,
-  ): Promise<CustomerAnnualRecurrence[]> {
-    const response = await api.get<CustomerAnnualRecurrence[]>(
-      `/customer/recorrencia_anual?ano_inicial=${inital_year}`,
-    );
+  async getCustomerAnnualRecurrence(inital_year: number): Promise<CustomerAnnualRecurrence[]> {
+    const response = await api.get<CustomerAnnualRecurrence[]>(`/customer/recorrencia_anual?ano_inicial=${inital_year}`);
     return response.data;
   },
   async getAnnualRevenues(): Promise<AnnualRevenue[]> {
@@ -179,18 +169,11 @@ export const analysisService = {
     return response.data;
   },
   async getMonthlyRevenues(year?: number): Promise<MonthlyRevenue[]> {
-    const response = await api.get<MonthlyRevenue[]>(
-      `/sales/faturamento/mensal${year ? `?ano=${year}` : ""}`,
-    );
+    const response = await api.get<MonthlyRevenue[]>(`/sales/faturamento/mensal${year ? `?ano=${year}` : ""}`);
     return response.data;
   },
-  async getDailyRevenues(
-    year: number,
-    month?: number,
-  ): Promise<DailyRevenue[]> {
-    const response = await api.get<DailyRevenue[]>(
-      `/sales/faturamento/diario?ano=${year}${month ? `&mes=${month}` : ""}`,
-    );
+  async getDailyRevenues(year: number, month?: number): Promise<DailyRevenue[]> {
+    const response = await api.get<DailyRevenue[]>(`/sales/faturamento/diario?ano=${year}${month ? `&mes=${month}` : ""}`);
     return response.data;
   },
   async getStockMetrics(): Promise<StockMetrics[]> {
@@ -207,9 +190,7 @@ export const analysisService = {
   },
 
   async getStockSituation(): Promise<any> {
-    const response = await api.get<StockSituation[]>(
-      "/stock/cobertura/produtos_por_nivel_cobertura",
-    );
+    const response = await api.get<StockSituation[]>("/stock/cobertura/produtos_por_nivel_cobertura");
     return response.data;
   },
 };
