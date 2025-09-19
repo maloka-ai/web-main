@@ -10,6 +10,7 @@ import HeaderAnalises from './HeaderAnalises';
 import CockpitPage from './subpages/CockpitPage';
 import CustomerMoreLessActivePage from './subpages/CustomerMoreLessActivePage';
 import StockReplenishmentPage from "@/components/Analises/subpages/stock-management/StockReplenishmentPage";
+import InactiveityAnalysisPage from './subpages/stock-management/InactivityAnalysisPage';
 
 const CustomersSubpages = {
     [AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE]: {
@@ -40,7 +41,7 @@ const InventoryManagementSubpages = {
         title: getString("analysis-stock-replenishment"),
     },
     [AnalysisSubPages.STOCK_INACTIVE_ANALYSIS]: {
-        content: <div>Em construção</div>,
+        content: <InactiveityAnalysisPage />,
         title: getString("analysis-stock-inactive"),
     },
     [AnalysisSubPages.STOCK_SKU_ANALYSIS]: {

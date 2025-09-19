@@ -151,6 +151,17 @@ export interface StockSituation {
   porcentagem: number;
 }
 
+export interface InactiveProduct {
+  id_sku: number;
+  codigo_barras: string;
+  nome_produto: string;
+  id_categoria: number | null;
+  nome_categoria: string | null;
+  estoque_atual: number;
+  dias_inativo: number;
+  data_ultima_venda: string;
+}
+
 export const analysisService = {
   async getSegmentacaoClientes(): Promise<CustomerSegmentation[]> {
     const response = await api.get<CustomerSegmentation[]>("/customer/segmentacao/clientes_por_segmento");
@@ -188,9 +199,12 @@ export const analysisService = {
     const response = await api.get<any>(`${subpath_detail}`);
     return response.data;
   },
-
   async getStockSituation(): Promise<any> {
     const response = await api.get<StockSituation[]>("/stock/cobertura/produtos_por_nivel_cobertura");
     return response.data;
   },
+  async getInactiveProducts(recent_days: number): Promise<InactiveProduct[]> {
+    const response = await api.get<InactiveProduct[]>(`/stock/inatividade/produtos_inativos?recencia_dias=${recent_days}`);
+    return response.data;
+  }
 };
