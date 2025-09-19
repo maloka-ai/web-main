@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Box, Button, IconButton, Modal, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { CockpitAlert } from "@/services/analysisService";
-import { FileDownloadOutlined } from "@mui/icons-material";
-import { AlertsAndActionsTable } from "@/components/table/AlertsAndActionsTable";
+import { Box, Button, IconButton, Modal, Typography } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { CockpitAlert } from '@/services/analysisService';
+import { FileDownloadOutlined } from '@mui/icons-material';
+import { DynamicTable } from '@/components/table/DynamicTable';
 
 interface DetailsAlertsAndActionsProps {
   alert: CockpitAlert | null;
@@ -28,21 +28,21 @@ export default function DetailsAlertsAndActions({
       <Box
         onClick={(e) => e.stopPropagation()}
         sx={{
-          backgroundColor: "#fdfcf7",
-          maxWidth: "80%",
-          maxHeight: "95vh",
-          overflowY: "auto",
-          margin: "4vh auto",
-          padding: "2rem",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          outline: "none",
-          position: "relative",
+          backgroundColor: '#fdfcf7',
+          maxWidth: '80%',
+          maxHeight: '95vh',
+          overflowY: 'auto',
+          margin: '4vh auto',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          outline: 'none',
+          position: 'relative',
         }}
       >
         <IconButton
           onClick={onClose}
-          sx={{ position: "absolute", top: 10, right: 10 }}
+          sx={{ position: 'absolute', top: 10, right: 10 }}
         >
           <CloseIcon />
         </IconButton>
@@ -51,7 +51,7 @@ export default function DetailsAlertsAndActions({
           variant="h6"
           fontWeight={800}
           mb={1}
-          sx={{ color: "#4b4b4b" }}
+          sx={{ color: '#4b4b4b' }}
         >
           {alert?.titulo}
         </Typography>
@@ -59,24 +59,29 @@ export default function DetailsAlertsAndActions({
           variant="subtitle1"
           fontWeight={500}
           mb={2}
-          sx={{ color: "#777" }}
+          sx={{ color: '#777' }}
         >
           {alert?.descricao}
         </Typography>
         <Button
           variant="contained"
           startIcon={<FileDownloadOutlined />}
-          color={alert?.tipo === "alerta" ? "error" : "primary"}
+          color={alert?.tipo === 'alerta' ? 'error' : 'primary'}
           sx={{
-            textTransform: "none",
-            borderRadius: "16px",
+            textTransform: 'none',
+            borderRadius: '16px',
             mb: 2,
           }}
           onClick={onDownload}
         >
           Baixar tabela completa
         </Button>
-        <AlertsAndActionsTable alert={alert!} />
+        <DynamicTable
+          data={{
+            linkData: alert.link_detalhamento,
+            countColumns: 5,
+          }}
+        />
       </Box>
     </Modal>
   );
