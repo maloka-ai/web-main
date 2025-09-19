@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Box, Typography } from "@mui/material";
+import * as React from 'react';
+import { Box, Typography } from '@mui/material';
 
 import {
   MaterialReactTable,
   type MRT_ColumnDef,
   useMaterialReactTable,
-} from "material-react-table";
-import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
+} from 'material-react-table';
+import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
 
-import api from "@/utils/api";
-import { formatTitleHeaderTable } from "@/utils/format";
+import api from '@/utils/api';
+import { formatCellTable, formatTitleHeaderTable } from '@/utils/format';
 
 export type DynamicDataTable = {
   linkData: string;
@@ -19,7 +19,7 @@ export type DynamicDataTable = {
 };
 
 function getFallbackKeys(n: number): string[] {
-  return Array.from({ length: n }, (_, i) => "-".repeat(5 + i));
+  return Array.from({ length: n }, (_, i) => '-'.repeat(5 + i));
 }
 export function DynamicTable({
   data,
@@ -58,7 +58,7 @@ export function DynamicTable({
       })
       .catch((err) => {
         if (!alive) return;
-        setError(err?.message ?? "Erro ao buscar dados do alerta");
+        setError(err?.message ?? 'Erro ao buscar dados do alerta');
         setRaw([]);
       })
       .finally(() => alive && setLoading(false));
@@ -77,21 +77,22 @@ export function DynamicTable({
     return keys.map((k, index) => {
       const header = formatTitleHeaderTable(k);
       const currency = /valor|preco|price|amount|total/i.test(k);
-      const align: "left" | "center" | "right" = currency ? "right" : "left";
+      const align: 'left' | 'center' | 'right' = currency ? 'right' : 'left';
 
       return {
         accessorKey: k,
         header,
-        filterVariant: "text",
+        filterVariant: 'text',
         size: index === 0 ? 140 : undefined,
         muiTableHeadCellProps: { align },
         muiTableBodyCellProps: {
           align,
           sx:
             index === 0
-              ? { fontWeight: 700, color: "text.primary" }
+              ? { fontWeight: 700, color: 'text.primary' }
               : undefined,
         },
+        Cell: ({ cell }) => formatCellTable(cell.getValue()),
       } as MRT_ColumnDef<RowAny>;
     });
   }, [keys]);
@@ -134,54 +135,24 @@ export function DynamicTable({
     },
     // onPaginationChange: setPagination,
     muiPaginationProps: {
-      color: "secondary",
+      color: 'secondary',
       rowsPerPageOptions: [10, 20, 30],
-      shape: "circular",
-      variant: "outlined",
+      shape: 'circular',
+      variant: 'outlined',
     },
     muiTablePaperProps: {
       elevation: 0,
-      sx: { borderRadius: 0, background: "none" },
+      sx: { borderRadius: 0, background: 'none' },
     },
     muiTableHeadCellProps: {
-      sx: { fontWeight: 700, color: "text.secondary", position: "relative" },
+      sx: { fontWeight: 700, color: 'text.secondary', position: 'relative' },
     },
     muiTableBodyRowProps: { hover: true },
     muiTableBodyCellProps: {
-      sx: { borderBottom: "1px solid #E6DCCB", py: "10px" },
+      sx: { borderBottom: '1px solid #E6DCCB', py: '10px' },
     },
     initialState: { showColumnFilters: true },
     localization: MRT_Localization_PT_BR,
-
-    // renderBottomToolbar: () => (
-    //   <>
-    //     <Divider />
-    //     <Box sx={{ float: "right" }}>
-    //       <PaginationFooter
-    //         page={pageIndex + 1}
-    //         totalPages={totalPages}
-    //         disabled={isLoading || rowCount === 0}
-    //         onFirst={() => setPagination((p) => ({ ...p, pageIndex: 0 }))}
-    //         onPrev={() =>
-    //           setPagination((p) => ({
-    //             ...p,
-    //             pageIndex: Math.max(0, p.pageIndex - 1),
-    //           }))
-    //         }
-    //         onNext={() =>
-    //           setPagination((p) => ({
-    //             ...p,
-    //             pageIndex: Math.min(totalPages - 1, p.pageIndex + 1),
-    //           }))
-    //         }
-    //         onLast={() =>
-    //           setPagination((p) => ({ ...p, pageIndex: totalPages - 1 }))
-    //         }
-    //       />
-    //     </Box>
-    //   </>
-    // ),
-
     renderEmptyRowsFallback: () => (
       <Box py={6} textAlign="center" color="text.secondary">
         <Typography variant="h6" gutterBottom>
