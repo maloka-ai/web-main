@@ -1,5 +1,5 @@
-import api from "@/utils/api";
-import { get } from "node:http";
+import api from '@/utils/api';
+import { get } from 'node:http';
 
 export interface CustomerSegmentation {
   id_cliente: number;
@@ -162,37 +162,134 @@ export interface InactiveProduct {
   data_ultima_venda: string;
 }
 
+export interface ProductByABC {
+  id_sku: number;
+  codigo_barras: string;
+  nome_produto: string;
+  id_categoria: number | null;
+  nome_categoria: string | null;
+  estoque_atual: number;
+  curva_abc: ABCCurve;
+  situacao_do_produto: string;
+  data_ultima_venda: string | null;
+}
+
+export interface ProductDetail {
+  id_produto: number;
+  codigo_barras: string;
+  nome_produto: string;
+  id_categoria: number | null;
+  nome_categoria: string | null;
+  estoque_atual: number;
+  curva_abc: ABCCurve;
+  situacao_do_produto: string;
+  data_ultima_venda: string | null;
+  cobertura_dias: number | null;
+  cobertura_meses: number | null;
+  cobertura_percentual_30d: number | null;
+  criticidade: string;
+  critico: string;
+  data_ultima_movimentacao: string | null;
+  media_12m_qtd: number | null;
+  media_vendas_3m: number | null;
+  quantidade_total_12m: number | null;
+  valor_total_12m: number | null;
+  transacoes_12m: number | null;
+  qtd_vendas_mes_atual: number | null;
+  qtd_vendas_1m_atras: number | null;
+  qtd_vendas_2m_atras: number | null;
+  qtd_vendas_3m_atras: number | null;
+  qtd_vendas_4m_atras: number | null;
+  qtd_vendas_5m_atras: number | null;
+  qtd_vendas_6m_atras: number | null;
+  qtd_vendas_7m_atras: number | null;
+  qtd_vendas_8m_atras: number | null;
+  qtd_vendas_9m_atras: number | null;
+  qtd_vendas_10m_atras: number | null;
+  qtd_vendas_11m_atras: number | null;
+  ultima_qtd_comprada: number | null;
+  ultimo_fornecedor: string | null;
+  ultimo_preco_compra: number | null;
+  data_ultima_compra: string | null;
+  penultima_qtd_comprada: number | null;
+  penultimo_fornecedor: string | null;
+  penultimo_preco_compra: number | null;
+  data_penultima_compra: string | null;
+  antepenultima_qtd_comprada: number | null;
+  antepenultimo_fornecedor: string | null;
+  antepenultimo_preco_compra: number | null;
+  data_antepenultima_compra: string | null;
+  prazo_reposicao_dias: number | null;
+}
+
+export enum ABCCurve {
+  A = 'A',
+  B = 'B',
+  C = 'C',
+  NoSale = 'Sem Venda',
+}
+export enum ProductStatus {
+  ActiveInStock = 'Ativo (ESTOQUE > 0)',
+  InactiveInStock = 'Inativo (ESTOQUE > 0)',
+  NotMarketedInStock = 'Não Comercializado (ESTOQUE > 0)',
+  InactiveOutOfStock = 'Inativo (ESTOQUE <= 0)',
+  NotMarketedOutOfStock = 'Não Comercializado (ESTOQUE <= 0)',
+  ActiveOutOfStock = 'Ativo (ESTOQUE <= 0)',
+}
+
+type QueryProductsABC = {
+  curva_abc?: ABCCurve;
+  situacao_do_produto?: ProductStatus;
+};
+
 export const analysisService = {
   async getSegmentacaoClientes(): Promise<CustomerSegmentation[]> {
-    const response = await api.get<CustomerSegmentation[]>("/customer/segmentacao/clientes_por_segmento");
+    const response = await api.get<CustomerSegmentation[]>(
+      '/customer/segmentacao/clientes_por_segmento',
+    );
     return response.data;
   },
-  async getCustomerQuarterlyRecurrence(inital_year: number): Promise<CustomerQuarterlyRecurrence[]> {
-    const response = await api.get<CustomerQuarterlyRecurrence[]>(`/customer/recorrencia_trimestral?ano_inicial=${inital_year}`);
+  async getCustomerQuarterlyRecurrence(
+    inital_year: number,
+  ): Promise<CustomerQuarterlyRecurrence[]> {
+    const response = await api.get<CustomerQuarterlyRecurrence[]>(
+      `/customer/recorrencia_trimestral?ano_inicial=${inital_year}`,
+    );
     return response.data;
   },
-  async getCustomerAnnualRecurrence(inital_year: number): Promise<CustomerAnnualRecurrence[]> {
-    const response = await api.get<CustomerAnnualRecurrence[]>(`/customer/recorrencia_anual?ano_inicial=${inital_year}`);
+  async getCustomerAnnualRecurrence(
+    inital_year: number,
+  ): Promise<CustomerAnnualRecurrence[]> {
+    const response = await api.get<CustomerAnnualRecurrence[]>(
+      `/customer/recorrencia_anual?ano_inicial=${inital_year}`,
+    );
     return response.data;
   },
   async getAnnualRevenues(): Promise<AnnualRevenue[]> {
-    const response = await api.get<AnnualRevenue[]>("/sales/faturamento/anual");
+    const response = await api.get<AnnualRevenue[]>('/sales/faturamento/anual');
     return response.data;
   },
   async getMonthlyRevenues(year?: number): Promise<MonthlyRevenue[]> {
-    const response = await api.get<MonthlyRevenue[]>(`/sales/faturamento/mensal${year ? `?ano=${year}` : ""}`);
+    const response = await api.get<MonthlyRevenue[]>(
+      `/sales/faturamento/mensal${year ? `?ano=${year}` : ''}`,
+    );
     return response.data;
   },
-  async getDailyRevenues(year: number, month?: number): Promise<DailyRevenue[]> {
-    const response = await api.get<DailyRevenue[]>(`/sales/faturamento/diario?ano=${year}${month ? `&mes=${month}` : ""}`);
+  async getDailyRevenues(
+    year: number,
+    month?: number,
+  ): Promise<DailyRevenue[]> {
+    const response = await api.get<DailyRevenue[]>(
+      `/sales/faturamento/diario?ano=${year}${month ? `&mes=${month}` : ''}`,
+    );
     return response.data;
   },
   async getStockMetrics(): Promise<StockMetrics[]> {
-    const response = await api.get<StockMetrics[]>("/stock/metricas_estoque");
+    const response = await api.get<StockMetrics[]>('/stock/metricas_estoque');
     return response.data;
   },
   async getCockpitAlert(): Promise<CockpitAlert[]> {
-    const response = await api.get<CockpitAlert[]>("/cockpit/alertas");
+    const response = await api.get<CockpitAlert[]>('/cockpit/alertas');
     return response.data;
   },
   async getCockpitAlertDetail(subpath_detail: string): Promise<any> {
@@ -200,11 +297,37 @@ export const analysisService = {
     return response.data;
   },
   async getStockSituation(): Promise<any> {
-    const response = await api.get<StockSituation[]>("/stock/cobertura/produtos_por_nivel_cobertura");
+    const response = await api.get<StockSituation[]>(
+      '/stock/cobertura/produtos_por_nivel_cobertura',
+    );
     return response.data;
   },
   async getInactiveProducts(recent_days: number): Promise<InactiveProduct[]> {
-    const response = await api.get<InactiveProduct[]>(`/stock/inatividade/produtos_inativos?recencia_dias=${recent_days}`);
+    const response = await api.get<InactiveProduct[]>(
+      `/stock/inatividade/produtos_inativos?recencia_dias=${recent_days}`,
+    );
     return response.data;
-  }
+  },
+
+  async getProductsByABC(query?: QueryProductsABC): Promise<any> {
+    const searchParams = new URLSearchParams();
+
+    if (query?.curva_abc) {
+      searchParams.append('curva_abc', query.curva_abc);
+    }
+    if (query?.situacao_do_produto) {
+      searchParams.append('situacao_do_produto', query.situacao_do_produto);
+    }
+    const response = await api.get<ProductByABC[]>(
+      `/stock/situacao_estoque/produtos_por_curva_abc?${searchParams.toString()}`,
+    );
+    return response.data;
+  },
+
+  async getProductDetailById(id: number): Promise<any> {
+    const response = await api.get<ProductDetail>(
+      `/stock/cobertura/produto_por_id?id_produto=${id}`,
+    );
+    return response.data;
+  },
 };
