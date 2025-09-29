@@ -16,9 +16,20 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      authService.logout();
-      window.location.href = '/v0/login';
-      return Promise.reject(error);
+
+      return authService.refreshToken().then(newToken => {
+        if (newToken) {
+          error.config.headers.Authorization = `Bearer ${newToken}`;
+          return axios(error.config);
+        } else {
+          throw new Error('No new token');
+        }
+      }).catch(() => {
+        authService.logout();
+        alert('Sessão expirada. Por favor, faça login novamente.');
+        window.location.href = '/v0/login';
+        return Promise.reject(error);
+      });
     }
     return Promise.reject(error);
   }
