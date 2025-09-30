@@ -10,11 +10,6 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface AuthToken {
-  access_token: string;
-  token_type: string;
-}
-
 export interface AuthTokens {
   access_token: string;
   refresh_token: string;
@@ -36,13 +31,13 @@ export const authService = {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) throw new Error('Refresh token não encontrado.');
 
-    const response = await api.get<AuthToken>('/auth/refresh_token', {
+    const response = await api.get<string>('/auth/refresh_token', {
       headers: {
         Authorization: `Bearer ${refreshToken}`,
       },
     });
 
-    const newAccessToken = response.data.access_token;
+    const newAccessToken = response.data;
     localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
 
     return newAccessToken;
