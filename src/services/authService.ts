@@ -10,15 +10,20 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface AuthTokens {
+export interface LoginAuthTokens {
   access_token: string;
   refresh_token: string;
   token_type: string;
 }
 
+export interface RefreshAuthTokens {
+  access_token: string;
+  token_type: string;
+}
+
 export const authService = {
-  async login(payload: LoginPayload): Promise<AuthTokens> {
-    const response = await api.post<AuthTokens>('/auth/login', payload);
+  async login(payload: LoginPayload): Promise<LoginAuthTokens> {
+    const response = await api.post<LoginAuthTokens>('/auth/login', payload);
 
     localStorage.setItem(ACCESS_TOKEN_KEY, response.data.access_token);
     localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refresh_token);
@@ -31,13 +36,17 @@ export const authService = {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) throw new Error('Refresh token não encontrado.');
 
-    const response = await api.get<string>('/auth/refresh_token', {
+    const response = await api.get<RefreshAuthTokens>('/auth/refresh_token', {
       headers: {
         Authorization: `Bearer ${refreshToken}`,
       },
     });
 
-    const newAccessToken = response.data;
+    if (!response.data.access_token) {
+      throw new Error('Falha ao atualizar o token de acesso.');
+    }
+
+    const newAccessToken = response.data.access_token;
     localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
 
     return newAccessToken;
