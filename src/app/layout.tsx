@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
 import "./globals.css";
+import type { Metadata } from "next";
+
+import { Poppins } from "next/font/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { CssBaseline, ThemeProvider } from "@mui/material";
+import SessionExpiredSnackbar from "@/components/SessionExpiredSnackbar/SessionExpiredSnackbar";
+
 import theme from "@/theme";
 
 const poppins = Poppins({
@@ -28,6 +31,7 @@ export default function RootLayout({
           <CssBaseline />
           <ThemeProvider theme={theme}>{children}</ThemeProvider>
         </AppRouterCacheProvider>
+        <SessionExpiredSnackbar />
       </body>
     </html>
   );
