@@ -21,7 +21,7 @@ jobs:
       - name: Definir tag staging (data+hora)
         id: version
         run: |
-          DATE=$(date +"%d%m%Y-%H%M")
+          DATE=$(TZ=America/Manaus date +"%d%m%Y-%H%M")
           STAGING_TAG="staging-${DATE}"
           echo "STAGING_TAG=$STAGING_TAG" >> $GITHUB_ENV
           echo "staging_tag=$STAGING_TAG" >> $GITHUB_OUTPUT
