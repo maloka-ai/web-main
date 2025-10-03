@@ -49,17 +49,17 @@ jobs:
 
       - name: Atualizar tag da imagem no deploy.yaml de homologação
         run: |
-          cd manifests
-          sed -i "s|^\(\s*image:\s*ghcr.io/maloka-ai/web-main:\).*|\1$STAGING_TAG|" web-main/homolog/deploy.yaml
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add maloka-app-backend/homolog/deploy.yaml
-          if ! git diff --cached --quiet; then
+            cd manifests
+            sed -i "s|^\(\s*image:\s*ghcr.io/maloka-ai/web-main:\).*|\1$STAGING_TAG|" web-main/homolog/deploy.yaml
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add web-main/homolog/deploy.yaml
+            if ! git diff --cached --quiet; then
             git commit -m "Atualiza web-main para $STAGING_TAG em homologação"
             git push
-          else
+            else
             echo "Nenhuma alteração para commit/push."
-          fi
+            fi
         if: success()
 
   auto-merge-main:
