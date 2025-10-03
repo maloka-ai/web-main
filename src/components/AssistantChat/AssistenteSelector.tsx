@@ -24,7 +24,7 @@ export const Assistants = [{
   },
   {
     id: 'dados',
-    label: 'Assistente de dados',
+    label: 'Analista de Vendas',
     description: 'Solicite análises baseadas nos dados da sua empresa',
     type: AssistantType.DATA,
     icon: '📊',
