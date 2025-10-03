@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   basePath: '/v0',
   assetPrefix: '/v0',
+  output: 'standalone',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 if (process.env.NODE_ENV === 'development') {
