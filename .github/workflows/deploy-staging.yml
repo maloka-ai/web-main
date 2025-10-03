@@ -63,6 +63,25 @@ jobs:
             fi
         if: success()
 
+      - name: Notificar no Discord de Implantação em Homologação
+        env:
+            DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+            GITHUB_ACTOR: ${{ github.actor }}
+            STAGING_TAG: ${{ env.STAGING_TAG }}
+        run: |
+            COMMIT_HASH="${GITHUB_SHA::7}"
+            COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+            DATE_MSG=$(TZ=America/Manaus date +"%d/%m/%Y %H:%M")
+            
+            MSG="🚀 *Deploy Homologação*:\n\
+            - 📦 **Aplicação:** WEB-MAIN \n\
+            - 📦 **Imagem:** \`${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}:${STAGING_TAG}\`\n\
+            - 📝 **Commit:** [${COMMIT_HASH}](https://github.com/${{ github.repository }}/commit/${GITHUB_SHA}) - ${COMMIT_MESSAGE}\n\
+            - 👤 **Autor:** ${{ github.actor }}\n\
+            - 🕓 **Horário:** ${DATE_MSG}"
+            
+            curl -H "Content-Type: application/json" -X POST -d "{\"content\": \"$MSG\"}" "$DISCORD_WEBHOOK_URL"
+
   auto-merge-main:
     needs: build-and-push
     runs-on: ubuntu-latest
