@@ -18,13 +18,14 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Definir tag staging (data+hora)
+      - name: Definir tag staging (data+hora+hash)
         id: version
         run: |
-          DATE=$(TZ=America/Manaus date +"%d%m%Y-%H%M")
-          STAGING_TAG="staging-${DATE}"
-          echo "STAGING_TAG=$STAGING_TAG" >> $GITHUB_ENV
-          echo "staging_tag=$STAGING_TAG" >> $GITHUB_OUTPUT
+            SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+            DATE=$(TZ=America/Manaus date +"%d%m%Y-%H%M")
+            STAGING_TAG="staging-${SHORT_SHA}-${DATE}"
+            echo "STAGING_TAG=$STAGING_TAG" >> $GITHUB_ENV
+            echo "staging_tag=$STAGING_TAG" >> $GITHUB_OUTPUT
 
       - name: Login no Docker GHCR
         uses: docker/login-action@v2
