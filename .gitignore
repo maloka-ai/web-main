@@ -41,3 +41,5 @@ deploy.sh
 next-env.d.ts
 
 *storybook.log
+
+.env*
