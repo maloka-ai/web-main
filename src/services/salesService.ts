@@ -1,4 +1,5 @@
 import api from '@/utils/api';
+import { DailyRevenue } from '@/services/analysisService';
 
 export interface AnnualRevenue {
   ano: number;
@@ -74,7 +75,7 @@ export const salesService = {
     ano: number;
   }): Promise<any[]> {
     const qs = toQS({ mes: params.mes, ano: params.ano });
-    const { data } = await api.get<any[]>(
+    const { data } = await api.get<DailyRevenue[]>(
       `/sales/faturamento/diario_por_periodo${qs}`,
     );
     return data;

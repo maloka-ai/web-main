@@ -10,6 +10,8 @@ import {
   Autocomplete,
   TextField,
   Stack,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import {
   ResponsiveContainer,
@@ -58,6 +60,9 @@ export function CardMonthlySalesEvolution({
 }: {
   height?: number;
 }) {
+  const theme = useTheme();
+  const gridColor = alpha(theme.palette.divider, 0.7);
+  const lineColor = alpha(theme.palette.divider, 1);
   const [raw, setRaw] = useState<MonthlyRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -204,14 +209,18 @@ export function CardMonthlySalesEvolution({
                 data={chartData}
                 margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
               >
-                <CartesianGrid />
+                <CartesianGrid stroke={gridColor} />
                 <XAxis
                   dataKey="label"
                   interval={0}
                   tick={{ fontSize: 12 }}
                   tickMargin={8}
+                  tickLine={{ stroke: lineColor, strokeWidth: 2 }}
+                  axisLine={{ stroke: lineColor, strokeWidth: 2 }}
                 />
                 <YAxis
+                  tickLine={{ stroke: lineColor, strokeWidth: 2 }}
+                  axisLine={{ stroke: lineColor, strokeWidth: 2 }}
                   width={100}
                   tickFormatter={(v) => formatCurrency(Number(v))}
                 />
