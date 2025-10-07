@@ -31,9 +31,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
 deploy.sh
 
 # vercel
@@ -44,3 +41,5 @@ deploy.sh
 next-env.d.ts
 
 *storybook.log
+
+.env

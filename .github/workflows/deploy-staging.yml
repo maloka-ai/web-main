@@ -1,0 +1,89 @@
+name: Build & Deploy em Homologação
+
+on:
+  push:
+    branches:
+      - 'staging'
+      - 'bugfix/**'
+
+env:
+  DOCKER_REGISTRY: ghcr.io/maloka-ai
+  PROJECT_NAME: maloka-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checar repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar ambiente Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.13
+
+      - name: Instalar Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry --version
+
+      - name: Definir versão staging (commit + data)
+        id: version
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          DATE=$(date +"%Y%m%d-%H%M")
+          STAGING_TAG="staging-${SHORT_SHA}-${DATE}"
+          echo "STAGING_TAG=$STAGING_TAG" >> $GITHUB_ENV
+          echo "staging_tag=$STAGING_TAG" >> $GITHUB_OUTPUT
+
+      - name: Login no Docker GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Construir e enviar imagem Docker
+        run: |
+          IMAGE="${{ env.DOCKER_REGISTRY }}/${{ env.PROJECT_NAME }}:$STAGING_TAG"
+          echo "Building image $IMAGE"
+          docker build --no-cache -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Clonar repositório de manifests
+        uses: actions/checkout@v4
+        with:
+          repository: maloka-ai/gitops
+          token: ${{ secrets.GHCR_TOKEN }}
+          path: manifests
+
+      - name: Atualizar tag da imagem no deploy.yaml de homologação
+        run: |
+          cd manifests
+          sed -i "s|^\(\s*image:\s*ghcr.io/maloka-ai/maloka-backend:\).*|\1$STAGING_TAG|" maloka-app-backend/homolog/deploy.yaml
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add maloka-app-backend/homolog/deploy.yaml
+          git commit -m "Atualiza maloka-backend para $STAGING_TAG em homologação"
+          git push
+        if: success()
+
+  auto-merge-main:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/bugfix/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Merge bugfix em main
+        run: |
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          git merge --no-ff $GITHUB_REF_NAME -m "Merge automático de bugfix $GITHUB_REF_NAME em main"
+          git push origin main
