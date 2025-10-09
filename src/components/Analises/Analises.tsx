@@ -12,6 +12,7 @@ import CustomerMoreLessActivePage from './subpages/CustomerMoreLessActivePage';
 import StockReplenishmentPage from '@/components/Analises/subpages/stock-management/StockReplenishmentPage';
 import InactiveityAnalysisPage from './subpages/stock-management/InactivityAnalysisPage';
 import SkuAnalysisPage from '@/components/Analises/subpages/stock-management/SkuAnalysisPage';
+import { CustomerBussinessGrowth } from '@/components/Analises/subpages/customers/CustomerBussinessGrowth';
 
 const CustomersSubpages = {
   [AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE]: {
@@ -31,7 +32,7 @@ const CustomersSubpages = {
     title: getString('analysis-customers-annual-retention'),
   },
   [AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH]: {
-    content: <div>Em construção</div>,
+    content: <CustomerBussinessGrowth />,
     title: getString('analysis-customers-business-growth'),
   },
 };
@@ -60,7 +61,7 @@ export const AnalysisSubpagesConfig = {
   ...InventoryManagementSubpages,
 };
 
-export const AnalisysMenuConfig = [
+export const AnalysisMenuConfig = [
   {
     title: getString('analysis-panel-title'),
     items: [AnalysisSubPages.COCKPIT].map((page) => ({
@@ -99,7 +100,7 @@ export default function Analises() {
     AnalysisSubPages.COCKPIT,
   );
   const [activeMenu, setActiveMenu] = useState<string>(
-    AnalisysMenuConfig[0].title,
+    AnalysisMenuConfig[0].title,
   );
 
   const handleNavigate = (page: AnalysisSubPages, menu: string) => {

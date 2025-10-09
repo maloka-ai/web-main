@@ -36,7 +36,7 @@ interface ProductAnalysisProps {
 
 type Point = { label: string; value: number; date: Date };
 
-const DEFAULT_COLORS = [
+export const DEFAULT_COLORS = [
   '#CFE5A7',
   '#D7B79A',
   '#B894D6',

@@ -6,12 +6,12 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  ListSubheader
+  ListSubheader,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
 import { AnalysisSubPages } from '@/utils/enums';
-import { AnalisysMenuConfig, AnalysisSubpagesConfig } from './Analises';
+import { AnalysisMenuConfig, AnalysisSubpagesConfig } from './Analises';
 
 interface Props {
   current: AnalysisSubPages;
@@ -44,7 +44,7 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
         justifyContent: 'space-between',
         padding: '0.75rem 1.5rem',
         borderBottom: '1px solid #e3e3e3',
-        height: '60px'
+        height: '60px',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -69,9 +69,11 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
           },
         }}
       >
-        {AnalisysMenuConfig.map((section) => (
+        {AnalysisMenuConfig.map((section) => (
           <Box key={section.title}>
-            <ListSubheader disableSticky disableGutters
+            <ListSubheader
+              disableSticky
+              disableGutters
               sx={{
                 paddingLeft: '1rem',
                 lineHeight: '28px',
@@ -79,8 +81,11 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
             >
               {section.title}
             </ListSubheader>
-            {section.items.map(item => (
-              <MenuItem key={item.page} onClick={() => handleSelect(item.page, section.title)}>
+            {section.items.map((item) => (
+              <MenuItem
+                key={item.page}
+                onClick={() => handleSelect(item.page, section.title)}
+              >
                 {item.title}
               </MenuItem>
             ))}

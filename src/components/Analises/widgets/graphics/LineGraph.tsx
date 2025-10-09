@@ -1,6 +1,13 @@
 'use client';
 
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts';
 import { DataPoint, getStrokeColor } from '@/utils/graphics';
 
 interface LineGraphProps {
@@ -20,10 +27,12 @@ export default function LineGraph({
   secondData,
   tooltipFormatter,
 }: LineGraphProps) {
-
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: secondData ? 80 : 40, bottom: 10, left: 0, right: 0 }}>
+      <LineChart
+        data={data}
+        margin={{ top: secondData ? 80 : 40, bottom: 10, left: 0, right: 0 }}
+      >
         <XAxis
           dataKey="name"
           interval={0}
@@ -66,7 +75,6 @@ export default function LineGraph({
             isAnimationActive={false}
           />
         )}
-
       </LineChart>
     </ResponsiveContainer>
   );
