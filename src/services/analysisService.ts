@@ -243,6 +243,7 @@ type QueryProductsABC = {
 };
 
 export const analysisService = {
+  // ROTAS DE CLIENTES
   async getSegmentacaoClientes(): Promise<CustomerSegmentation[]> {
     const response = await api.get<CustomerSegmentation[]>(
       '/customer/segmentacao/clientes_por_segmento',
@@ -265,6 +266,7 @@ export const analysisService = {
     );
     return response.data;
   },
+  // ROTAS DE FATURAMENTO
   async getAnnualRevenues(): Promise<AnnualRevenue[]> {
     const response = await api.get<AnnualRevenue[]>('/sales/faturamento/anual');
     return response.data;
@@ -284,16 +286,18 @@ export const analysisService = {
     );
     return response.data;
   },
-  async getStockMetrics(): Promise<StockMetrics[]> {
-    const response = await api.get<StockMetrics[]>('/stock/metricas_estoque');
-    return response.data;
-  },
   async getCockpitAlert(): Promise<CockpitAlert[]> {
     const response = await api.get<CockpitAlert[]>('/cockpit/alertas');
     return response.data;
   },
   async getCockpitAlertDetail(subpath_detail: string): Promise<any> {
     const response = await api.get<any>(`${subpath_detail}`);
+    return response.data;
+  },
+
+  // ROTAS DE ESTOQUE
+  async getStockMetrics(): Promise<StockMetrics[]> {
+    const response = await api.get<StockMetrics[]>('/stock/metricas_estoque');
     return response.data;
   },
   async getStockSituation(): Promise<any> {
@@ -308,7 +312,6 @@ export const analysisService = {
     );
     return response.data;
   },
-
   async getProductsByABC(query?: QueryProductsABC): Promise<any> {
     const searchParams = new URLSearchParams();
 
