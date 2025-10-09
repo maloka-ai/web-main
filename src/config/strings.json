@@ -16,5 +16,6 @@
   "analysis-stock-replenishment": "Reposição de estoque",
   "analysis-stock-inactive": "Análise de inatividade",
   "analysis-stock-sku-analysis": "Análise por SKU",
-  "analysis-stock-replenishment-graph-title": "Produtos por Nível de Cobertura"
+  "analysis-stock-replenishment-graph-title": "Produtos por Nível de Cobertura",
+  "analysis-sales-management-title": "Gestão de vendas"
 }
