@@ -24,7 +24,7 @@ export default function SessionExpiredSnackbar() {
   const handleClose = () => {
     setOpen(false);
     localStorage.clear();
-    window.location.href = '/v0/login';
+    window.location.href = '/login';
   };
 
   return (

@@ -4,8 +4,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
-  basePath: '/v0',
-  assetPrefix: '/v0',
   output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,

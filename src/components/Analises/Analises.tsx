@@ -73,9 +73,14 @@ export const AnalysisMenuConfig = [
     title: getString('analysis-know-your-customer-title'),
     items: [
       AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE,
-      AnalysisSubPages.CUSTOMERS_PROBABILITY_OF_RETURN,
-      AnalysisSubPages.CUSTOMERS_RECURRING_PURCHASE,
-      AnalysisSubPages.CUSTOMERS_ANNUAL_RETENTION,
+    ].map((page) => ({
+      title: AnalysisSubpagesConfig[page].title,
+      page,
+    })),
+  },
+  {
+    title: getString('analysis-sales-performance-title'),
+    items: [
       AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH,
     ].map((page) => ({
       title: AnalysisSubpagesConfig[page].title,
