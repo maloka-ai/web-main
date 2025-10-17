@@ -1,9 +1,9 @@
 'use client';
 
 import { Stack } from '@mui/material';
-import { CardMonthlySalesEvolution } from '@/components/Analises/subpages/customers/CardMonthlySalesEvolution';
-import { CardYearEvolution } from '@/components/Analises/subpages/customers/CardYearEvolution';
-import { CardDailySalesComparison } from '@/components/Analises/subpages/customers/CardDailySalesComparison';
+import { CardMonthlySalesEvolution } from '@/components/Analises/subpages/customers/components/CardMonthlySalesEvolution';
+import { CardYearEvolution } from '@/components/Analises/subpages/customers/components/CardYearEvolution';
+import { CardDailySalesComparison } from '@/components/Analises/subpages/customers/components/CardDailySalesComparison';
 
 export function CustomerBussinessGrowth() {
   return (

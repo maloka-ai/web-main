@@ -1,5 +1,6 @@
 import api from '@/utils/api';
 import { DailyRevenue } from '@/services/analysisService';
+import { toQS } from '@/services/helpers/toQS';
 
 export interface AnnualRevenue {
   ano: number;
@@ -48,15 +49,6 @@ export type SaleItem = {
   tipo: 'P' | 'S';
   total_item: number;
 };
-
-function toQS(params: Record<string, string | number | undefined | null>) {
-  const usp = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') usp.append(k, String(v));
-  });
-  const q = usp.toString();
-  return q ? `?${q}` : '';
-}
 
 export const salesService = {
   async getAnnualRevenue(ano?: number): Promise<AnnualRevenue[]> {
