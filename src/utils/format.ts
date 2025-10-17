@@ -16,6 +16,10 @@ export const formatCurrency = (
   }).format(amount);
 };
 
+export const formatDate = (dateStr: string | Date): string => {
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  return date.toLocaleDateString('pt-BR');
+};
 // Formats a percentage value with a sign (+/-) and two decimal places.
 export function formatPercentSigned(value: number) {
   const sign = value > 0 ? '+' : '';
