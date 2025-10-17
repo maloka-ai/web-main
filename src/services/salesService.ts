@@ -34,6 +34,21 @@ export interface MonthlyRevenue {
   total_venda: number;
 }
 
+export type SaleItem = {
+  acrescimo: number;
+  desconto: number;
+  descricao_servico: string | null;
+  id_produto: number | null;
+  id_servico: number | null;
+  id_venda: number;
+  id_venda_item: number;
+  nome_produto: string | null;
+  preco_bruto: number;
+  quantidade: number;
+  tipo: 'P' | 'S';
+  total_item: number;
+};
+
 function toQS(params: Record<string, string | number | undefined | null>) {
   const usp = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
@@ -101,9 +116,9 @@ export const salesService = {
     return data;
   },
 
-  async getSaleItems(id_venda: number): Promise<any[]> {
+  async getSaleItems(id_venda: number) {
     const qs = toQS({ id_venda });
-    const { data } = await api.get<any[]>(`/sales/vendas/itens${qs}`);
+    const { data } = await api.get<SaleItem[]>(`/sales/vendas/itens${qs}`);
     return data;
   },
 };
