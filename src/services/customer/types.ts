@@ -1,5 +1,3 @@
-import api from '@/utils/api';
-
 export interface Customer {
   id_cliente: number;
   nome: string;
@@ -31,8 +29,8 @@ export interface CustomerDetails {
   data_fundacao: string | null;
 }
 
-export type Sale = {
-  data_venda: string; // ISO date string
+export type CustomerSale = {
+  data_venda: string;
   id_cliente: number;
   id_loja: number;
   id_venda: number;
@@ -45,33 +43,4 @@ export type Sale = {
   total_venda: number;
   valor_total_venda_produto: number;
   valor_total_venda_servico: number;
-};
-
-function toQS(params: Record<string, string | number | undefined | null>) {
-  const usp = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') usp.append(k, String(v));
-  });
-  const q = usp.toString();
-  return q ? `?${q}` : '';
-}
-
-export const customerService = {
-  async getAllCustomers() {
-    const { data } = await api.get<Customer[]>(
-      `/customer/segmentacao/clientes_por_segmento`,
-    );
-    return data;
-  },
-  async getDetailsCustomer(id_cliente: number) {
-    const qs = toQS({ id_cliente });
-    const { data } = await api.get<CustomerDetails>(`/customer/cliente${qs}`);
-    return data;
-  },
-  async getSalesCustomer(id_cliente: number) {
-    const qs = toQS({ id_cliente });
-    const { data } = await api.get<Sale[]>(`/sales/vendas/cliente${qs}`);
-
-    return data;
-  },
 };
