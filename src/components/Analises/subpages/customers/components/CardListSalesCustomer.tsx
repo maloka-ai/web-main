@@ -34,9 +34,9 @@ export function CardListSalesCustomer({
       header: 'Total',
       Cell: ({ cell }) => formatCurrency(cell.getValue() as any),
     },
-    { accessorKey: 'situacao_venda', header: 'Situação' },
 
     { accessorKey: 'tipo_venda', header: 'Tipo' },
+    { accessorKey: 'situacao_venda', header: 'Situação' },
   ];
 
   const table = useMaterialReactTable({
@@ -46,13 +46,10 @@ export function CardListSalesCustomer({
     },
     getRowId: (originalRow) => String(originalRow.id_venda),
     data: sales || [],
-    enableDensityToggle: false,
     enableColumnActions: false,
-    enableColumnFilterModes: false,
-    enableColumnResizing: false,
-    enableExpandAll: false,
-    enableExpanding: true,
-    enableFullScreenToggle: false,
+    enableTopToolbar: false,
+    initialState: { showColumnFilters: true },
+
     muiTableBodyRowProps: {
       sx: {
         '& > td': { borderBottom: 'none' }, // remove a borda entre linha e painel
