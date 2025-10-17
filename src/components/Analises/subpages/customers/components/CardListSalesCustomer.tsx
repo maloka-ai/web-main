@@ -1,8 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardHeader, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { customerService, Sale } from '@/services/customerService';
 import {
   MaterialReactTable,
   MRT_ColumnDef,
@@ -11,6 +9,8 @@ import {
 import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { RenderDetailsPanelSales } from '@/components/Analises/subpages/customers/components/RenderDetailsPanelSales';
+import { useCustomerSales } from '@/services/customer/queries';
+import { CustomerSale } from '@/services/customer/types';
 
 interface CardCustomerProfileProps {
   customerId: number;
@@ -18,20 +18,9 @@ interface CardCustomerProfileProps {
 export function CardListSalesCustomer({
   customerId,
 }: CardCustomerProfileProps) {
-  const [sales, setSales] = useState<Sale[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  useEffect(() => {
-    setIsLoading(true);
-    customerService
-      .getSalesCustomer(customerId)
-      .then((res) => {
-        console.log(res);
-        setSales(res);
-      })
-      .finally(() => setIsLoading(false));
-  }, [customerId]);
+  const { data: sales, isLoading } = useCustomerSales(customerId);
 
-  const columns: MRT_ColumnDef<Sale>[] = [
+  const columns: MRT_ColumnDef<CustomerSale>[] = [
     {
       accessorKey: 'data_venda',
       header: 'Data',

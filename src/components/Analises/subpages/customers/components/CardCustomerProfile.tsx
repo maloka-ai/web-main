@@ -9,13 +9,9 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import {
-  Customer,
-  CustomerDetails,
-  customerService,
-} from '@/services/customerService';
 import { formatCurrency } from '@/utils/format';
+import { useCustomerDetails } from '@/services/customer/queries';
+import { Customer } from '@/services/customer/types';
 
 interface CardCustomerProfileProps {
   customerId: number;
@@ -26,16 +22,8 @@ export function CardCustomerProfile({
   customerId,
   customer,
 }: CardCustomerProfileProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [detailsCustomer, setDetailsCustomer] =
-    useState<CustomerDetails | null>(null);
-  useEffect(() => {
-    setIsLoading(true);
-    customerService
-      .getDetailsCustomer(customerId)
-      .then((res) => setDetailsCustomer(res))
-      .finally(() => setIsLoading(false));
-  }, [customerId]);
+  const { data: detailsCustomer, isLoading } = useCustomerDetails(customerId);
+
   return (
     <Card>
       <CardHeader
