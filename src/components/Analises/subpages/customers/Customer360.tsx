@@ -22,7 +22,6 @@ export function Customer360() {
   );
 
   return (
-<<<<<<< HEAD
     <Grid container spacing={2} pb={20}>
       <Grid size={12}>
         <Card>
@@ -33,29 +32,6 @@ export function Customer360() {
               </Typography>
             }
             subheader="Selecione um cliente para ver detalhes sobre seu comportamento de vendas e histórico."
-=======
-    <Stack spacing={2} pb={40}>
-      <Card>
-        <CardHeader
-          title={
-            <Typography variant="h6" fontWeight={700}>
-              Análise 360º do cliente
-            </Typography>
-          }
-          subheader="Selecione um cliente para ver detalhes sobre seu comportamento de vendas e histórico."
-        />
-        <CardContent>
-          <Autocomplete<Customer>
-            loading={isLoading}
-            options={customers || []}
-            value={customerSelected}
-            getOptionKey={(customer) => customer.id_cliente}
-            onChange={(_: any, newValue) => {
-              setCustomerSelected(newValue);
-            }}
-            getOptionLabel={(option) => option.nome}
-            renderInput={(params) => <TextField {...params} label="Cliente" />}
->>>>>>> df384e2 (feat: adição do tanstack query)
           />
           <CardContent>
             <Autocomplete<Customer>
