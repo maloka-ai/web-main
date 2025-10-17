@@ -1,6 +1,7 @@
 import api from '@/utils/api';
 import { DailyRevenue } from '@/services/analysisService';
 import { toQS } from '@/services/helpers/toQS';
+import { AtypicalTopProduct } from '@/services/sales/types';
 
 export interface AnnualRevenue {
   ano: number;
@@ -88,8 +89,8 @@ export const salesService = {
     return data;
   },
 
-  async getAtypicalTop10Products(): Promise<any[]> {
-    const { data } = await api.get<any[]>(
+  async getAtypicalTop10Products() {
+    const { data } = await api.get<AtypicalTopProduct[]>(
       `/sales/vendas_atipicas/top10_produtos`,
     );
     return data;
