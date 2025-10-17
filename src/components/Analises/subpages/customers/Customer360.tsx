@@ -7,30 +7,21 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { Customer, customerService } from '@/services/customerService';
+import { useState } from 'react';
 import { CardCustomerProfile } from '@/components/Analises/subpages/customers/components/CardCustomerProfile';
 import { CardListSalesCustomer } from '@/components/Analises/subpages/customers/components/CardListSalesCustomer';
+import { CardAnalysisSales } from '@/components/Analises/subpages/customers/components/CardAnalyisSales';
+import { Customer } from '@/services/customer/types';
+import { useCustomers } from '@/services/customer/queries';
 
 export function Customer360() {
+  const { data: customers, isLoading } = useCustomers();
   const [customerSelected, setCustomerSelected] = useState<Customer | null>(
     null,
   );
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsLoading(true);
-    customerService
-      .getAllCustomers()
-      .then((res) => {
-        setCustomers(res);
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} pb={40}>
       <Card>
         <CardHeader
           title={
@@ -43,7 +34,7 @@ export function Customer360() {
         <CardContent>
           <Autocomplete<Customer>
             loading={isLoading}
-            options={customers}
+            options={customers || []}
             value={customerSelected}
             getOptionKey={(customer) => customer.id_cliente}
             onChange={(_: any, newValue) => {
@@ -66,6 +57,7 @@ export function Customer360() {
             customer={customerSelected}
           />
           <CardListSalesCustomer customerId={customerSelected.id_cliente} />
+          <CardAnalysisSales customerId={customerSelected.id_cliente} />
         </>
       )}
     </Stack>
