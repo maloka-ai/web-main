@@ -3,6 +3,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Grid,
   Stack,
   TextField,
   Typography,
@@ -21,30 +22,34 @@ export function Customer360() {
   );
 
   return (
-    <Stack spacing={2} pb={40}>
-      <Card>
-        <CardHeader
-          title={
-            <Typography variant="h6" fontWeight={700}>
-              Análise 360º do cliente
-            </Typography>
-          }
-          subheader="Selecione um cliente para ver detalhes sobre seu comportamento de vendas e histórico."
-        />
-        <CardContent>
-          <Autocomplete<Customer>
-            loading={isLoading}
-            options={customers || []}
-            value={customerSelected}
-            getOptionKey={(customer) => customer.id_cliente}
-            onChange={(_: any, newValue) => {
-              setCustomerSelected(newValue);
-            }}
-            getOptionLabel={(option) => option.nome}
-            renderInput={(params) => <TextField {...params} label="Cliente" />}
+    <Grid container spacing={2} pb={20}>
+      <Grid size={12}>
+        <Card>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight={700}>
+                Análise 360º do cliente
+              </Typography>
+            }
+            subheader="Selecione um cliente para ver detalhes sobre seu comportamento de vendas e histórico."
           />
-        </CardContent>
-      </Card>
+          <CardContent>
+            <Autocomplete<Customer>
+              loading={isLoading}
+              options={customers || []}
+              value={customerSelected}
+              getOptionKey={(customer) => customer.id_cliente}
+              onChange={(_: any, newValue) => {
+                setCustomerSelected(newValue);
+              }}
+              getOptionLabel={(option) => option.nome}
+              renderInput={(params) => (
+                <TextField {...params} label="Cliente" />
+              )}
+            />
+          </CardContent>
+        </Card>
+      </Grid>
       {!customerSelected && (
         <Typography variant="body2" color="textSecondary" mt={2}>
           Selecione um cliente para ver o perfil detalhado.
@@ -52,14 +57,24 @@ export function Customer360() {
       )}
       {customerSelected && (
         <>
-          <CardCustomerProfile
-            customerId={customerSelected.id_cliente}
-            customer={customerSelected}
-          />
-          <CardListSalesCustomer customerId={customerSelected.id_cliente} />
-          <CardAnalysisSales customerId={customerSelected.id_cliente} />
+          <Grid
+            size={{
+              xs: 12,
+            }}
+          >
+            <CardCustomerProfile
+              customerId={customerSelected.id_cliente}
+              customer={customerSelected}
+            />
+          </Grid>
+          <Grid size={12}>
+            <CardListSalesCustomer customerId={customerSelected.id_cliente} />
+          </Grid>
+          <Grid size={12}>
+            <CardAnalysisSales customerId={customerSelected.id_cliente} />
+          </Grid>
         </>
       )}
-    </Stack>
+    </Grid>
   );
 }
