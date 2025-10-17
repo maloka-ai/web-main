@@ -13,11 +13,16 @@ import StockReplenishmentPage from '@/components/Analises/subpages/stock-managem
 import InactiveityAnalysisPage from './subpages/stock-management/InactivityAnalysisPage';
 import SkuAnalysisPage from '@/components/Analises/subpages/stock-management/SkuAnalysisPage';
 import { CustomerBussinessGrowth } from '@/components/Analises/subpages/customers/CustomerBussinessGrowth';
+import { Customer360 } from '@/components/Analises/subpages/customers/Customer360';
 
 const CustomersSubpages = {
   [AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE]: {
     content: <CustomerMoreLessActivePage />,
     title: getString('analysis-customers-more-or-less-active-customers'),
+  },
+  [AnalysisSubPages.CUSTOMERS_360]: {
+    content: <Customer360 />,
+    title: getString('analysis-customers-360'),
   },
   [AnalysisSubPages.CUSTOMERS_PROBABILITY_OF_RETURN]: {
     content: <div>Em construção</div>,
@@ -73,6 +78,7 @@ export const AnalysisMenuConfig = [
     title: getString('analysis-know-your-customer-title'),
     items: [
       AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE,
+      AnalysisSubPages.CUSTOMERS_360,
     ].map((page) => ({
       title: AnalysisSubpagesConfig[page].title,
       page,
@@ -80,9 +86,7 @@ export const AnalysisMenuConfig = [
   },
   {
     title: getString('analysis-sales-performance-title'),
-    items: [
-      AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH,
-    ].map((page) => ({
+    items: [AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH].map((page) => ({
       title: AnalysisSubpagesConfig[page].title,
       page,
     })),
