@@ -16,6 +16,10 @@ export interface AssistantThread {
 }
 export type AssistantThreadResume = Omit<AssistantThread, "user_id">;
 
+export interface AssistantThreadDelete {
+  message: string;
+}
+
 export interface SpreadsheetMetadata {
   message_id: string;
   spreadsheet_id: string;
@@ -146,6 +150,21 @@ const assistantService = {
       "/assistants/threads",
     );
     return response.data;
+  },
+  async editConversation(
+    thread_id: string,
+    title: string,
+  ): Promise<AssistantThread> {
+    const response = await api.put<AssistantThread>(
+      `/assistants/threads/${thread_id}/title?title=${encodeURIComponent(title)}`
+    );
+    return response.data;
+  },
+  async deleteConversation(thread_id: string): Promise<AssistantThreadDelete> {
+    const reaponse = await api.delete<AssistantThreadDelete>(
+      `/assistants/threads/${thread_id}`
+    );
+    return reaponse.data;
   },
   async sendMessage(
     thread_id: string,
