@@ -8,6 +8,8 @@ import {
   IconButton,
   List,
   ListItem,
+  Menu,
+  MenuItem,
   Paper,
   TextField,
   Typography,
@@ -15,7 +17,7 @@ import {
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import { ArrowLeft, ArrowRight } from "@mui/icons-material";
+import { ArrowLeft, ArrowRight, MoreVert } from "@mui/icons-material";
 
 import styles from "./assistantChat.module.css";
 import assistantService, {
@@ -29,6 +31,8 @@ import AssistantSelector from "./AssistenteSelector";
 import MarkdownMUI from "../MarkdownMUI/MarkdownMUI";
 
 import * as XLSX from "xlsx";
+import EditConversationModal from "./EditConversationModal";
+import DeleteConversationModal from "./DeleteConversationModal";
 
 function downloadCSVasXLSX(csvString: string, filename = "dados.xlsx") {
   const worksheet = XLSX.read(csvString, { type: "string" }).Sheets.Sheet1;
@@ -58,7 +62,11 @@ export default function AssistantChat() {
   const [input, setInput] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [messages, setMessages] = useState<AssistanteMessage[]>([]);
   const [conversations, setConversations] = useState<AssistantThreadResume[]>(
     [],
@@ -147,6 +155,23 @@ export default function AssistantChat() {
     }
     setConversations(data);
     return data;
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, conversation: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedConversation(conversation);
+  };
+
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleEdit = () => {
+    handleMenuClose();
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    handleMenuClose();
+    setDeleteModalOpen(true);
   };
 
   // Carrega mensagens quando muda a conversa ativa
@@ -370,6 +395,16 @@ export default function AssistantChat() {
                 }}
               >
                 <span className={styles.conversationName}>{title}</span>
+                <IconButton
+                  className={styles.menuButton}
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuOpen(e, { thread_id: id, title });
+                  }}
+                >
+                  <MoreVert fontSize="small" sx={{ color: '#df8157'}} />
+                </IconButton>
               </ListItem>
             ))}
           </List>
@@ -379,6 +414,56 @@ export default function AssistantChat() {
           onClick={() => setDrawerOpen(false)}
         />
       </Box>
+
+      {/* Menu de opções */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+        <MenuItem onClick={handleEdit}>Renomear</MenuItem>
+        <MenuItem onClick={handleDelete}>Excluir</MenuItem>
+      </Menu>
+
+      {/* Modais */}
+      {selectedConversation && (
+        <>
+          <EditConversationModal
+            open={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+            currentTitle={selectedConversation.title}
+            onSave={async (newTitle) => {
+              const changeThread = await assistantService.editConversation(selectedConversation.thread_id, newTitle);
+              if (changeThread.title){
+                setConversations((prev) =>
+                  prev.map((conv) =>
+                    conv.thread_id === changeThread.thread_id
+                      ? { ...conv, title: changeThread.title }
+                      : conv
+                  )
+                );
+              }
+              setEditModalOpen(false);
+            }}
+          />
+
+          <DeleteConversationModal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            conversationTitle={selectedConversation.title}
+            onDelete={async () => {
+              const deletedThread = await assistantService.deleteConversation(selectedConversation.thread_id);
+
+              if (deletedThread.message && activeConversationId === selectedConversation.thread_id) {
+                setActiveConversationId(null);
+                setMessages([]);
+                setConversations((prev) =>
+                  prev.filter(
+                    (conv) => conv.thread_id !== selectedConversation.thread_id,
+                  ),
+                );
+              }
+              setDeleteModalOpen(false);
+            }}
+          />
+        </>
+      )}
 
       <CreateConversationModal
         open={createModalOpen}

@@ -194,6 +194,19 @@
   margin-left: 0.5rem;
 }
 
+.menuButton {
+  position: absolute !important;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.conversationItem:hover .menuButton {
+  opacity: 1;
+}
+
 @keyframes scroll-text {
   0%   { transform: translateX(0); }
   100% { transform: translateX(calc(-100% + 200px)); }
