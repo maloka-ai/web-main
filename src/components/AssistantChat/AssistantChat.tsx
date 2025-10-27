@@ -107,14 +107,14 @@ function DynamicChart({ code, height = 320 }: { code: string; height?: number | 
         transformed = transformed.replace(/import\s+React.*from\s+['"]react['"];?/g, "");
 
         // === 3. Captura o nome do componente exportado ===
-        const exportFnMatch = transformed.match(/export\s+default\s+function\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+)/);
+        const exportFnMatch = transformed.match(/export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/);
         if (exportFnMatch) {
           componentName = exportFnMatch[1];
-          transformed = transformed.replace(/export\s+default\s+function\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+)/, "function " + replaceComponentName);
+          transformed = transformed.replace(/export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/, "function " + replaceComponentName);
         } else if (/export\s+default\s+(\w+);?/.test(transformed)) {
-          const match = transformed.match(/export\s+default\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+);?/);
+          const match = transformed.match(/export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/);
           if (match) {
-            transformed = transformed.replace(/export\s+default\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+);?/, "");
+            transformed = transformed.replace(/export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/, "");
           }
         }
 
