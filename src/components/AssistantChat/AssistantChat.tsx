@@ -1,7 +1,8 @@
 // app/components/AssistantChat.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import * as Recharts from "recharts";
 import {
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
   Paper,
   TextField,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
@@ -58,6 +60,117 @@ function TypingIndicator() {
   );
 }
 
+/**
+ * DynamicChart component
+ *
+ * Renderiza o TSX recebido dentro de um iframe. O iframe carrega:
+ *  - React + ReactDOM (via unpkg)
+ *  - Recharts (via unpkg)
+ *  - Babel standalone para transpilar JSX em runtime (type="text/babel")
+ *
+ * O code string deve exportar um componente default (ex: export default function MyChart() { return (<div>...</div>); })
+ *
+ * Observação de segurança: código arbitrário será executado dentro de um iframe. Este iframe
+ * carrega libs via CDN. Se desejar restringir CDN ou usar outro método (por exemplo código pré-transpilado),
+ * posso ajustar.
+ */
+function DynamicChart({ code, height = 320 }: { code: string; height?: number | string }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!code || !containerRef.current) return;
+
+    async function renderChart() {
+      try {
+        const Babel = await import("@babel/standalone");
+
+        let transformed = code;
+        let componentName = "";
+        const replaceComponentName = "ChartComponent";
+
+        // === 1. Captura os componentes importados do Recharts ===
+        const rechartsImportRegex = /import\s*{\s*([^}]+)\s*}\s*from\s*['"]recharts['"];?/;
+        const rechartsMatch = transformed.match(rechartsImportRegex);
+        if (rechartsMatch) {
+          const components = rechartsMatch[1]
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          for (const comp of components) {
+            const compRegex = new RegExp(`\\b${comp}\\b`, "g");
+            transformed = transformed.replace(compRegex, `Recharts.${comp}`);
+          }
+          transformed = transformed.replace(rechartsImportRegex, "");
+        }
+
+        // === 2. Remove importações React ===
+        transformed = transformed.replace(/import\s+React.*from\s+['"]react['"];?/g, "");
+
+        // === 3. Captura o nome do componente exportado ===
+        const exportFnMatch = transformed.match(/export\s+default\s+function\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+)/);
+        if (exportFnMatch) {
+          componentName = exportFnMatch[1];
+          transformed = transformed.replace(/export\s+default\s+function\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+)/, "function " + replaceComponentName);
+        } else if (/export\s+default\s+(\w+);?/.test(transformed)) {
+          const match = transformed.match(/export\s+default\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+);?/);
+          if (match) {
+            transformed = transformed.replace(/export\s+default\s+([a-zA-Zçàâãóõôéêẽíîĩúûũ]+);?/, "");
+          }
+        }
+
+        // === 4. Envolve tudo num IIFE (sem return no topo) ===
+        const wrappedCode = `
+          (function() {
+            ${transformed}
+            return ${replaceComponentName};
+          })()
+        `;
+
+        // === 5. Transpila JSX -> JS ===
+        console.log("Wrapped Code:", wrappedCode);
+        const { code: jsCode } = Babel.transform(wrappedCode, {
+          presets: ["react"],
+        });
+
+        // === 6. Executa ===
+        const createComponent = new Function("React", "Recharts", `return ${jsCode}`);
+        const Component = createComponent(React, Recharts);
+
+        if (!Component) throw new Error("O código não exportou um componente válido.");
+
+        // === 7. Renderiza ===
+        const mod = await import("react-dom/client");
+        const ReactDOM = mod.default || mod;
+        const root = ReactDOM.createRoot(containerRef.current!);
+        root.render(React.createElement(Component));
+
+      } catch (err) {
+        console.error("Erro ao interpretar gráfico:", err);
+        if (containerRef.current) {
+          containerRef.current.innerHTML = `<div style="color:#b91c1c;padding:8px;">Erro ao renderizar gráfico: ${
+            (err as Error).message
+          }</div>`;
+        }
+      }
+    }
+
+    renderChart();
+  }, [code]);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height,
+        borderRadius: 8,
+        overflow: "hidden",
+        background: "#fff",
+      }}
+    />
+  );
+}
+
 export default function AssistantChat() {
   const [input, setInput] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -79,6 +192,10 @@ export default function AssistantChat() {
   );
   const [isGeneratingMessage, setIsGeneratingMessage] =
     useState<boolean>(false);
+
+  // chart states: por mensagem id
+  const [chartComponents, setChartComponents] = useState<Record<string, string>>({});
+  const [chartLoading, setChartLoading] = useState<Record<string, boolean>>({});
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -194,6 +311,18 @@ export default function AssistantChat() {
         console.error("Invalid messages data:", data);
         return;
       }
+      // set chartComponents if chart_code is present
+      //O argumento do tipo 'string[]' não é atribuível ao parâmetro do tipo 'SetStateAction<Record<string, string>>'.
+  //O tipo 'string[]' não pode ser atribuído ao tipo 'Record<string, string>'.
+    //A assinatura do índice para o tipo 'string' está ausente no tipo 'string[]'.ts(2345)
+
+      const chartComponents = data.reduce((acc, msg) => {
+        if (msg.chart_code) {
+          acc[msg.id] = msg.chart_code;
+        }
+        return acc;
+      }, {} as Record<string, string>);
+      setChartComponents(chartComponents);
       setMessages(data.length ? data : []);
     });
   }, [activeConversationId]);
@@ -227,6 +356,7 @@ export default function AssistantChat() {
         role: "user",
         id: userMsgId,
         spreadsheet_metadata: null,
+        chart_code: null,
         created_at: new Date(),
         thread_id: activeConversationId ?? "",
         user_id: "",
@@ -236,6 +366,7 @@ export default function AssistantChat() {
         role: "assistant",
         id: assistantPlaceholderId,
         spreadsheet_metadata: null,
+        chart_code: null,
         created_at: new Date(),
         thread_id: activeConversationId ?? "",
         user_id: "",
@@ -313,6 +444,28 @@ export default function AssistantChat() {
             }
             return prev;
           });
+        },
+        onChartCodeLoading: () => {
+          // mostra skeleton para a mensagem placeholder
+          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: true }));
+        },
+        onChartCode: (chartCode) => {
+          // salva código do chart e desliga loading
+          setChartComponents((prev) => ({ ...prev, [assistantPlaceholderId]: chartCode }));
+          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
+          // também garante que a mensagem do assistant (placeholder) tenha conteúdo se estiver vazia
+          setMessages((prev) => {
+            const i = prev.length - 1;
+            const last = prev[i];
+            if (i >= 0 && last?.role === "assistant" && (!last.content || last.content.trim() === "")) {
+              const updated = { ...last, content: "" } as AssistanteMessage;
+              return [...prev.slice(0, i), updated];
+            }
+            return prev;
+          });
+        },
+        onChartCodeEnd: () => {
+          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
         },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
@@ -519,6 +672,7 @@ export default function AssistantChat() {
               >
                 <MarkdownMUI>{msg.content}</MarkdownMUI>
 
+                {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
                 {msg.spreadsheet_metadata && (
                   <Button
                     variant="outlined"
@@ -534,6 +688,20 @@ export default function AssistantChat() {
                   >
                     Baixar Planilha
                   </Button>
+                )}
+
+                {/* CHART: Skeleton se estiver carregando */}
+                {chartLoading[msg.id] && (
+                  <Box sx={{ marginTop: 2 }}>
+                    <Skeleton variant="rectangular" width="100%" height={320} />
+                  </Box>
+                )}
+
+                {/* CHART: se temos o component code, renderiza via DynamicChart */}
+                {chartComponents[msg.id] && (
+                  <Box sx={{ marginTop: 2 }}>
+                    <DynamicChart code={chartComponents[msg.id]} height={"100%"} />
+                  </Box>
                 )}
               </Box>
             );
