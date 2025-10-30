@@ -1,8 +1,8 @@
 // app/components/AssistantChat.tsx
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import * as Recharts from "recharts";
+import React, { useEffect, useRef, useState } from 'react';
+import * as Recharts from 'recharts';
 import {
   Box,
   Button,
@@ -15,37 +15,39 @@ import {
   TextField,
   Typography,
   Skeleton,
-} from "@mui/material";
-import MenuOpenIcon from "@mui/icons-material/MenuOpen";
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import { ArrowLeft, ArrowRight, MoreVert } from "@mui/icons-material";
+  ClickAwayListener,
+} from '@mui/material';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { ArrowLeft, ArrowRight, MoreVert } from '@mui/icons-material';
 
-import styles from "./assistantChat.module.css";
+import styles from './assistantChat.module.css';
 import assistantService, {
   AssistanteMessage,
   AssistantThreadResume,
   AssistantType,
-} from "@/services/AssistantService";
+} from '@/services/AssistantService';
 
-import CreateConversationModal from "./CreateConversationModal";
-import AssistantSelector from "./AssistenteSelector";
-import MarkdownMUI from "../MarkdownMUI/MarkdownMUI";
+import CreateConversationModal from './CreateConversationModal';
+import AssistantSelector from './AssistenteSelector';
+import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
 
-import * as XLSX from "xlsx";
-import EditConversationModal from "./EditConversationModal";
-import DeleteConversationModal from "./DeleteConversationModal";
+import * as XLSX from 'xlsx';
+import EditConversationModal from './EditConversationModal';
+import DeleteConversationModal from './DeleteConversationModal';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
-function downloadCSVasXLSX(csvString: string, filename = "dados.xlsx") {
-  const worksheet = XLSX.read(csvString, { type: "string" }).Sheets.Sheet1;
+function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
+  const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Planilha");
-  const arrayBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
+  const arrayBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([arrayBuffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
   a.download = filename;
   a.click();
@@ -74,7 +76,13 @@ function TypingIndicator() {
  * carrega libs via CDN. Se desejar restringir CDN ou usar outro método (por exemplo código pré-transpilado),
  * posso ajustar.
  */
-function DynamicChart({ code, height = 320 }: { code: string; height?: number | string }) {
+function DynamicChart({
+  code,
+  height = 320,
+}: {
+  code: string;
+  height?: number | string;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -82,39 +90,53 @@ function DynamicChart({ code, height = 320 }: { code: string; height?: number | 
 
     async function renderChart() {
       try {
-        const Babel = await import("@babel/standalone");
+        const Babel = await import('@babel/standalone');
 
         let transformed = code;
-        let componentName = "";
-        const replaceComponentName = "ChartComponent";
+        let componentName = '';
+        const replaceComponentName = 'ChartComponent';
 
         // === 1. Captura os componentes importados do Recharts ===
-        const rechartsImportRegex = /import\s*{\s*([^}]+)\s*}\s*from\s*['"]recharts['"];?/;
+        const rechartsImportRegex =
+          /import\s*{\s*([^}]+)\s*}\s*from\s*['"]recharts['"];?/;
         const rechartsMatch = transformed.match(rechartsImportRegex);
         if (rechartsMatch) {
           const components = rechartsMatch[1]
-            .split(",")
+            .split(',')
             .map((c) => c.trim())
             .filter(Boolean);
           for (const comp of components) {
-            const compRegex = new RegExp(`\\b${comp}\\b`, "g");
+            const compRegex = new RegExp(`\\b${comp}\\b`, 'g');
             transformed = transformed.replace(compRegex, `Recharts.${comp}`);
           }
-          transformed = transformed.replace(rechartsImportRegex, "");
+          transformed = transformed.replace(rechartsImportRegex, '');
         }
 
         // === 2. Remove importações React ===
-        transformed = transformed.replace(/import\s+React.*from\s+['"]react['"];?/g, "");
+        transformed = transformed.replace(
+          /import\s+React.*from\s+['"]react['"];?/g,
+          '',
+        );
 
         // === 3. Captura o nome do componente exportado ===
-        const exportFnMatch = transformed.match(/export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/);
+        const exportFnMatch = transformed.match(
+          /export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/,
+        );
         if (exportFnMatch) {
           componentName = exportFnMatch[1];
-          transformed = transformed.replace(/export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/, "function " + replaceComponentName);
+          transformed = transformed.replace(
+            /export\s+default\s+function\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+)/,
+            'function ' + replaceComponentName,
+          );
         } else if (/export\s+default\s+(\w+);?/.test(transformed)) {
-          const match = transformed.match(/export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/);
+          const match = transformed.match(
+            /export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/,
+          );
           if (match) {
-            transformed = transformed.replace(/export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/, "");
+            transformed = transformed.replace(
+              /export\s+default\s+([a-zA-Z0-9çàâãóõôéêẽíîĩúûũ]+);?/,
+              '',
+            );
           }
         }
 
@@ -127,25 +149,29 @@ function DynamicChart({ code, height = 320 }: { code: string; height?: number | 
         `;
 
         // === 5. Transpila JSX -> JS ===
-        console.log("Wrapped Code:", wrappedCode);
+        console.log('Wrapped Code:', wrappedCode);
         const { code: jsCode } = Babel.transform(wrappedCode, {
-          presets: ["react"],
+          presets: ['react'],
         });
 
         // === 6. Executa ===
-        const createComponent = new Function("React", "Recharts", `return ${jsCode}`);
+        const createComponent = new Function(
+          'React',
+          'Recharts',
+          `return ${jsCode}`,
+        );
         const Component = createComponent(React, Recharts);
 
-        if (!Component) throw new Error("O código não exportou um componente válido.");
+        if (!Component)
+          throw new Error('O código não exportou um componente válido.');
 
         // === 7. Renderiza ===
-        const mod = await import("react-dom/client");
+        const mod = await import('react-dom/client');
         const ReactDOM = mod.default || mod;
         const root = ReactDOM.createRoot(containerRef.current!);
         root.render(React.createElement(Component));
-
       } catch (err) {
-        console.error("Erro ao interpretar gráfico:", err);
+        console.error('Erro ao interpretar gráfico:', err);
         if (containerRef.current) {
           containerRef.current.innerHTML = `<div style="color:#b91c1c;padding:8px;">Erro ao renderizar gráfico: ${
             (err as Error).message
@@ -161,18 +187,18 @@ function DynamicChart({ code, height = 320 }: { code: string; height?: number | 
     <div
       ref={containerRef}
       style={{
-        width: "100%",
+        width: '100%',
         height,
         borderRadius: 8,
-        overflow: "hidden",
-        background: "#fff",
+        overflow: 'hidden',
+        background: '#fff',
       }}
     />
   );
 }
 
 export default function AssistantChat() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -192,9 +218,12 @@ export default function AssistantChat() {
   );
   const [isGeneratingMessage, setIsGeneratingMessage] =
     useState<boolean>(false);
+  const isMobile = useIsMobile();
 
   // chart states: por mensagem id
-  const [chartComponents, setChartComponents] = useState<Record<string, string>>({});
+  const [chartComponents, setChartComponents] = useState<
+    Record<string, string>
+  >({});
   const [chartLoading, setChartLoading] = useState<Record<string, boolean>>({});
 
   // ===== Scroll & Anchoring Refs/State =====
@@ -221,21 +250,21 @@ export default function AssistantChat() {
     if (userMsgReachedTop(0)) {
       setChunkAutoScroll(false);
     } else {
-      scrollToUserMessage("auto");
+      scrollToUserMessage('auto');
     }
   };
 
   const setChunkAutoScroll = (v: boolean | ((prev: boolean) => boolean)) => {
     // suporta set direto ou com função
     const next =
-      typeof v === "function"
+      typeof v === 'function'
         ? (v as (p: boolean) => boolean)(chunkAutoScrollRef.current)
         : v;
     chunkAutoScrollRef.current = next;
     _setChunkAutoScroll(next);
   };
 
-  const scrollToUserMessage = (behavior: ScrollBehavior = "smooth") => {
+  const scrollToUserMessage = (behavior: ScrollBehavior = 'smooth') => {
     const container = messageAreaRef.current;
     const target = lastUserMsgRef.current;
     if (!container || !target) return;
@@ -264,17 +293,20 @@ export default function AssistantChat() {
   // Atualiza lista de conversas
   const updateListConversations = async () => {
     const data = await assistantService.listConversations().catch((error) => {
-      console.error("Error fetching conversations:", error);
+      console.error('Error fetching conversations:', error);
     });
     if (!data || !Array.isArray(data)) {
-      console.error("Invalid conversations data:", data);
+      console.error('Invalid conversations data:', data);
       return;
     }
     setConversations(data);
     return data;
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, conversation: any) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    conversation: any,
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedConversation(conversation);
   };
@@ -297,7 +329,7 @@ export default function AssistantChat() {
 
     updateListConversations().then((conversations_) => {
       if (!conversations_ || !Array.isArray(conversations_)) {
-        console.error("Invalid conversations data:", conversations_);
+        console.error('Invalid conversations data:', conversations_);
         return;
       }
       setAssistantType(
@@ -308,20 +340,23 @@ export default function AssistantChat() {
 
     assistantService.listMessages(activeConversationId).then((data) => {
       if (!data || !Array.isArray(data)) {
-        console.error("Invalid messages data:", data);
+        console.error('Invalid messages data:', data);
         return;
       }
       // set chartComponents if chart_code is present
       //O argumento do tipo 'string[]' não é atribuível ao parâmetro do tipo 'SetStateAction<Record<string, string>>'.
-  //O tipo 'string[]' não pode ser atribuído ao tipo 'Record<string, string>'.
-    //A assinatura do índice para o tipo 'string' está ausente no tipo 'string[]'.ts(2345)
+      //O tipo 'string[]' não pode ser atribuído ao tipo 'Record<string, string>'.
+      //A assinatura do índice para o tipo 'string' está ausente no tipo 'string[]'.ts(2345)
 
-      const chartComponents = data.reduce((acc, msg) => {
-        if (msg.chart_code) {
-          acc[msg.id] = msg.chart_code;
-        }
-        return acc;
-      }, {} as Record<string, string>);
+      const chartComponents = data.reduce(
+        (acc, msg) => {
+          if (msg.chart_code) {
+            acc[msg.id] = msg.chart_code;
+          }
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
       setChartComponents(chartComponents);
       setMessages(data.length ? data : []);
     });
@@ -335,14 +370,14 @@ export default function AssistantChat() {
   //// Efeito para scrollar a tela quando usuário fazer nova pergunta
   useEffect(() => {
     if (lastUserMsgId) {
-      scrollToUserMessage("smooth");
+      scrollToUserMessage('smooth');
     }
   }, [lastUserMsgId]);
 
   const handleSend = async () => {
     const inputMessage = input.trim();
     if (!inputMessage || isGeneratingMessage) return;
-    setInput("");
+    setInput('');
     setIsGeneratingMessage(true);
 
     // Cria mensagem do usuário + placeholder do assistente
@@ -353,23 +388,23 @@ export default function AssistantChat() {
       ...messages,
       {
         content: inputMessage,
-        role: "user",
+        role: 'user',
         id: userMsgId,
         spreadsheet_metadata: null,
         chart_code: null,
         created_at: new Date(),
-        thread_id: activeConversationId ?? "",
-        user_id: "",
+        thread_id: activeConversationId ?? '',
+        user_id: '',
       },
       {
-        content: "",
-        role: "assistant",
+        content: '',
+        role: 'assistant',
         id: assistantPlaceholderId,
         spreadsheet_metadata: null,
         chart_code: null,
         created_at: new Date(),
-        thread_id: activeConversationId ?? "",
-        user_id: "",
+        thread_id: activeConversationId ?? '',
+        user_id: '',
       },
     ];
     setMessages(newMessages);
@@ -378,7 +413,7 @@ export default function AssistantChat() {
     // Define título da conversa (se for criar)
     const title =
       inputMessage.length > 150
-        ? inputMessage.substring(0, 150) + "..."
+        ? inputMessage.substring(0, 150) + '...'
         : inputMessage;
 
     const isNewConversation =
@@ -386,7 +421,7 @@ export default function AssistantChat() {
       conversations.find((c) => c.thread_id === activeConversationId)
         ?.assistant_id !== assistantType;
 
-    let conversationId: string = activeConversationId || "";
+    let conversationId: string = activeConversationId || '';
 
     if (isNewConversation) {
       const newConversation = await assistantService.createConversation(
@@ -401,24 +436,24 @@ export default function AssistantChat() {
 
     await assistantService.sendMessageStreaming(
       inputMessage,
-      conversationId ?? "",
+      conversationId ?? '',
       {
         onChunk: (chunk) => {
           setMessages((prev) => {
             const i = prev.length - 1;
             const last = prev[i];
 
-            if (i >= 0 && last?.role === "assistant") {
+            if (i >= 0 && last?.role === 'assistant') {
               const updated = {
                 ...last,
-                content: (last.content ?? "") + chunk,
+                content: (last.content ?? '') + chunk,
               };
               return [...prev.slice(0, i), updated];
             }
 
             return [
               ...prev,
-              { role: "assistant", content: chunk } as AssistanteMessage,
+              { role: 'assistant', content: chunk } as AssistanteMessage,
             ];
           });
 
@@ -435,7 +470,7 @@ export default function AssistantChat() {
             const i = prev.length - 1;
             const last = prev[i];
 
-            if (i >= 0 && last?.role === "assistant") {
+            if (i >= 0 && last?.role === 'assistant') {
               const updated = {
                 ...last,
                 ...meta,
@@ -447,29 +482,45 @@ export default function AssistantChat() {
         },
         onChartCodeLoading: () => {
           // mostra skeleton para a mensagem placeholder
-          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: true }));
+          setChartLoading((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: true,
+          }));
         },
         onChartCode: (chartCode) => {
           // salva código do chart e desliga loading
-          setChartComponents((prev) => ({ ...prev, [assistantPlaceholderId]: chartCode }));
-          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
+          setChartComponents((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: chartCode,
+          }));
+          setChartLoading((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: false,
+          }));
           // também garante que a mensagem do assistant (placeholder) tenha conteúdo se estiver vazia
           setMessages((prev) => {
             const i = prev.length - 1;
             const last = prev[i];
-            if (i >= 0 && last?.role === "assistant" && (!last.content || last.content.trim() === "")) {
-              const updated = { ...last, content: "" } as AssistanteMessage;
+            if (
+              i >= 0 &&
+              last?.role === 'assistant' &&
+              (!last.content || last.content.trim() === '')
+            ) {
+              const updated = { ...last, content: '' } as AssistanteMessage;
               return [...prev.slice(0, i), updated];
             }
             return prev;
           });
         },
         onChartCodeEnd: () => {
-          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
+          setChartLoading((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: false,
+          }));
         },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
-          console.error("Invalid response message:", err);
+          console.error('Invalid response message:', err);
           setMessages((prevMessages) => [
             ...prevMessages.slice(0, -1), // remove mensagem
           ]);
@@ -500,33 +551,49 @@ export default function AssistantChat() {
     if (msg.spreadsheet_metadata) {
       try {
         const msgId =
-          typeof msg.spreadsheet_metadata === "object" &&
-          "message_id" in msg.spreadsheet_metadata
+          typeof msg.spreadsheet_metadata === 'object' &&
+          'message_id' in msg.spreadsheet_metadata
             ? msg.spreadsheet_metadata.message_id
             : msg.id;
         const csvData = await assistantService.downloadSpreadsheet(msgId);
         downloadCSVasXLSX(csvData, `spreadsheet_${msg.id}.xlsx`);
       } catch (error) {
-        console.error("Error downloading spreadsheet:", error);
+        console.error('Error downloading spreadsheet:', error);
       }
     }
   }
 
   return (
     <Box
-      className={`${styles.wrapper} ${expanded ? styles["wrapper-expanded"] : ""}`}
+      className={styles.wrapper}
+      sx={{
+        pt: {
+          md: '40px',
+        },
+        width: {
+          xs: '100%',
+          md: expanded ? '25%' : '60%',
+        },
+      }}
     >
-      <IconButton
-        className={styles.toggleButton}
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? <ArrowLeft /> : <ArrowRight />}
-      </IconButton>
+      {!isMobile && (
+        <IconButton
+          className={styles.toggleButton}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? <ArrowLeft /> : <ArrowRight />}
+        </IconButton>
+      )}
 
-      {/* Drawer de Histórico */}
       <Box
         className={styles.drawerOverlay}
-        style={{ display: drawerOpen ? "block" : "none" }}
+        sx={{
+          display: drawerOpen ? 'block' : 'none',
+          top: {
+            xs: '0',
+            md: '40px',
+          },
+        }}
       >
         <Box className={styles.drawer}>
           <Box className={styles.drawerHeader}>
@@ -541,7 +608,7 @@ export default function AssistantChat() {
             {conversations.map(({ thread_id: id, title }) => (
               <ListItem
                 key={`${id}`}
-                className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ""}`}
+                className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
                 onClick={() => {
                   setActiveConversationId(id);
                   setDrawerOpen(false);
@@ -556,7 +623,7 @@ export default function AssistantChat() {
                     handleMenuOpen(e, { thread_id: id, title });
                   }}
                 >
-                  <MoreVert fontSize="small" sx={{ color: '#df8157'}} />
+                  <MoreVert fontSize="small" sx={{ color: '#df8157' }} />
                 </IconButton>
               </ListItem>
             ))}
@@ -569,11 +636,14 @@ export default function AssistantChat() {
       </Box>
 
       {/* Menu de opções */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
         <MenuItem onClick={handleEdit}>Renomear</MenuItem>
         <MenuItem onClick={handleDelete}>Excluir</MenuItem>
       </Menu>
-
       {/* Modais */}
       {selectedConversation && (
         <>
@@ -582,14 +652,17 @@ export default function AssistantChat() {
             onClose={() => setEditModalOpen(false)}
             currentTitle={selectedConversation.title}
             onSave={async (newTitle) => {
-              const changeThread = await assistantService.editConversation(selectedConversation.thread_id, newTitle);
-              if (changeThread.title){
+              const changeThread = await assistantService.editConversation(
+                selectedConversation.thread_id,
+                newTitle,
+              );
+              if (changeThread.title) {
                 setConversations((prev) =>
                   prev.map((conv) =>
                     conv.thread_id === changeThread.thread_id
                       ? { ...conv, title: changeThread.title }
-                      : conv
-                  )
+                      : conv,
+                  ),
                 );
               }
               setEditModalOpen(false);
@@ -601,9 +674,14 @@ export default function AssistantChat() {
             onClose={() => setDeleteModalOpen(false)}
             conversationTitle={selectedConversation.title}
             onDelete={async () => {
-              const deletedThread = await assistantService.deleteConversation(selectedConversation.thread_id);
+              const deletedThread = await assistantService.deleteConversation(
+                selectedConversation.thread_id,
+              );
 
-              if (deletedThread.message && activeConversationId === selectedConversation.thread_id) {
+              if (
+                deletedThread.message &&
+                activeConversationId === selectedConversation.thread_id
+              ) {
                 setActiveConversationId(null);
                 setMessages([]);
                 setConversations((prev) =>
@@ -624,34 +702,67 @@ export default function AssistantChat() {
         onCreate={handleCreateConversation}
       />
 
+      {/* Chat Box */}
       <Paper
         elevation={3}
         className={styles.chatContainer}
-        sx={{ position: "relative" }}
+        sx={{
+          position: 'relative',
+          borderRadius: {
+            md: '12px 12px 0 0',
+          },
+        }}
       >
-        <Box className={styles.header}>
-          <IconButton onClick={() => setDrawerOpen(true)}>
+        <Box
+          className={styles.header}
+          sx={{
+            background: 'inherit',
+            xs: {
+              position: 'sticky',
+              top: 0,
+            },
+          }}
+        >
+          <IconButton
+            onClick={(e) => {
+              console.log('passou aqui');
+              e.stopPropagation();
+              setDrawerOpen(true);
+            }}
+            color={'primary'}
+          >
             <MenuOpenIcon />
           </IconButton>
           <Typography variant="h6" className={styles.headerTitle}>
             Assistente
           </Typography>
-          <IconButton onClick={() => setCreateModalOpen(true)}>
+          <IconButton
+            onClick={() => setCreateModalOpen(true)}
+            color={'primary'}
+          >
             <AddBoxOutlinedIcon />
           </IconButton>
         </Box>
 
         {/* Área de mensagens */}
-        <Box className={styles.messageArea} ref={messageAreaRef}>
+        <Box
+          className={styles.messageArea}
+          ref={messageAreaRef}
+          sx={{
+            xs: {
+              overflow: 'hidden',
+            },
+          }}
+        >
           {messages.map((msg, index) => {
             const isGeneratingMessage =
-              msg.role === "assistant" &&
+              msg.role === 'assistant' &&
               index === messages.length - 1 &&
               !msg.content;
 
             // Ref para a última mensagem do usuário (âncora)
             const maybeUserRefProps =
-              msg.role === "user" && msg.id === lastUserMsgId
+              msg.role === 'user' && msg.id === lastUserMsgId
                 ? { ref: lastUserMsgRef }
                 : {};
 
@@ -668,7 +779,7 @@ export default function AssistantChat() {
               <Box
                 key={msg.id}
                 {...maybeUserRefProps}
-                className={msg.role === "user" ? styles.userMsg : styles.botMsg}
+                className={msg.role === 'user' ? styles.userMsg : styles.botMsg}
               >
                 <MarkdownMUI>{msg.content}</MarkdownMUI>
 
@@ -678,9 +789,9 @@ export default function AssistantChat() {
                     variant="outlined"
                     color="primary"
                     sx={{
-                      marginTop: "8px",
-                      color: "#df8157",
-                      borderColor: "#df8157",
+                      marginTop: '8px',
+                      color: '#df8157',
+                      borderColor: '#df8157',
                     }}
                     onClick={() => {
                       handleDownloadMetada(msg);
@@ -700,7 +811,10 @@ export default function AssistantChat() {
                 {/* CHART: se temos o component code, renderiza via DynamicChart */}
                 {chartComponents[msg.id] && (
                   <Box sx={{ marginTop: 2 }}>
-                    <DynamicChart code={chartComponents[msg.id]} height={"100%"} />
+                    <DynamicChart
+                      code={chartComponents[msg.id]}
+                      height={'100%'}
+                    />
                   </Box>
                 )}
               </Box>
@@ -719,25 +833,25 @@ export default function AssistantChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
               }}
               sx={{
-                borderRadius: "12px",
-                backgroundColor: "#ffff",
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#f9f8f4",
-                  borderRadius: "12px",
-                  border: "none !important",
-                  boxShadow: "none !important",
+                borderRadius: '12px',
+                backgroundColor: '#ffff',
+                '& .MuiInputBase-root': {
+                  backgroundColor: '#f9f8f4',
+                  borderRadius: '12px',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
                 },
-                "& textarea": {
-                  minHeight: "70px",
-                  maxHeight: "200px",
-                  overflowY: "scroll",
-                  marginBottom: "40px",
+                '& textarea': {
+                  minHeight: '70px',
+                  maxHeight: '200px',
+                  overflowY: 'scroll',
+                  marginBottom: '40px',
                 },
               }}
             />
@@ -756,8 +870,8 @@ export default function AssistantChat() {
             {isGeneratingMessage ? (
               <TypingIndicator />
             ) : (
-              <ArrowUpwardIcon sx={{ color: "#fff" }} />
-            )}{" "}
+              <ArrowUpwardIcon sx={{ color: '#fff' }} />
+            )}{' '}
           </IconButton>
         </Box>
       </Paper>

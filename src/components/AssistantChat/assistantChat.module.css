@@ -1,14 +1,9 @@
 .wrapper {
   position: relative;
   height: 100%;
-  width: 100%;
   transition: ease-in-out all 0.8s;
-  padding-top: 40px;
 }
 
-.wrapper-expanded {
-  width: 60%;
-}
 
 .header{
   display: flex;
@@ -16,20 +11,26 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  background: inherit;
+  z-index: 9;
+  padding-top: 1rem;
 }
 
 .chatContainer {
+
   display: flex;
   flex-direction: column;
   min-height: 600px;
   min-width: 260px;
   height: 100%;
   background-color: #f4f3ed;
-  border-radius: 12px 12px 0 0;
+  /*border-radius: 12px 12px 0 0;*/
   border: solid 1px #c8c4b4;
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .headerTitle {
@@ -38,8 +39,8 @@
 }
 
 .messageArea {
+
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   margin: 0 10px 3.5px 1px;
@@ -72,7 +73,9 @@
   padding-top: 0.75rem;
   border-top: 1px solid #e3e3e3;
   background-color: #f4f3ed;
-
+  position: sticky;
+  bottom: 0;
+  z-index: 9;
   & .MuiInputBase-root{
     border: none;
     box-shadow: none;
@@ -107,7 +110,6 @@
 
 .drawerOverlay {
   position: absolute;
-  top: 40px;
   left: 0;
   bottom: 0;
   width: 80%;
@@ -135,7 +137,6 @@
   flex-direction: row;
   align-items: center;
   padding: 1rem;
-
   position: sticky;
   top: 0;
   z-index: 2;
@@ -150,10 +151,10 @@
 .drawerBackdrop {
   flex: 1;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -50%;
+  left: -50%;
+  width: 150vw;
+  height: 150vh;
   background-color: transparent;
   z-index: 1200;
 }
@@ -296,3 +297,4 @@
     opacity: 1;
   }
 }
+
