@@ -1,17 +1,15 @@
 'use client';
 
-import { useState, lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import {
-  Box,
-  Tabs,
-  Tab,
   AppBar,
-  Toolbar,
-  Typography,
-  useMediaQuery,
+  Box,
   Stack,
   styled,
+  Tab,
   tabClasses,
+  Tabs,
+  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import styles from './page.module.css';
@@ -65,20 +63,19 @@ function TabPanel(props: {
       role="tabpanel"
       hidden={value !== index}
       aria-labelledby={`tab-${index}`}
+      style={{ flex: '1', overflow: 'hidden' }}
     >
-      {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
+      {value === index && children}
     </div>
   );
 }
 
 export default function Home() {
   const theme = useTheme();
-  // md = 900px no tema padrão do MUI
   const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
   const [tab, setTab] = useState(0);
 
   if (isMobile) {
-    // ======== LAYOUT MOBILE ========
     return (
       <Box className={styles.mobileRoot}>
         <Stack direction={'column'} className={styles.navBar}>
@@ -107,7 +104,6 @@ export default function Home() {
           </Suspense>
         </TabPanel>
         <TabPanel value={tab} index={1}>
-          {/* Header diferente no mobile fica em cima; abaixo mostramos apenas o conteúdo */}
           <Analises />
         </TabPanel>
       </Box>
