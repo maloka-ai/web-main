@@ -1,14 +1,26 @@
 'use client';
 
-import { Modal, Box, Typography, IconButton, Chip, Button } from '@mui/material';
+import {
+  Modal,
+  Box,
+  Typography,
+  IconButton,
+  Chip,
+  Button,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import RenderGraphic from './RenderGraphic';
 import { GraphData } from '@/utils/graphics';
-
-
 
 interface DetailGraphProps {
   open: boolean;
@@ -16,8 +28,11 @@ interface DetailGraphProps {
   graph: GraphData;
 }
 
-export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) {
-
+export default function DetailGraph({
+  open,
+  onClose,
+  graph,
+}: DetailGraphProps) {
   const {
     type,
     title,
@@ -41,22 +56,30 @@ export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) 
   // const categorias: string[] = ['Marketing', 'Vendas', 'Suporte'];
 
   return (
-    <Modal open={open} onClose={()=>{}}>
+    <Modal open={open} onClose={() => {}}>
       <Box
-      onClick={(e) => e.stopPropagation()}
-      sx={{
-        backgroundColor: '#fdfcf7',
-        width: '700px',
-        maxHeight: '95vh',
-        overflowY: 'auto',
-        margin: '4vh auto',
-        padding: '2rem',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        outline: 'none',
-        position: 'relative'
-      }}>
-        <IconButton onClick={onClose} sx={{ position: 'absolute', top: 10, right: 10 }}>
+        onClick={(e) => e.stopPropagation()}
+        sx={{
+          backgroundColor: '#fdfcf7',
+          width: {
+            xs: '100%',
+            md: '700px',
+          },
+          maxWidth: '700px',
+          maxHeight: '95vh',
+          overflowY: 'auto',
+          margin: '4vh auto',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          outline: 'none',
+          position: 'relative',
+        }}
+      >
+        <IconButton
+          onClick={onClose}
+          sx={{ position: 'absolute', top: 10, right: 10 }}
+        >
           <CloseIcon />
         </IconButton>
 
@@ -65,15 +88,16 @@ export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) 
           fontWeight={500}
           mb={1}
           sx={{ color: '#4b4b4b' }}
-        >{title}</Typography>
+        >
+          {title}
+        </Typography>
 
         <Box>
           {value !== 'undefined' && (
             <Typography variant="h3" fontWeight={600} color="#78a27f">
               {value}
             </Typography>
-          )
-          }
+          )}
           <Box sx={{ height: 200 }}>
             <RenderGraphic
               graph={{
@@ -83,25 +107,28 @@ export default function DetailGraph({ open, onClose, graph }: DetailGraphProps) 
                 xLabelMap,
                 hideXAxis,
                 xAxisAngle,
-                tooltipFormatter
+                tooltipFormatter,
               }}
             />
           </Box>
           {subtitle && (
             <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
               {subtitle}
-              {gain && (<span
-                style={{
-                  color: gain >= 0 ? '#4caf50' : '#f44336',
-                  fontWeight: 600,
-                marginLeft: '0.5rem',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {gain >= 0 ? '+' : ''}
-              {gain}%
-            </span>)}
-          </Typography>)}
+              {gain && (
+                <span
+                  style={{
+                    color: gain >= 0 ? '#4caf50' : '#f44336',
+                    fontWeight: 600,
+                    marginLeft: '0.5rem',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {gain >= 0 ? '+' : ''}
+                  {gain}%
+                </span>
+              )}
+            </Typography>
+          )}
         </Box>
 
         {/* Tabs mock */}
