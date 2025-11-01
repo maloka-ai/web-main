@@ -572,7 +572,7 @@ export default function AssistantChat() {
         },
         width: {
           xs: '100%',
-          md: expanded ? '25%' : '60%',
+          md: !expanded ? '25%' : '60%',
         },
       }}
     >
@@ -710,6 +710,9 @@ export default function AssistantChat() {
           position: 'relative',
           borderRadius: {
             md: '12px 12px 0 0',
+          },
+          minHeight: {
+            md: '600px',
           },
         }}
       >

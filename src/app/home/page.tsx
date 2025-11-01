@@ -118,9 +118,9 @@ export default function Home() {
       {' '}
       <AssistantChat />{' '}
       <Box className={styles.content}>
-        {' '}
-        <HeaderSistema /> <Analises />{' '}
-      </Box>{' '}
+        <HeaderSistema />
+        <Analises />
+      </Box>
     </Box>
   );
 }
