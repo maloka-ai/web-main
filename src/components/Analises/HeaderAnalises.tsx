@@ -7,11 +7,13 @@ import {
   Menu,
   MenuItem,
   ListSubheader,
+  Stack,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import ListIcon from '@mui/icons-material/List';
 import { useState } from 'react';
 import { AnalysisSubPages } from '@/utils/enums';
 import { AnalysisMenuConfig, AnalysisSubpagesConfig } from './Analises';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Props {
   current: AnalysisSubPages;
@@ -22,7 +24,7 @@ interface Props {
 export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
+  const isMobile = useIsMobile();
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -48,24 +50,45 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <IconButton onClick={handleMenuOpen}>
-          <MenuIcon />
+        <IconButton onClick={handleMenuOpen} color={'primary'} size={'medium'}>
+          <ListIcon fontSize="large" />
         </IconButton>
-        <Typography variant="h6" fontWeight={500} color="#324b4b">
-          {menu}
-          <span style={{ color: '#9c5d40', margin: '0 0.25rem' }}>|</span>
-          <strong>{AnalysisSubpagesConfig[current].title}</strong>
-        </Typography>
+
+        {isMobile ? (
+          <Stack>
+            <Typography
+              variant="subtitle2"
+              fontWeight={500}
+              color="#324b4b"
+              lineHeight={1}
+            >
+              {menu}
+            </Typography>
+            <Typography variant="h6" color="#324b4b" lineHeight={1}>
+              <strong>{AnalysisSubpagesConfig[current].title}</strong>
+            </Typography>
+          </Stack>
+        ) : (
+          <Typography variant="h6" fontWeight={500} color="#324b4b">
+            {menu}
+            {!isMobile && (
+              <span style={{ color: '#9c5d40', margin: '0 0.25rem' }}>|</span>
+            )}
+            <strong>{AnalysisSubpagesConfig[current].title}</strong>
+          </Typography>
+        )}
       </Box>
 
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            minWidth: '240px',
-            borderRadius: '12px',
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: '240px',
+              borderRadius: '12px',
+            },
           },
         }}
       >

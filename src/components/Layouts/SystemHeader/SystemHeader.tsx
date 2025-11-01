@@ -12,9 +12,6 @@ export default function HeaderSistema() {
     typeof window !== 'undefined'
       ? (localStorage.getItem('user_email') ?? '')
       : '';
-  const theme = useTheme();
-
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
 
   return (
     <Box
