@@ -149,7 +149,6 @@ function DynamicChart({
         `;
 
         // === 5. Transpila JSX -> JS ===
-        console.log('Wrapped Code:', wrappedCode);
         const { code: jsCode } = Babel.transform(wrappedCode, {
           presets: ['react'],
         });
@@ -225,6 +224,7 @@ export default function AssistantChat() {
     Record<string, string>
   >({});
   const [chartLoading, setChartLoading] = useState<Record<string, boolean>>({});
+  const [chartError, setChartError] = useState<Record<string, string | true>>({});
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -486,6 +486,11 @@ export default function AssistantChat() {
             ...prev,
             [assistantPlaceholderId]: true,
           }));
+          setChartError((prev) => {
+            const copy = { ...prev };
+            delete copy[assistantPlaceholderId];
+            return copy;
+          });
         },
         onChartCode: (chartCode) => {
           // salva código do chart e desliga loading
@@ -497,6 +502,11 @@ export default function AssistantChat() {
             ...prev,
             [assistantPlaceholderId]: false,
           }));
+          setChartError((prev) => {
+            const copy = { ...prev };
+            delete copy[assistantPlaceholderId];
+            return copy;
+          });
           // também garante que a mensagem do assistant (placeholder) tenha conteúdo se estiver vazia
           setMessages((prev) => {
             const i = prev.length - 1;
@@ -517,6 +527,10 @@ export default function AssistantChat() {
             ...prev,
             [assistantPlaceholderId]: false,
           }));
+        },
+        onChartCodeError: (errorMsg) => {
+          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
+          setChartError((prev) => ({ ...prev, [assistantPlaceholderId]: errorMsg ?? true }));
         },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
@@ -728,7 +742,6 @@ export default function AssistantChat() {
         >
           <IconButton
             onClick={(e) => {
-              console.log('passou aqui');
               e.stopPropagation();
               setDrawerOpen(true);
             }}
@@ -758,10 +771,17 @@ export default function AssistantChat() {
           }}
         >
           {messages.map((msg, index) => {
+
+            const isLastAssistant = msg.role === "assistant" && index === messages.length - 1;
+            const hasChartForMsg = Boolean(chartComponents[msg.id]);
+            const isChartLoadingForMsg = Boolean(chartLoading[msg.id]);
+            const isContentEmpty = !msg.content || !msg.content.trim();
+
             const isGeneratingMessage =
-              msg.role === 'assistant' &&
-              index === messages.length - 1 &&
-              !msg.content;
+              isLastAssistant &&
+              isContentEmpty &&
+              !hasChartForMsg &&
+              !isChartLoadingForMsg;
 
             // Ref para a última mensagem do usuário (âncora)
             const maybeUserRefProps =
@@ -808,6 +828,19 @@ export default function AssistantChat() {
                 {chartLoading[msg.id] && (
                   <Box sx={{ marginTop: 2 }}>
                     <Skeleton variant="rectangular" width="100%" height={320} />
+                  </Box>
+                )}
+
+                {chartError[msg.id] && (
+                  <Box sx={{ marginTop: 2, padding: 2, borderRadius: 1, backgroundColor: "#fff3f2", border: "1px solid #fac8c3" }}>
+                    <Typography variant="body2" sx={{ color: "#7f1d1d" }}>
+                      Falha ao gerar o gráfico.
+                    </Typography>
+                    {typeof chartError[msg.id] === "string" && (
+                      <Typography variant="caption" sx={{ color: "#7f1d1d", display: "block", marginTop: 1 }}>
+                        {chartError[msg.id]}
+                      </Typography>
+                    )}
                   </Box>
                 )}
 
