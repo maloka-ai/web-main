@@ -52,6 +52,7 @@ type StreamingCallbacks = {
   onChartCodeLoading?: () => void;
   onChartCode?: (chartCode: string) => void;
   onChartCodeEnd?: () => void;
+  onChartCodeError?: (errorMsg?: string) => void;
 };
 
 const META_START = "__METADATA_SEND_START__";
@@ -61,6 +62,7 @@ const META_END = "__METADATA_SEND_END__";
 const CHART_LOADING = "__CHART_CODE_LOADING__";
 const CHART_START = "__CHART_CODE_START__";
 const CHART_END = "__CHART_CODE_END__";
+const CHART_ERROR = "__CHART_CODE_ERROR__";
 
 function createMetadataParser(callbacks: StreamingCallbacks) {
   let buffer = "";
@@ -92,10 +94,11 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
       const idxChartLoading = buffer.indexOf(CHART_LOADING);
       const idxChartStart = buffer.indexOf(CHART_START);
       const idxMetaStart = buffer.indexOf(META_START);
+      const idxChartError = buffer.indexOf(CHART_ERROR);
 
       // Se não encontramos nenhum marcador especial, emitimos texto "seguro" (evitando dividir marcador em dois chunks)
-      if (idxChartLoading === -1 && idxChartStart === -1 && idxMetaStart === -1) {
-        const safeLen = Math.max(0, buffer.length - Math.max(CHART_START.length, META_START.length, CHART_LOADING.length));
+      if (idxChartLoading === -1 && idxChartStart === -1 && idxMetaStart === -1 && idxChartError === -1) {
+        const safeLen = Math.max(0, buffer.length - Math.max(CHART_START.length, META_START.length, CHART_LOADING.length, CHART_ERROR.length));
         if (safeLen > 0) {
           emitText(buffer.slice(0, safeLen));
           buffer = buffer.slice(safeLen);
@@ -104,10 +107,11 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
       }
 
       // Determina qual marcador vem primeiro no buffer (menor índice >=0)
-      const candidates: { idx: number; type: "chartLoading" | "chartStart" | "metaStart" }[] = [];
+      const candidates: { idx: number; type: "chartLoading" | "chartStart" | "metaStart" | "chartError" }[] = [];
       if (idxChartLoading !== -1) candidates.push({ idx: idxChartLoading, type: "chartLoading" });
       if (idxChartStart !== -1) candidates.push({ idx: idxChartStart, type: "chartStart" });
       if (idxMetaStart !== -1) candidates.push({ idx: idxMetaStart, type: "metaStart" });
+      if (idxChartError !== -1) candidates.push({ idx: idxChartError, type: "chartError" });
 
       candidates.sort((a, b) => a.idx - b.idx);
       const next = candidates[0];
@@ -123,6 +127,13 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         buffer = buffer.slice(CHART_LOADING.length);
         callbacks.onChartCodeLoading?.();
         // continua loop
+        continue;
+      }
+
+      if (next.type === "chartError") {
+        // consome token e dispara callback para indicar erro; pode opcionalmente conter texto após token (não JSON)
+        buffer = buffer.slice(CHART_ERROR.length);
+        callbacks.onChartCodeError?.();
         continue;
       }
 
@@ -264,9 +275,21 @@ const assistantService = {
       const chartCodeMatch = content.match(
         /__CHART_CODE_START__(.*?)__CHART_CODE_END__/,
       );
+      const errorCodeMatch = content.match(
+        /__CHART_CODE_ERROR__(.*)/,
+      );
       if (chartCodeMatch) {
         message.content = content.replace(
           /__CHART_CODE_START__.*?__CHART_CODE_END__/,
+          "",
+        ).replace(
+          "__CHART_CODE_LOADING__", "",
+        ).trim();
+      }
+
+      if (errorCodeMatch) {
+        message.content = content.replace(
+          /__CHART_CODE_ERROR__.*/,
           "",
         ).replace(
           "__CHART_CODE_LOADING__", "",
