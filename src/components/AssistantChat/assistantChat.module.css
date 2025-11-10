@@ -96,9 +96,8 @@
 
 .sendButton {
   background-color: #df8157 !important;
-  color: #4b4b4b !important;
   border-radius: 10px !important;
-  padding: 0.5rem !important;
+  padding: 0 0.5rem !important;
   transition: background-color 0.2s ease;
 }
 
