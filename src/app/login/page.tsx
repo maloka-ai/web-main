@@ -1,20 +1,20 @@
 'use client';
 
 import {
-  Button,
-  TextField,
-  Typography,
-  Box,
-  InputAdornment,
-  IconButton,
-  CircularProgress,
   Alert,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Typography,
 } from '@mui/material';
-import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
+import { VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { useState } from 'react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/authService';
+import AutoFillAwareTextField from '@/app/login/AutoFillAwareTextField';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,16 +51,18 @@ export default function LoginPage() {
         }}
       >
         <img
-          src="/images/marca-medio@3x.png"
+          src="/images/marca-maloka-grande@3x.webp"
           alt="Lara Logo"
           className={styles.logo}
         />
-        <Typography variant="h6" className={styles.title}>
+
+        <Typography variant="h6" className={styles.title} mt={3}>
           Converse com seus dados
         </Typography>
         <Typography
           variant="h6"
           className={`${styles.title} ${styles.subtitle}`}
+          mb={2}
         >
           e aumente suas vendas
         </Typography>
@@ -71,7 +73,7 @@ export default function LoginPage() {
           </Alert>
         )}
 
-        <TextField
+        <AutoFillAwareTextField
           fullWidth
           label="E-mail"
           type="email"
@@ -80,9 +82,12 @@ export default function LoginPage() {
           size={'small'}
           className={styles.input}
           value={email}
+          sx={{
+            bgcolor: '#FFFFFF',
+          }}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <TextField
+        <AutoFillAwareTextField
           fullWidth
           label="Senha"
           size={'small'}
@@ -91,6 +96,9 @@ export default function LoginPage() {
           margin="normal"
           className={styles.input}
           value={password}
+          sx={{
+            bgcolor: '#FFFFFF',
+          }}
           onChange={(e) => setPassword(e.target.value)}
           slotProps={{
             input: {
@@ -99,6 +107,7 @@ export default function LoginPage() {
                   <IconButton
                     onClick={() => setShowPassword((prev) => !prev)}
                     edge="end"
+                    color={'primary'}
                   >
                     {showPassword ? (
                       <VisibilityOffOutlined />
