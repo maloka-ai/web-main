@@ -31,7 +31,10 @@ import assistantService, {
 } from '@/services/AssistantService';
 
 import CreateConversationModal from './CreateConversationModal';
-import AssistantSelector, { AssistantTypeLabels } from './AssistenteSelector';
+import AssistantSelector, {
+  AssistantTypeLabels,
+  AssistantTypeLegends,
+} from './AssistenteSelector';
 import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
 
 import * as XLSX from 'xlsx';
@@ -589,7 +592,9 @@ export default function AssistantChat() {
 
   const selectAssistantLabel =
     AssistantTypeLabels[assistantType] || 'Assistente';
+  const assistantLegend = AssistantTypeLegends[assistantType] || '';
   const hasConversation = Boolean(activeConversationId);
+
   return (
     <Box
       className={styles.wrapper}
@@ -929,10 +934,14 @@ export default function AssistantChat() {
                 borderRadius: '12px',
                 backgroundColor: '#ffff',
                 '& .MuiInputBase-root': {
-                  backgroundColor: '#f9f8f4',
+                  backgroundColor: '#ffff',
                   borderRadius: '12px',
                   border: 'none !important',
                   boxShadow: 'none !important',
+                },
+                '& .MuiInputBase-input::placeholder, & textarea::placeholder': {
+                  color: '#3e3e3e',
+                  opacity: '1',
                 },
                 '& textarea': {
                   minHeight: '70px',
@@ -942,25 +951,37 @@ export default function AssistantChat() {
                 },
               }}
             />
-            <AssistantSelector
-              assistantType={assistantType}
-              className={styles.inputSelector}
-              onSelectAssistantType={(type) => setAssistantType(type)}
-            />
+            <Stack direction={'row'} justifyContent={'space-between'}>
+              <AssistantSelector
+                assistantType={assistantType}
+                className={styles.inputSelector}
+                onSelectAssistantType={(type) => setAssistantType(type)}
+              />
+              <IconButton
+                sx={{
+                  mt: '-46px',
+                  mr: '8px',
+                  height: '36px',
+                  opacity: input.trim() ? 1 : 0.4,
+                }}
+                size={'small'}
+                className={styles.sendButton}
+                onClick={handleSend}
+                disabled={isGeneratingMessage}
+                color="primary"
+              >
+                {isGeneratingMessage ? (
+                  <TypingIndicator />
+                ) : (
+                  <ArrowUpwardIcon sx={{ color: '#fff' }} fontSize={'small'} />
+                )}{' '}
+              </IconButton>
+            </Stack>
           </Box>
-          <IconButton
-            className={styles.sendButton}
-            onClick={handleSend}
-            disabled={isGeneratingMessage}
-            color="primary"
-          >
-            {isGeneratingMessage ? (
-              <TypingIndicator />
-            ) : (
-              <ArrowUpwardIcon sx={{ color: '#fff' }} />
-            )}{' '}
-          </IconButton>
         </Box>
+        <Typography variant="caption" mt={1} textAlign={'center'}>
+          {assistantLegend}
+        </Typography>
       </Paper>
     </Box>
   );
