@@ -189,6 +189,8 @@ export interface ProductDetail {
   cobertura_percentual_30d: number | null;
   criticidade: string;
   critico: string;
+  sugestao_1m: number | null;
+  sugestao_3m: number | null;
   data_ultima_movimentacao: string | null;
   media_12m_qtd: number | null;
   media_vendas_3m: number | null;
