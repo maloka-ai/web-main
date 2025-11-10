@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Alert,
   Stack,
+  Snackbar,
 } from '@mui/material';
 
 import {
@@ -50,6 +51,8 @@ export default function SkuAnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [toastOpen, setToastOpen] = useState(false);
+
   function handleSelectProduct(row: ProductByABC) {
     setProductSelected(row);
   }
@@ -61,14 +64,13 @@ export default function SkuAnalysisPage() {
   // columns da tabela
   const columns = useMemo<MRT_ColumnDef<ProductByABC>[]>(
     () => [
-      { accessorKey: 'id_sku', header: 'ID SKU', size: 110 },
-      { accessorKey: 'codigo_barras', header: 'Código de Barras', size: 160 },
-      { accessorKey: 'nome_produto', header: 'Produto', size: 280 },
-      { accessorKey: 'nome_categoria', header: 'Categoria', size: 180 },
-      { accessorKey: 'estoque_atual', header: 'Estoque Atual', size: 120 },
-      { accessorKey: 'curva_abc', header: 'Curva ABC', size: 100 },
-      { accessorKey: 'situacao_do_produto', header: 'Situação', size: 200 },
-      { accessorKey: 'data_ultima_venda', header: 'Última Venda', size: 160 },
+      { accessorKey: 'id_sku', header: 'ID SKU', size: 110, filterFn: 'contains' },
+      { accessorKey: 'nome_produto', header: 'Produto', size: 280, filterFn: 'contains' },
+      { accessorKey: 'nome_categoria', header: 'Categoria', size: 180, filterFn: 'contains' },
+      { accessorKey: 'estoque_atual', header: 'Estoque Atual', size: 120, filterFn: 'contains' },
+      { accessorKey: 'curva_abc', header: 'Curva ABC', size: 100, filterFn: 'contains' },
+      { accessorKey: 'situacao_do_produto', header: 'Situação', size: 200, filterFn: 'contains' },
+      { accessorKey: 'data_ultima_venda', header: 'Última Venda', size: 160, filterFn: 'contains' },
     ],
     [],
   );
@@ -85,6 +87,7 @@ export default function SkuAnalysisPage() {
     },
     state: { isLoading: loading },
     enableColumnActions: false,
+    globalFilterFn: 'contains',
 
     initialState: { showColumnFilters: true },
     muiTableBodyRowProps: ({ row }) => ({
@@ -92,6 +95,28 @@ export default function SkuAnalysisPage() {
         handleSelectProduct(row.original);
       },
       sx: { cursor: 'pointer' },
+    }),
+
+    muiTableBodyCellProps: ({ cell }) => ({
+      onClick: (e) => {
+        const columnId = cell.column.id;
+        if (columnId === 'id_sku') {
+          e.stopPropagation();
+          const value = cell.getValue()?.toString();
+          if (value) {
+            navigator.clipboard.writeText(value);
+            setToastOpen(true);
+            // Pequeno feedback visual opcional
+            const td = e.currentTarget as HTMLElement;
+            td.style.transition = 'background 0.2s ease';
+            td.style.background = '#f0f0f0';
+            setTimeout(() => {
+              td.style.background = '';
+            }, 250);
+          }
+        }
+      },
+      sx: { cursor: cell.column.id === 'id_sku' ? 'copy' : 'pointer' },
     }),
   });
 
@@ -232,6 +257,22 @@ export default function SkuAnalysisPage() {
         }}
       >
         <MaterialReactTable table={table} />
+
+        <Snackbar
+            open={toastOpen}
+            autoHideDuration={2000}
+            onClose={() => setToastOpen(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert
+              onClose={() => setToastOpen(false)}
+              severity="success"
+              variant="filled"
+              sx={{ width: '100%' }}
+            >
+              ID SKU copiado!
+            </Alert>
+          </Snackbar>
       </Box>
 
       <DialogDetails
