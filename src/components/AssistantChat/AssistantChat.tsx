@@ -978,10 +978,10 @@ export default function AssistantChat() {
               </IconButton>
             </Stack>
           </Box>
+          <Typography variant="caption" mt={1} textAlign={'center'}>
+            {assistantLegend}
+          </Typography>
         </Box>
-        <Typography variant="caption" mt={1} textAlign={'center'}>
-          {assistantLegend}
-        </Typography>
       </Paper>
     </Box>
   );
