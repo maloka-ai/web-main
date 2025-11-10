@@ -16,6 +16,7 @@ import {
   Typography,
   Skeleton,
   ClickAwayListener,
+  Stack,
 } from '@mui/material';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
@@ -30,13 +31,14 @@ import assistantService, {
 } from '@/services/AssistantService';
 
 import CreateConversationModal from './CreateConversationModal';
-import AssistantSelector from './AssistenteSelector';
+import AssistantSelector, { AssistantTypeLabels } from './AssistenteSelector';
 import MarkdownMUI from '../MarkdownMUI/MarkdownMUI';
 
 import * as XLSX from 'xlsx';
 import EditConversationModal from './EditConversationModal';
 import DeleteConversationModal from './DeleteConversationModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { ContentEmpty } from '@/components/AssistantChat/components/ContentEmpty';
 
 function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
   const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
@@ -224,7 +226,9 @@ export default function AssistantChat() {
     Record<string, string>
   >({});
   const [chartLoading, setChartLoading] = useState<Record<string, boolean>>({});
-  const [chartError, setChartError] = useState<Record<string, string | true>>({});
+  const [chartError, setChartError] = useState<Record<string, string | true>>(
+    {},
+  );
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -240,7 +244,6 @@ export default function AssistantChat() {
 
   const lastScrollTsRef = useRef(0);
   const SCROLL_THROTTLE_MS = 80;
-  // ===== ================ =====
 
   const tryScrollThrottled = () => {
     const now = performance.now();
@@ -281,6 +284,7 @@ export default function AssistantChat() {
       behavior,
     });
   };
+
   const userMsgReachedTop = (threshold = 10) => {
     const area = messageAreaRef.current;
     const node = lastUserMsgRef.current;
@@ -529,8 +533,14 @@ export default function AssistantChat() {
           }));
         },
         onChartCodeError: (errorMsg) => {
-          setChartLoading((prev) => ({ ...prev, [assistantPlaceholderId]: false }));
-          setChartError((prev) => ({ ...prev, [assistantPlaceholderId]: errorMsg ?? true }));
+          setChartLoading((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: false,
+          }));
+          setChartError((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: errorMsg ?? true,
+          }));
         },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
@@ -577,6 +587,9 @@ export default function AssistantChat() {
     }
   }
 
+  const selectAssistantLabel =
+    AssistantTypeLabels[assistantType] || 'Assistente';
+  const hasConversation = Boolean(activeConversationId);
   return (
     <Box
       className={styles.wrapper}
@@ -595,7 +608,11 @@ export default function AssistantChat() {
           className={styles.toggleButton}
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? <ArrowLeft /> : <ArrowRight />}
+          {expanded ? (
+            <ArrowLeft fontSize={'large'} />
+          ) : (
+            <ArrowRight fontSize={'large'} />
+          )}
         </IconButton>
       )}
 
@@ -749,9 +766,15 @@ export default function AssistantChat() {
           >
             <MenuOpenIcon />
           </IconButton>
-          <Typography variant="h6" className={styles.headerTitle}>
-            Assistente
-          </Typography>
+          <Stack direction={'column'} alignItems={'center'} spacing={0}>
+            <Typography variant="h6" className={styles.headerTitle}>
+              Assistente
+            </Typography>
+            <Typography variant="subtitle2" color={'#2970bf'}>
+              {selectAssistantLabel}
+            </Typography>
+          </Stack>
+
           <IconButton
             onClick={() => setCreateModalOpen(true)}
             color={'primary'}
@@ -761,102 +784,130 @@ export default function AssistantChat() {
         </Box>
 
         {/* Área de mensagens */}
-        <Box
-          className={styles.messageArea}
-          ref={messageAreaRef}
-          sx={{
-            xs: {
-              overflow: 'hidden',
-            },
-          }}
-        >
-          {messages.map((msg, index) => {
+        {hasConversation ? (
+          <Box
+            className={styles.messageArea}
+            ref={messageAreaRef}
+            sx={{
+              xs: {
+                overflow: 'hidden',
+              },
+            }}
+          >
+            {messages.map((msg, index) => {
+              const isLastAssistant =
+                msg.role === 'assistant' && index === messages.length - 1;
+              const hasChartForMsg = Boolean(chartComponents[msg.id]);
+              const isChartLoadingForMsg = Boolean(chartLoading[msg.id]);
+              const isContentEmpty = !msg.content || !msg.content.trim();
 
-            const isLastAssistant = msg.role === "assistant" && index === messages.length - 1;
-            const hasChartForMsg = Boolean(chartComponents[msg.id]);
-            const isChartLoadingForMsg = Boolean(chartLoading[msg.id]);
-            const isContentEmpty = !msg.content || !msg.content.trim();
+              const isGeneratingMessage =
+                isLastAssistant &&
+                isContentEmpty &&
+                !hasChartForMsg &&
+                !isChartLoadingForMsg;
 
-            const isGeneratingMessage =
-              isLastAssistant &&
-              isContentEmpty &&
-              !hasChartForMsg &&
-              !isChartLoadingForMsg;
+              // Ref para a última mensagem do usuário (âncora)
+              const maybeUserRefProps =
+                msg.role === 'user' && msg.id === lastUserMsgId
+                  ? { ref: lastUserMsgRef }
+                  : {};
 
-            // Ref para a última mensagem do usuário (âncora)
-            const maybeUserRefProps =
-              msg.role === 'user' && msg.id === lastUserMsgId
-                ? { ref: lastUserMsgRef }
-                : {};
-
-            if (isGeneratingMessage) {
-              return (
-                <Box key={msg.id} className={styles.botMsg}>
-                  Analisando
-                  <span className={styles.typingDots} aria-label="digitando" />
-                </Box>
-              );
-            }
-
-            return (
-              <Box
-                key={msg.id}
-                {...maybeUserRefProps}
-                className={msg.role === 'user' ? styles.userMsg : styles.botMsg}
-              >
-                <MarkdownMUI>{msg.content}</MarkdownMUI>
-
-                {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
-                {msg.spreadsheet_metadata && (
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    sx={{
-                      marginTop: '8px',
-                      color: '#df8157',
-                      borderColor: '#df8157',
-                    }}
-                    onClick={() => {
-                      handleDownloadMetada(msg);
-                    }}
-                  >
-                    Baixar Planilha
-                  </Button>
-                )}
-
-                {/* CHART: Skeleton se estiver carregando */}
-                {chartLoading[msg.id] && (
-                  <Box sx={{ marginTop: 2 }}>
-                    <Skeleton variant="rectangular" width="100%" height={320} />
-                  </Box>
-                )}
-
-                {chartError[msg.id] && (
-                  <Box sx={{ marginTop: 2, padding: 2, borderRadius: 1, backgroundColor: "#fff3f2", border: "1px solid #fac8c3" }}>
-                    <Typography variant="body2" sx={{ color: "#7f1d1d" }}>
-                      Falha ao gerar o gráfico.
-                    </Typography>
-                    {typeof chartError[msg.id] === "string" && (
-                      <Typography variant="caption" sx={{ color: "#7f1d1d", display: "block", marginTop: 1 }}>
-                        {chartError[msg.id]}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
-                {/* CHART: se temos o component code, renderiza via DynamicChart */}
-                {chartComponents[msg.id] && (
-                  <Box sx={{ marginTop: 2 }}>
-                    <DynamicChart
-                      code={chartComponents[msg.id]}
-                      height={'100%'}
+              if (isGeneratingMessage) {
+                return (
+                  <Box key={msg.id} className={styles.botMsg}>
+                    Analisando
+                    <span
+                      className={styles.typingDots}
+                      aria-label="digitando"
                     />
                   </Box>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
+                );
+              }
+
+              return (
+                <Box
+                  key={msg.id}
+                  {...maybeUserRefProps}
+                  className={
+                    msg.role === 'user' ? styles.userMsg : styles.botMsg
+                  }
+                >
+                  <MarkdownMUI>{msg.content}</MarkdownMUI>
+
+                  {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
+                  {msg.spreadsheet_metadata && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      sx={{
+                        marginTop: '8px',
+                        color: '#df8157',
+                        borderColor: '#df8157',
+                      }}
+                      onClick={() => {
+                        handleDownloadMetada(msg);
+                      }}
+                    >
+                      Baixar Planilha
+                    </Button>
+                  )}
+
+                  {/* CHART: Skeleton se estiver carregando */}
+                  {chartLoading[msg.id] && (
+                    <Box sx={{ marginTop: 2 }}>
+                      <Skeleton
+                        variant="rectangular"
+                        width="100%"
+                        height={320}
+                      />
+                    </Box>
+                  )}
+
+                  {chartError[msg.id] && (
+                    <Box
+                      sx={{
+                        marginTop: 2,
+                        padding: 2,
+                        borderRadius: 1,
+                        backgroundColor: '#fff3f2',
+                        border: '1px solid #fac8c3',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: '#7f1d1d' }}>
+                        Falha ao gerar o gráfico.
+                      </Typography>
+                      {typeof chartError[msg.id] === 'string' && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: '#7f1d1d',
+                            display: 'block',
+                            marginTop: 1,
+                          }}
+                        >
+                          {chartError[msg.id]}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* CHART: se temos o component code, renderiza via DynamicChart */}
+                  {chartComponents[msg.id] && (
+                    <Box sx={{ marginTop: 2 }}>
+                      <DynamicChart
+                        code={chartComponents[msg.id]}
+                        height={'100%'}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              );
+            })}
+          </Box>
+        ) : (
+          <ContentEmpty />
+        )}
 
         {/* Input */}
         <Box className={styles.inputArea}>

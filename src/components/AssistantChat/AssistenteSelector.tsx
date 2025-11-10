@@ -2,13 +2,25 @@
 'use client';
 
 import {
-  Box, Typography, IconButton, Popover, MenuItem, Select, SelectChangeEvent
+  Box,
+  Typography,
+  IconButton,
+  Popover,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useState, ReactElement } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AssistantType } from '@/services/AssistantService';
 
-export const Assistants = [{
+export const AssistantTypeLabels: Record<AssistantType, string> = {
+  [AssistantType.GENERAL]: 'Assistente geral',
+  [AssistantType.SHOPPING]: 'Assistente de compras',
+  [AssistantType.DATA]: 'Analista de Vendas',
+} as const;
+export const Assistants = [
+  {
     id: 'geral',
     label: 'Assistente geral',
     description: 'Converse sobre assuntos além de sua empresa',
@@ -34,13 +46,19 @@ export const Assistants = [{
 interface AssistantSelectorProps {
   assistantType: AssistantType;
   className?: string;
-  onSelectAssistantType: (type: AssistantType)=>void;
+  onSelectAssistantType: (type: AssistantType) => void;
 }
 
-export default function AssistantSelector({assistantType, className, onSelectAssistantType}: AssistantSelectorProps): ReactElement {
+export default function AssistantSelector({
+  assistantType,
+  className,
+  onSelectAssistantType,
+}: AssistantSelectorProps): ReactElement {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [current, setCurrent] = useState((Assistants.find(assitant => assitant.type === assistantType)?.id ||'geral'));
-
+  const [current, setCurrent] = useState(
+    Assistants.find((assitant) => assitant.type === assistantType)?.id ||
+      'geral',
+  );
 
   const open = Boolean(anchorEl);
   const handleOpen = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -50,11 +68,19 @@ export default function AssistantSelector({assistantType, className, onSelectAss
 
   const handleSelect = (id: string) => {
     setCurrent(id);
-    onSelectAssistantType((Assistants.find((assistant)=>assistant.id === id)?.type || AssistantType.GENERAL))
+    onSelectAssistantType(
+      Assistants.find((assistant) => assistant.id === id)?.type ||
+        AssistantType.GENERAL,
+    );
     handleClose();
   };
 
-  const selected = Assistants.find((a) => a.id === (Assistants.find(assitant => assitant.type === assistantType)?.id ||'geral'));
+  const selected = Assistants.find(
+    (a) =>
+      a.id ===
+      (Assistants.find((assitant) => assitant.type === assistantType)?.id ||
+        'geral'),
+  );
 
   return (
     <Box className={className}>
@@ -69,14 +95,20 @@ export default function AssistantSelector({assistantType, className, onSelectAss
           justifyContent: 'space-between',
           gap: 1,
           cursor: 'pointer',
-          background: '#fff'
+          background: '#fff',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography fontSize="1rem" sx={{ fontFamily: 'Poppins', fontWeight: 600 }}>
+          <Typography
+            fontSize="1rem"
+            sx={{ fontFamily: 'Poppins', fontWeight: 600 }}
+          >
             {selected?.icon}
           </Typography>
-          <Typography fontSize="0.85rem" sx={{ fontFamily: 'Poppins', fontWeight: 600 }}>
+          <Typography
+            fontSize="0.85rem"
+            sx={{ fontFamily: 'Poppins', fontWeight: 600 }}
+          >
             {selected?.label}
           </Typography>
         </Box>
@@ -97,7 +129,7 @@ export default function AssistantSelector({assistantType, className, onSelectAss
             borderRadius: '12px',
             width: 300,
             background: '#fdfcf7',
-            boxShadow: '0px 2px 10px rgba(0,0,0,0.1)'
+            boxShadow: '0px 2px 10px rgba(0,0,0,0.1)',
           },
         }}
       >
@@ -113,7 +145,7 @@ export default function AssistantSelector({assistantType, className, onSelectAss
               borderRadius: '10px',
               cursor: 'pointer',
               backgroundColor: a.id === current ? '#f4efeb' : 'transparent',
-              '&:hover': { backgroundColor: '#f5f5f5' }
+              '&:hover': { backgroundColor: '#f5f5f5' },
             }}
           >
             <Typography fontWeight={600} fontSize="0.9rem">

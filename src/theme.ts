@@ -25,7 +25,6 @@ const theme = createTheme({
       },
     },
 
-    // contêiner da tabela com bordas arredondadas em cima
     MuiTableContainer: {
       styleOverrides: {
         root: {
@@ -125,7 +124,14 @@ const theme = createTheme({
     },
 
     // botões do pager já ficam redondos; o preenchimento é definido no componente
-    MuiIconButton: { styleOverrides: { root: { borderRadius: 999 } } },
+    MuiIconButton: {
+      styleOverrides: {
+        root: { borderRadius: 999 },
+        colorPrimary: {
+          color: '#c47b5b',
+        },
+      },
+    },
     MuiDivider: { styleOverrides: { root: { borderColor: '#E6DCCB' } } },
   },
 });
