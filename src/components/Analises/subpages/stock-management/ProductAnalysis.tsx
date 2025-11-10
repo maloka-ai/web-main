@@ -227,13 +227,10 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   Valor total 12m: {fmtBRL(detail.valor_total_12m)}
                 </Typography>
                 <Typography variant="body2">
-                  Últ. fornecedor: {detail.ultimo_fornecedor ?? '—'}
+                  Sugestão 1m: {detail.sugestao_1m}
                 </Typography>
                 <Typography variant="body2">
-                  Últ. preço compra: {fmtBRL(detail.ultimo_preco_compra)}
-                </Typography>
-                <Typography variant="body2">
-                  Últ. compra: {fmtDate(detail.data_ultima_compra)}
+                  Sugestão 3m: {detail.sugestao_3m}
                 </Typography>
               </Stack>
             ) : (
@@ -242,6 +239,80 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
           }
         />
       </Card>
+
+      {detail && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            Últimas compras
+          </Typography>
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems="stretch"
+          >
+            {/* Helper para renderizar um card de compra */}
+            {[
+              {
+                keyPrefix: 'ultimo',
+                title: 'Última compra',
+                price: detail.ultimo_preco_compra,
+                qty: detail.ultima_qtd_comprada,
+                supplier: detail.ultimo_fornecedor,
+                date: detail.data_ultima_compra,
+              },
+              {
+                keyPrefix: 'penultimo',
+                title: 'Penúltima compra',
+                price: detail.penultimo_preco_compra,
+                qty: detail.penultima_qtd_comprada,
+                supplier: detail.penultimo_fornecedor,
+                date: detail.data_penultima_compra,
+              },
+              {
+                keyPrefix: 'antepenultimo',
+                title: 'Antepenúltima compra',
+                price: detail.antepenultimo_preco_compra,
+                qty: detail.antepenultima_qtd_comprada,
+                supplier: detail.antepenultimo_fornecedor,
+                date: detail.data_antepenultima_compra,
+              },
+            ].map((c) => (
+              <Card
+                key={c.keyPrefix}
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <CardHeader
+                  title={<Typography variant="subtitle2">{c.title}</Typography>}
+                  sx={{ pb: 0 }}
+                />
+                <CardContent sx={{ pt: 0 }}>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2">
+                      <strong>Fornecedor:</strong> {c.supplier ?? '—'}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Preço:</strong> {fmtBRL(c.price)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Quantidade:</strong> {fmtInt(c.qty)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Data:</strong> {fmtDate(c.date)}
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
 
       {err && (
         <Alert severity="error" sx={{ mb: 2 }}>
