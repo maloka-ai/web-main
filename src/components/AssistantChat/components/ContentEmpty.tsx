@@ -1,6 +1,29 @@
 import { Button, Stack, Typography } from '@mui/material';
 import TipsAndUpdatesOutlinedIcon from '@mui/icons-material/TipsAndUpdatesOutlined';
+import { useEffect, useState } from 'react';
 
+function getGreetingByHour(date = new Date()) {
+  const h = date.getHours(); // horário local do navegador
+  if (h >= 5 && h < 12) return 'Bom dia';
+  if (h >= 12 && h < 18) return 'Boa tarde';
+
+  return 'Boa noite';
+}
+
+function Greeting() {
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    setGreeting(getGreetingByHour());
+  }, []);
+
+  return (
+    <Typography variant="subtitle1" align="center">
+      <b>{greeting},</b>
+      <br /> como posso te ajudar?
+    </Typography>
+  );
+}
 export function ContentEmpty() {
   return (
     <Stack
@@ -15,10 +38,7 @@ export function ContentEmpty() {
         alignItems={'center'}
         justifyContent={'center'}
       >
-        <Typography variant="subtitle1" align="center">
-          <b> Boa tarde, </b>
-          <br /> como posso te ajudar?
-        </Typography>
+        <Greeting />
       </Stack>
       <Stack direction={'column'} alignItems={'center'} mb={2} spacing={1}>
         <TipsAndUpdatesOutlinedIcon fontSize={'large'} color={'primary'} />
