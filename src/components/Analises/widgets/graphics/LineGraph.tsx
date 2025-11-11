@@ -1,14 +1,14 @@
 'use client';
 
 import {
-  ResponsiveContainer,
-  LineChart,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
 } from 'recharts';
-import { DataPoint, getStrokeColor } from '@/utils/graphics';
+import { DataPoint, useGetStrokeColor } from '@/utils/graphics';
 
 interface LineGraphProps {
   data: DataPoint[];
@@ -27,6 +27,7 @@ export default function LineGraph({
   secondData,
   tooltipFormatter,
 }: LineGraphProps) {
+  const getStrokeColor = useGetStrokeColor();
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart

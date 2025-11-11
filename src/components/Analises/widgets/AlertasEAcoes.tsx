@@ -231,7 +231,7 @@ export default function AlertasEAcoes({
                   width: '100%',
                   flexDirection: 'column',
                   maxWidth: {
-                    md: '350px',
+                    md: '400px',
                   },
                   position: 'relative',
                   justifyContent: 'end',

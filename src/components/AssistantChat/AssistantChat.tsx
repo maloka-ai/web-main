@@ -307,6 +307,7 @@ export default function AssistantChat() {
       console.error('Invalid conversations data:', data);
       return;
     }
+
     setConversations(data);
     return data;
   };

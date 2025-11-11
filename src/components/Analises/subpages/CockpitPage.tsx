@@ -94,9 +94,9 @@ export default function CockpitPage() {
     >
       <Box
         sx={{
-          width: {
+          maxWidth: {
             xs: '100%',
-            md: '350px',
+            md: '400px',
           },
           overflow: 'auto',
           pr: 1,
@@ -144,18 +144,21 @@ export default function CockpitPage() {
         <Box
           sx={{
             marginBottom: '2rem',
-            // overflowY: 'auto',
           }}
         >
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
             mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Vendas
           </Typography>
+
           {!annualRevenues &&
           !monthlyRevenues &&
           !currentYearDailyRevenues &&
@@ -209,12 +212,15 @@ export default function CockpitPage() {
           )}
 
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
             mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Estoque
           </Typography>
           {!stock ? (
@@ -262,11 +268,15 @@ export default function CockpitPage() {
           )}
 
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
+            mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Cliente
           </Typography>
           {!stock ? (
