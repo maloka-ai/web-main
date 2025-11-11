@@ -20,6 +20,22 @@ import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
 import { useListAlertsCockipt } from '@/services/analysis/queries';
 
+function WrapperGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gap: '1rem',
+        gridTemplateColumns: {
+          xs: 'repeat(auto-fit, minmax(225px, 1fr))',
+          xl: 'repeat(auto-fit, minmax(270px, 1fr))',
+        },
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
 export default function CockpitPage() {
   const [customer, setCustomer] = useState<CustomerSegmentation[]>([]);
   const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] =
@@ -81,7 +97,6 @@ export default function CockpitPage() {
       sx={{
         display: 'flex',
         gap: '1.5rem',
-        height: 'calc(100vh - 100px)',
         overflow: {
           xs: 'visible',
           md: 'hidden',
@@ -100,9 +115,13 @@ export default function CockpitPage() {
           },
           overflow: 'auto',
           pr: 1,
-          pb: 16,
+          pb: 2,
           minHeight: {
-            xs: '50%',
+            xs: '40vh',
+            md: 'initial',
+          },
+          maxHeight: {
+            xs: '40vh',
             md: 'initial',
           },
           backgroundColor: {
@@ -132,8 +151,8 @@ export default function CockpitPage() {
             xs: 'visible',
             md: 'auto',
           },
+          pb: 2,
           pr: 1,
-          pb: 10,
         }}
       >
         <Typography variant="h6" fontWeight={'normal'} color="#3e3e3e" mb={1}>
@@ -141,11 +160,7 @@ export default function CockpitPage() {
         </Typography>
         <Divider sx={{ mb: 2 }} />
 
-        <Box
-          sx={{
-            marginBottom: '2rem',
-          }}
-        >
+        <Box>
           <Typography
             fontSize={'1.1rem'}
             fontWeight={'bold'}
@@ -183,18 +198,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: {
-                  xs: 'repeat(1, minmax(250px, 1fr))',
-                  sm: 'repeat(2, minmax(250px, 1fr))',
-                  md: 'repeat(3, minmax(250px, 1fr))',
-                },
-              }}
-            >
+            <WrapperGrid>
               {annualRevenues &&
                 monthlyRevenues &&
                 salesMakeGraphs(
@@ -208,7 +212,7 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
 
           <Typography
@@ -244,19 +248,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                mb: 4,
-                gap: '1rem',
-                gridTemplateColumns: {
-                  xs: 'repeat(1, minmax(250px, 1fr))',
-                  sm: 'repeat(2, minmax(250px, 1fr))',
-                  md: 'repeat(3, minmax(250px, 1fr))',
-                },
-              }}
-            >
+            <WrapperGrid>
               {stock &&
                 stockMakeGraphs(stock).map((graph, index) => (
                   <ResumeGraph
@@ -264,7 +256,7 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
 
           <Typography
@@ -300,18 +292,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: {
-                  xs: 'repeat(1, minmax(250px, 1fr))',
-                  sm: 'repeat(2, minmax(250px, 1fr))',
-                  md: 'repeat(3, minmax(250px, 1fr))',
-                },
-              }}
-            >
+            <WrapperGrid>
               {customer &&
                 customerQuarterlyRecurrence &&
                 customerAnnualRecurrence &&
@@ -325,7 +306,7 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
         </Box>
       </Box>

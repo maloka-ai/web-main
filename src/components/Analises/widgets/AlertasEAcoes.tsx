@@ -306,7 +306,7 @@ export default function AlertasEAcoes({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       color: '#4b4b4b',
-                      padding: '1.2rem 0.5rem 0.5rem 1rem',
+                      padding: '1rem 0.5rem 0.25rem 1rem',
                       fontSize: '0.80rem',
                       fontWeight: 500,
                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)',

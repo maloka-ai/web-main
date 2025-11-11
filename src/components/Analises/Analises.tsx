@@ -118,14 +118,30 @@ export default function Analises() {
   };
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        maxHeight: { md: 'calc(100vh - 80px)' },
+      }}
+    >
       <HeaderAnalises
         current={activePage}
         menu={activeMenu}
         onNavigate={handleNavigate}
       />
       <Box
-        sx={{ padding: '1rem', overflowY: 'auto', height: 'calc(100% - 60px)' }}
+        sx={{
+          padding: '1rem',
+          overflowY: {
+            xs: 'auto',
+            md: activePage === AnalysisSubPages.COCKPIT ? 'hidden' : 'auto',
+          },
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         {AnalysisSubpagesConfig[activePage].content}
       </Box>
