@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 import RenderGraphic from './RenderGraphic';
-import { getStrokeColor, GraphData } from '@/utils/graphics';
+import { GraphData, useGetStrokeColor } from '@/utils/graphics';
 import DetailGraph from './DetailGraph';
+import { useTheme } from '@mui/material/styles';
 
 export interface DataPoint {
   name: string;
@@ -16,10 +17,7 @@ interface ResumeGraphProps {
   graph: GraphData;
 }
 
-
-export default function ResumeGraph({
-  graph
-}: ResumeGraphProps) {
+export default function ResumeGraph({ graph }: ResumeGraphProps) {
   const [open, setOpen] = useState(false);
 
   const {
@@ -33,24 +31,37 @@ export default function ResumeGraph({
     xLabelMap,
     hideXAxis,
     xAxisAngle,
-    tooltipFormatter
+    tooltipFormatter,
   } = graph;
 
+  const theme = useTheme();
+  const getStrokeColor = useGetStrokeColor();
+  const colorSuccess = theme.palette.success.main;
+  const colorError = theme.palette.error.main;
   return (
     <Box
       sx={{
         backgroundColor: '#fff',
-        borderRadius: '12px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        borderRadius: '10.8px',
+        border: 'solid 1px #edebe3',
         padding: '1rem 1.25rem',
         width: '100%',
       }}
     >
       <Box
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
         onClick={() => setOpen(!open)}
       >
-        <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={0.5}>
+        <Typography
+          variant="subtitle1"
+          fontWeight={'600'}
+          color="#3e3e3e"
+          mb={0.5}
+        >
           {title}
         </Typography>
 
@@ -75,21 +86,24 @@ export default function ResumeGraph({
             xLabelMap,
             hideXAxis,
             xAxisAngle,
-            tooltipFormatter
+            tooltipFormatter,
           }}
         />
       </Box>
 
-       <Typography fontSize="auto" fontWeight={700} color={getStrokeColor(data, secondData)}
-          sx={{
-            maxWidth: '100%', // ou um valor como '240px'
-            fontSize: 'clamp(1rem, 1.8vw, 2rem)',
-            lineHeight: 1.2,
-            textAlign: 'start',
-          }}
-        >
-          {value}
-        </Typography>
+      <Typography
+        fontSize="auto"
+        fontWeight={500}
+        color={getStrokeColor(data, secondData)}
+        sx={{
+          maxWidth: '100%', // ou um valor como '240px'
+          fontSize: 'clamp(1rem, 1.8vw, 2rem)',
+          lineHeight: 1.2,
+          textAlign: 'start',
+        }}
+      >
+        {value}
+      </Typography>
 
       <Box sx={{ height: 200, width: '100%' }}>
         <RenderGraphic
@@ -100,7 +114,7 @@ export default function ResumeGraph({
             xLabelMap,
             hideXAxis,
             xAxisAngle,
-            tooltipFormatter
+            tooltipFormatter,
           }}
         />
       </Box>
@@ -108,18 +122,21 @@ export default function ResumeGraph({
       {subtitle && (
         <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
           {subtitle}
-          {gain && (<span
-            style={{
-              color: gain >= 0 ? '#4caf50' : '#f44336',
-              fontWeight: 600,
-            marginLeft: '0.5rem',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {gain >= 0 ? '+' : ''}
-          {gain}%
-        </span>)}
-      </Typography>)}
+          {gain && (
+            <span
+              style={{
+                color: gain >= 0 ? colorSuccess : colorError,
+                fontWeight: 600,
+                marginLeft: '0.5rem',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {gain >= 0 ? '+' : ''}
+              {gain}%
+            </span>
+          )}
+        </Typography>
+      )}
     </Box>
   );
 }

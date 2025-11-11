@@ -7,7 +7,9 @@ const theme = createTheme({
     mode: 'light',
     primary: { main: '#ba6640', contrastText: '#ffffff' }, // laranja
     secondary: { main: '#BFA27B' }, // areia
-    success: { main: '#58D68D' }, // “filter data”
+    success: { main: '#7a9b53', contrastText: '#fff' },
+    error: { main: '#d13d3d', contrastText: '#fff' },
+    warning: { main: '#dcd98d', contrastText: '#fff' },
     background: { default: '#FFFFFF', paper: '#FFFFFF' },
     divider: '#E6DCCB',
     text: { primary: '#3E3A37', secondary: '#8B6F52', disabled: '#B9A690' },
