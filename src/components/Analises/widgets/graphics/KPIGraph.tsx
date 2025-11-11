@@ -11,7 +11,7 @@ export default function ResumeKPI({ data }: ResumeKPIProps) {
     <Typography
       fontSize="auto"
       fontWeight={500}
-      color="success"
+      color="#7b7b7b'"
       sx={{
         maxWidth: '100%',
         fontSize: 'clamp(1rem, 1.8vw, 2rem)',
