@@ -383,8 +383,8 @@ export default function AssistantChat() {
     }
   }, [lastUserMsgId]);
 
-  const handleSend = async () => {
-    const inputMessage = input.trim();
+  const handleSend = async (msgPersonalized?: string) => {
+    const inputMessage = msgPersonalized ? msgPersonalized : input.trim();
     if (!inputMessage || isGeneratingMessage) return;
     setInput('');
     setIsGeneratingMessage(true);
@@ -595,7 +595,7 @@ export default function AssistantChat() {
   const selectAssistantLabel =
     AssistantTypeLabels[assistantType] || 'Assistente';
   const assistantLegend = AssistantTypeLegends[assistantType] || '';
-  const hasConversation = Boolean(activeConversationId);
+  const hasConversation = Boolean(activeConversationId) && messages.length > 0;
 
   return (
     <Box
@@ -872,7 +872,7 @@ export default function AssistantChat() {
             })}
           </Box>
         ) : (
-          <ContentEmpty />
+          <ContentEmpty handleSendMessage={handleSend} />
         )}
 
         {/* Input */}
@@ -927,7 +927,7 @@ export default function AssistantChat() {
                 }}
                 size={'small'}
                 className={styles.sendButton}
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={isGeneratingMessage}
                 color="primary"
               >

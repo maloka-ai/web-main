@@ -1,19 +1,12 @@
 // AssistenteSelector.tsx
 'use client';
 
-import {
-  Box,
-  Typography,
-  IconButton,
-  Popover,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Divider,
-} from '@mui/material';
-import { useState, ReactElement } from 'react';
+import { Box, Divider, Popover, Typography } from '@mui/material';
+import { ReactElement, useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { AssistantType } from '@/services/AssistantService';
+import LeaderboardOutlinedIcon from '@mui/icons-material/LeaderboardOutlined';
+import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 
 export const AssistantTypeLabels: Record<AssistantType, string> = {
   [AssistantType.GENERAL]: 'Assistente geral',
@@ -31,24 +24,34 @@ export const AssistantTypeLegends: Record<AssistantType, string> = {
 export const Assistants = [
   {
     id: 'geral',
-    label: 'Assistente geral',
+    label: 'Chat Maloka',
     description: 'Converse sobre assuntos além de sua empresa',
     type: AssistantType.GENERAL,
-    icon: '🤖',
+    icon: (
+      <img
+        src="/images/marca-medio@3x.png"
+        width={24}
+        height={24}
+        style={{
+          objectFit: 'contain',
+        }}
+        alt="Lara Logo"
+      />
+    ),
   },
   {
     id: 'compras',
-    label: 'Assistente de compras',
+    label: 'Analista de Compras',
     description: 'Planeje as compras da sua empresa',
     type: AssistantType.SHOPPING,
-    icon: '🛒',
+    icon: <MonetizationOnOutlinedIcon color={'success'} />,
   },
   {
     id: 'dados',
-    label: 'Analista de Vendas',
+    label: 'Analista de Dados',
     description: 'Solicite análises baseadas nos dados da sua empresa',
     type: AssistantType.DATA,
-    icon: '📊',
+    icon: <LeaderboardOutlinedIcon sx={{ color: '#75aad0' }} />,
   },
 ];
 
@@ -108,12 +111,7 @@ export default function AssistantSelector({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography
-            fontSize="1rem"
-            sx={{ fontFamily: 'Poppins', fontWeight: 600 }}
-          >
-            {selected?.icon}
-          </Typography>
+          {selected?.icon}
           <Typography
             fontSize="0.85rem"
             sx={{ fontFamily: 'Poppins', fontWeight: 600 }}
