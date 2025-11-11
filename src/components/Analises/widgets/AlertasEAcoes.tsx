@@ -67,74 +67,106 @@ interface ActionsAlertProps {
   cockpitAlert: CockpitAlert[];
 }
 
-function AlertaSkeleton() {
+export function AlertaSkeleton() {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        width: '100%',
-        maxWidth: '350px',
-        position: 'relative',
-        justifyContent: 'end',
+    <Grid
+      size={{
+        xs: 12,
+        sm: 6,
+        md: 12,
       }}
     >
       <Box
         sx={{
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          padding: '5px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          width: '100%',
-          zIndex: 2,
-        }}
-      >
-        <Skeleton variant="rounded" width={60} height={35} />
-
-        <Box sx={{ flex: 1 }}>
-          <Skeleton variant="text" width="80%" height={22} />
-          <Skeleton variant="text" width="60%" height={18} />
-        </Box>
-      </Box>
-
-      <Box
-        sx={{
-          paddingTop: '20px',
           display: 'flex',
           width: '100%',
-          paddingLeft: '10px',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 1,
-          position: 'absolute',
-          bottom: '-40px',
+          flexDirection: 'column',
+          maxWidth: { md: '350px' },
+          position: 'relative',
+          justifyContent: 'end',
         }}
       >
-        <BoltOutlinedIcon sx={{ color: '#ebd93b' }} />
+        {/* Card superior */}
         <Box
           sx={{
-            backgroundColor: '#f8ebe3',
-            height: '45px',
-            width: '90%',
-            borderRadius: '0 0 12px 12px',
-            padding: '0.65rem 1rem',
-            paddingTop: '20px',
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            padding: '5px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            color: '#4b4b4b',
-            fontSize: '0.75rem',
-            fontWeight: 500,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            gap: '0.75rem',
+            width: '100%',
+            zIndex: 2,
+            border: 'solid 1px #edebe3',
           }}
         >
-          <Skeleton variant="text" width="70%" height={18} />
-          <PlayArrowOutlinedIcon sx={{ color: '#df8157' }} />
+          {/* Badge (indicador) */}
+          <Skeleton
+            variant="rounded"
+            width={60}
+            height={35}
+            sx={{ borderRadius: '8px' }}
+          />
+
+          {/* Título + descrição */}
+          <Box>
+            <Skeleton variant="text" width={180} height={22} />
+            <Skeleton variant="text" width={140} height={18} />
+          </Box>
+        </Box>
+
+        {/* Barra inferior */}
+        <Box
+          sx={{
+            display: 'flex',
+            width: '100%',
+            paddingLeft: '10px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mt: 0.5,
+          }}
+        >
+          {/* Ícone à esquerda (Bolt) */}
+          <Skeleton
+            variant="circular"
+            width={20}
+            height={20}
+            sx={{ bgcolor: '#eacec0' }}
+          />
+
+          {/* Faixa com ação e botões */}
+          <Box
+            sx={{
+              backgroundColor: '#fbf3ef',
+              width: '90%',
+              borderRadius: '0 0 12px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: '#4b4b4b',
+              padding: '0.5rem 1.2rem 0.5rem 1rem',
+              fontSize: '0.80rem',
+              fontWeight: 500,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            }}
+          >
+            {/* Texto da ação */}
+            <Skeleton variant="text" width="60%" height={18} />
+
+            {/* Botões à direita */}
+            <Stack direction="row" spacing={0}>
+              <IconButton disabled sx={{ p: 0.5 }}>
+                <Skeleton variant="circular" width={24} height={24} />
+              </IconButton>
+              <IconButton disabled sx={{ p: 0.5 }}>
+                <Skeleton variant="circular" width={24} height={24} />
+              </IconButton>
+            </Stack>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </Grid>
   );
 }
 
@@ -153,7 +185,7 @@ export default function AlertasEAcoes({
 
   if (!cockpitAlert.length) {
     return (
-      <Grid container spacing={'3.5rem'}>
+      <Grid container spacing={'1.5rem'}>
         <Grid
           size={{
             xs: 12,
@@ -177,7 +209,7 @@ export default function AlertasEAcoes({
   }
 
   return (
-    <Grid container spacing={'3.5rem'}>
+    <Grid container spacing={'1.5rem'}>
       {cockpitAlert.map(
         (item, index) =>
           Number(item.indicador) !== 0 && (
@@ -193,6 +225,7 @@ export default function AlertasEAcoes({
                 sx={{
                   display: 'flex',
                   width: '100%',
+                  flexDirection: 'column',
                   maxWidth: {
                     md: '350px',
                   },
@@ -211,16 +244,18 @@ export default function AlertasEAcoes({
                     gap: '0.75rem',
                     width: '100%',
                     zIndex: 2,
+
+                    border: 'solid 1px #edebe3',
                   }}
                 >
                   <Box
                     sx={{
-                      backgroundColor: '#e59a8c',
+                      backgroundColor: '#e77f7f',
                       color: '#fff',
                       borderRadius: '8px',
                       padding: '0.25rem 0.75rem',
                       fontWeight: 600,
-                      fontSize: '0.9rem',
+                      fontSize: '1rem',
                       width: 60,
                       height: 35,
                       display: 'flex',
@@ -234,46 +269,40 @@ export default function AlertasEAcoes({
                     <Typography
                       fontWeight={600}
                       fontSize="0.95rem"
-                      color="#333"
+                      color="#3e3e3e"
                     >
                       {item.titulo}
                     </Typography>
-                    <Typography fontSize="0.85rem" color="#777">
+                    <Typography fontSize="0.85rem" color="#3e3e3e">
                       {item.descricao}
                     </Typography>
                   </Box>
                 </Box>
                 <Box
                   sx={{
-                    paddingTop: '20px',
                     display: 'flex',
                     width: '100%',
                     paddingLeft: '10px',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    zIndex: 1,
-                    position: 'absolute',
-                    bottom: '-40px',
                   }}
                 >
                   <BoltOutlinedIcon
                     sx={{
-                      color: '#ebd93b',
+                      color: '#eacec0',
                     }}
                   />
                   <Box
                     sx={{
-                      backgroundColor: '#f8ebe3',
-                      height: '45px',
+                      backgroundColor: '#fbf3ef',
                       width: '90%',
                       borderRadius: '0 0 12px 12px',
-                      padding: '0.65rem 1rem',
-                      paddingTop: '20px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       color: '#4b4b4b',
-                      fontSize: '0.75rem',
+                      padding: '0.5rem 1.2rem 0.5rem 1rem',
+                      fontSize: '0.80rem',
                       fontWeight: 500,
                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                     }}
@@ -288,6 +317,7 @@ export default function AlertasEAcoes({
                               `alerta_${item.descricao.toLowerCase().replace(/\s+/g, '_')}.xlsx`,
                             )
                           }
+                          fontSize={'small'}
                           sx={{ color: '#df8157' }}
                         />
                       </IconButton>
@@ -295,6 +325,7 @@ export default function AlertasEAcoes({
                         <RemoveRedEyeIcon
                           onClick={() => handleAlertDetail(item)}
                           sx={{ color: '#df8157' }}
+                          fontSize={'small'}
                         />
                       </IconButton>
                     </Stack>
