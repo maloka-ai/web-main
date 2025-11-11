@@ -1,5 +1,4 @@
 import api from '@/utils/api';
-import { get } from 'node:http';
 
 export interface CustomerSegmentation {
   id_cliente: number;

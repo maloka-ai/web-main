@@ -1,6 +1,6 @@
-import { CustomerSegmentation } from "@/services/analysisService";
-import { GraphType } from "@/utils/enums";
-import { BarDatum, GraphData } from "@/utils/graphics";
+import { CustomerSegmentation } from '@/services/analysis/analysisService';
+import { GraphType } from '@/utils/enums';
+import { BarDatum, GraphData } from '@/utils/graphics';
 
 export function makeSegmentationCustomerGraphs(data: CustomerSegmentation[]) {
   const graphs: GraphData[] = [];
@@ -12,15 +12,20 @@ export function makeSegmentationCustomerGraphs(data: CustomerSegmentation[]) {
       segmentMap[item.segmento]['value'] += 1;
       segmentMap[item.segmento]['secondValue'] += item.valor_monetario || 0;
     } else {
-      segmentMap[item.segmento] = { value: 1, secondValue: item.valor_monetario || 0 };
+      segmentMap[item.segmento] = {
+        value: 1,
+        secondValue: item.valor_monetario || 0,
+      };
     }
   });
 
-  const segments: BarDatum[] = Object.entries(segmentMap).map(([name, { value, secondValue }]) => ({
-    name,
-    value,
-    secondValue: value > 0 ? secondValue / value : 0, // Average ticket
-  }));
+  const segments: BarDatum[] = Object.entries(segmentMap).map(
+    ([name, { value, secondValue }]) => ({
+      name,
+      value,
+      secondValue: value > 0 ? secondValue / value : 0, // Average ticket
+    }),
+  );
 
   graphs.push({
     type: GraphType.BAR,
@@ -31,7 +36,8 @@ export function makeSegmentationCustomerGraphs(data: CustomerSegmentation[]) {
     secondValueLabel: 'Ticket Médio',
     height: 400,
     tooltipFormatter: (v) => v.toLocaleString('pt-BR', { style: 'decimal' }),
-    secondValueFormatter: (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    secondValueFormatter: (v) =>
+      v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
     xAxisAngle: -45,
   });
 

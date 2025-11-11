@@ -10,7 +10,7 @@ import {
   CustomerAnnualRecurrence,
   CustomerQuarterlyRecurrence,
   CustomerSegmentation,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 import {
   clientsMakeGraphs,
   salesMakeGraphs,
@@ -18,7 +18,7 @@ import {
 } from '../helpers/CockpitHelper';
 import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useListAlertsCockipt } from '@/services/analysis/queries';
 
 export default function CockpitPage() {
   const [customer, setCustomer] = useState<CustomerSegmentation[]>([]);
@@ -34,8 +34,9 @@ export default function CockpitPage() {
   >([]);
   const [lastYearDailyRevenues, setLastYearDailyRevenues] = useState<any[]>([]);
   const [stock, setStock] = useState<any[]>([]);
-  const [cockpitAlert, setCockpitAlert] = useState<CockpitAlert[]>([]);
-  const isMobile = useIsMobile();
+  const { data: alertsCockpit, isLoading: isLoadingAlertsCockpit } =
+    useListAlertsCockipt();
+
   useEffect(() => {
     analysisService
       .getSegmentacaoClientes()
@@ -73,11 +74,6 @@ export default function CockpitPage() {
       .catch(console.error);
 
     analysisService.getStockMetrics().then(setStock).catch(console.error);
-
-    analysisService
-      .getCockpitAlert()
-      .then(setCockpitAlert)
-      .catch(console.error);
   }, []);
 
   return (
@@ -119,11 +115,14 @@ export default function CockpitPage() {
           },
         }}
       >
-        <Typography variant="h6" fontWeight={500} color="#3e3e3e" mb={1}>
+        <Typography variant="h6" fontWeight={'normal'} color="#3e3e3e" mb={1}>
           Alertas e Ações
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <AlertasEAcoes cockpitAlert={cockpitAlert} />
+        <AlertasEAcoes
+          cockpitAlert={alertsCockpit}
+          isLoading={isLoadingAlertsCockpit}
+        />
       </Box>
 
       <Box
@@ -137,7 +136,7 @@ export default function CockpitPage() {
           pb: 10,
         }}
       >
-        <Typography variant="h6" fontWeight={500} color="#3e3e3e" mb={1}>
+        <Typography variant="h6" fontWeight={'normal'} color="#3e3e3e" mb={1}>
           Resultados • KPIs
         </Typography>
         <Divider sx={{ mb: 2 }} />
