@@ -24,7 +24,15 @@ function Greeting() {
     </Typography>
   );
 }
-export function ContentEmpty() {
+type Props = {
+  handleSendMessage: (message: string) => void;
+};
+export function ContentEmpty({ handleSendMessage }: Props) {
+  const messages = [
+    'Mostre reativação de sumidos',
+    'Compare os novos clientes',
+    'Crie um gráfico dos mais vendidos',
+  ];
   return (
     <Stack
       direction={'column'}
@@ -42,30 +50,18 @@ export function ContentEmpty() {
       </Stack>
       <Stack direction={'column'} alignItems={'center'} mb={2} spacing={1}>
         <TipsAndUpdatesOutlinedIcon fontSize={'large'} color={'primary'} />
-        <Button
-          sx={{ color: 'gray' }}
-          color={'inherit'}
-          variant="outlined"
-          size={'small'}
-        >
-          Mostre reativação de sumidos
-        </Button>
-        <Button
-          sx={{ color: 'gray' }}
-          color={'inherit'}
-          variant="outlined"
-          size={'small'}
-        >
-          Compare os novos clientes
-        </Button>
-        <Button
-          sx={{ color: 'gray' }}
-          color={'inherit'}
-          variant="outlined"
-          size={'small'}
-        >
-          Crie um gráfico dos mais vendidos
-        </Button>
+        {messages.map((message) => (
+          <Button
+            key={message}
+            sx={{ color: 'gray' }}
+            color={'inherit'}
+            variant="outlined"
+            size={'small'}
+            onClick={() => handleSendMessage(message)}
+          >
+            {message}
+          </Button>
+        ))}
       </Stack>
     </Stack>
   );
