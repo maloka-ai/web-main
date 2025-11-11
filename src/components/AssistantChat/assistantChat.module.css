@@ -64,7 +64,20 @@
   font-size: 0.95rem;
   max-width: 95%;
 }
-
+.activeConversation {
+  background-color: #ffffff;
+  &:before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height:10px;
+    border-radius: 100%;
+    background-color: #c47b5b;
+  }
+}
 .inputArea {
   display: flex;
   flex-direction: column;
@@ -120,7 +133,7 @@
 
 .drawer {
   width: 95%;
-  background-color: #f9f8f4;
+  background-color: #f4f3ed;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
   height: 100%;
   z-index: 1201;
@@ -136,7 +149,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 0 1rem 0.2rem;
   position: sticky;
   top: 0;
   z-index: 2;
@@ -174,12 +187,8 @@
     transition: transform 0.3s ease;
   }
 
-  & span:hover {
-    animation: scroll-text 3s linear forwards;
-  }
-
   &:hover {
-    background-color: #e3e3e3;
+    background-color: #e6e2d4;
   }
 }
 .conversationItem.active {
@@ -189,17 +198,19 @@
 .conversationItem.active:hover {
   background-color: #eb9b76;
 }
+
 .conversationName {
-  font-size: 0.95rem;
-  color: #4b4b4b;
-  margin-left: 0.5rem;
+  display: inline-block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  position: relative;
 }
 
 .menuButton {
-  position: absolute !important;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -208,10 +219,6 @@
   opacity: 1;
 }
 
-@keyframes scroll-text {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(-100% + 200px)); }
-}
 
 .toggleButton {
   position: absolute;
@@ -298,3 +305,39 @@
   }
 }
 
+.conversationName {
+  position: relative;
+  overflow: hidden;
+  /* fade só nos ~20% finais */
+  -webkit-mask-image: linear-gradient(to right, #000 95%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 95%, transparent 100%);
+}
+
+.marquee {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
+  position: relative;
+}
+
+.marqueeContent {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  margin-left: 8px;
+}
+
+@keyframes marqueeX {
+  0%   { transform: translateX(0); }
+  10%  { transform: translateX(0); } /* pequena pausa inicial */
+  90%  { transform: translateX(calc(-1 * var(--scroll-distance) - 8px)); }
+  100% { transform: translateX(calc(-1 * var(--scroll-distance) - 8px)); } /* volta pro início */
+}
+
+.marqueeRunning {
+  animation: marqueeX var(--scroll-duration, 8s) linear infinite;
+}
+
+.marqueeContent {
+  transition: transform 0s;
+}
