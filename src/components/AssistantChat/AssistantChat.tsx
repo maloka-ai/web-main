@@ -42,6 +42,7 @@ import EditConversationModal from './EditConversationModal';
 import DeleteConversationModal from './DeleteConversationModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { ContentEmpty } from '@/components/AssistantChat/components/ContentEmpty';
+import { DrawerConversation } from '@/components/AssistantChat/components/DrawerConversation';
 
 function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
   const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
@@ -604,7 +605,7 @@ export default function AssistantChat() {
         },
         width: {
           xs: '100%',
-          md: !expanded ? '25%' : '60%',
+          md: !expanded ? '25%' : '40%',
         },
       }}
     >
@@ -621,55 +622,14 @@ export default function AssistantChat() {
         </IconButton>
       )}
 
-      <Box
-        className={styles.drawerOverlay}
-        sx={{
-          display: drawerOpen ? 'block' : 'none',
-          top: {
-            xs: '0',
-            md: '40px',
-          },
-        }}
-      >
-        <Box className={styles.drawer}>
-          <Box className={styles.drawerHeader}>
-            <IconButton onClick={() => setDrawerOpen(false)}>
-              <MenuOpenIcon />
-            </IconButton>
-            <Typography variant="h6" className={styles.drawerTitle}>
-              Histórico
-            </Typography>
-          </Box>
-          <List>
-            {conversations.map(({ thread_id: id, title }) => (
-              <ListItem
-                key={`${id}`}
-                className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
-                onClick={() => {
-                  setActiveConversationId(id);
-                  setDrawerOpen(false);
-                }}
-              >
-                <span className={styles.conversationName}>{title}</span>
-                <IconButton
-                  className={styles.menuButton}
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMenuOpen(e, { thread_id: id, title });
-                  }}
-                >
-                  <MoreVert fontSize="small" sx={{ color: '#df8157' }} />
-                </IconButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-        <Box
-          className={styles.drawerBackdrop}
-          onClick={() => setDrawerOpen(false)}
-        />
-      </Box>
+      <DrawerConversation
+        drawerOpen={drawerOpen}
+        setDrawerOpen={setDrawerOpen}
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        setActiveConversationId={setActiveConversationId}
+        handleMenuOpen={handleMenuOpen}
+      />
 
       {/* Menu de opções */}
       <Menu
