@@ -119,10 +119,10 @@ export default function CockpitPage() {
           },
         }}
       >
-        <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
+        <Typography variant="h6" fontWeight={500} color="#3e3e3e" mb={1}>
           Alertas e Ações
         </Typography>
-        {isMobile && <Divider />}
+        <Divider sx={{ mb: 2 }} />
         <AlertasEAcoes cockpitAlert={cockpitAlert} />
       </Box>
 
@@ -137,9 +137,10 @@ export default function CockpitPage() {
           pb: 10,
         }}
       >
-        <Typography variant="h6" fontWeight={600} color="#4b4b4b" mb={1.5}>
+        <Typography variant="h6" fontWeight={500} color="#3e3e3e" mb={1}>
           Resultados • KPIs
         </Typography>
+        <Divider sx={{ mb: 2 }} />
 
         <Box
           sx={{
