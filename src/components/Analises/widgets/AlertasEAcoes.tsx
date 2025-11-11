@@ -10,7 +10,6 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import { analysisService, CockpitAlert } from '@/services/analysisService';
@@ -296,12 +295,13 @@ export default function AlertasEAcoes({
                     sx={{
                       backgroundColor: '#fbf3ef',
                       width: '90%',
+                      marginTop: '-12px',
                       borderRadius: '0 0 12px 12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       color: '#4b4b4b',
-                      padding: '0.5rem 1.2rem 0.5rem 1rem',
+                      padding: '1.2rem 0.5rem 0.5rem 1rem',
                       fontSize: '0.80rem',
                       fontWeight: 500,
                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
