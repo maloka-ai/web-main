@@ -83,23 +83,48 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
         slotProps={{
           paper: {
             sx: {
               minWidth: '240px',
               borderRadius: '12px',
+              backgroundColor: '#f4f3ed',
+              boxShadow: '0 0 2.3px 2.2px rgba(0, 0, 0, 0.07)',
             },
           },
         }}
       >
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton
+            onClick={handleMenuClose}
+            color={'primary'}
+            size={'small'}
+          >
+            <ListIcon fontSize="large" />
+          </IconButton>
+          <Typography
+            variant="subtitle1"
+            color="#3e3e3e"
+            fontSize={'1rem'}
+            fontWeight={500}
+          >
+            Análises
+          </Typography>
+        </Box>
         {AnalysisMenuConfig.map((section) => (
           <Box key={section.title}>
             <ListSubheader
               disableSticky
               disableGutters
               sx={{
-                paddingLeft: '1rem',
+                paddingLeft: '1.25rem',
                 lineHeight: '28px',
+                color: '#3e3e3e',
+                fontWeight: '600',
               }}
             >
               {section.title}
@@ -108,6 +133,24 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
               <MenuItem
                 key={item.page}
                 onClick={() => handleSelect(item.page, section.title)}
+                sx={{
+                  bgcolor: current === item.page ? 'white' : 'inherit',
+                  paddingLeft: '1.25rem',
+
+                  ...(current === item.page && {
+                    '&:before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      borderRadius: '100%',
+                      width: '8px',
+                      height: '8px',
+                      bgcolor: '#9c5d40',
+                    },
+                  }),
+                }}
               >
                 {item.title}
               </MenuItem>
