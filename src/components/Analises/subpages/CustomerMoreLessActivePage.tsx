@@ -1,13 +1,17 @@
-import {useEffect, useState} from "react"
-import {getString} from "@/utils/strings"
-import {Typography} from "@mui/material"
-import {Box} from "@mui/system"
-import {analysisService, CustomerSegmentation} from "@/services/analysisService"
-import {handleDownloadAlertDetail} from "../widgets/AlertasEAcoes"
-import RenderGraphic from "../widgets/RenderGraphic"
-import {makeSegmentationCustomerGraphs} from "../helpers/CustomerMoreLessActiveHelper"
-import DialogDetailsTable, {DetailsDialogTableProps} from "@/components/dialog/DialogDetailsTable";
-
+import { useEffect, useState } from 'react';
+import { getString } from '@/utils/strings';
+import { Typography } from '@mui/material';
+import { Box } from '@mui/system';
+import {
+  analysisService,
+  CustomerSegmentation,
+} from '@/services/analysis/analysisService';
+import { handleDownloadAlertDetail } from '../widgets/AlertasEAcoes';
+import RenderGraphic from '../widgets/RenderGraphic';
+import { makeSegmentationCustomerGraphs } from '../helpers/CustomerMoreLessActiveHelper';
+import DialogDetailsTable, {
+  DetailsDialogTableProps,
+} from '@/components/dialog/DialogDetailsTable';
 
 const CustomerMoreLessActivePage = () => {
   const [detailsTable, setDetailsTable] =
@@ -17,10 +21,11 @@ const CustomerMoreLessActivePage = () => {
   >([]);
 
   useEffect(() => {
-    analysisService.getSegmentacaoClientes()
+    analysisService
+      .getSegmentacaoClientes()
       .then(setSegmentationCustomer)
-      .catch(console.error)
-  }, [])
+      .catch(console.error);
+  }, []);
 
   const handleBarSelected = (name: string) => {
     setDetailsTable({
@@ -37,13 +42,10 @@ const CustomerMoreLessActivePage = () => {
           marginBottom: 2,
         }}
       >
-        <Typography
-          variant="h3"
-          fontWeight={500}
-          fontSize={18}
-          color="#3e3e3e"
-        >
-          {getString("analysis-customers-more-less-active-customers-graph-title")}
+        <Typography variant="h3" fontWeight={500} fontSize={18} color="#3e3e3e">
+          {getString(
+            'analysis-customers-more-less-active-customers-graph-title',
+          )}
         </Typography>
       </Box>
 
@@ -73,7 +75,10 @@ const CustomerMoreLessActivePage = () => {
       /> */}
 
       <RenderGraphic
-        graph={{ ...makeSegmentationCustomerGraphs(segmentationCustomer)[0], onBarSelected: handleBarSelected }}
+        graph={{
+          ...makeSegmentationCustomerGraphs(segmentationCustomer)[0],
+          onBarSelected: handleBarSelected,
+        }}
       />
 
       <DialogDetailsTable
@@ -86,7 +91,7 @@ const CustomerMoreLessActivePage = () => {
           detailsTable
             ? handleDownloadAlertDetail(
                 detailsTable.linkDataTable!,
-                `alerta_${detailsTable.description!.toLowerCase().replace(/\s+/g, "_")}.xlsx`,
+                `alerta_${detailsTable.description!.toLowerCase().replace(/\s+/g, '_')}.xlsx`,
               )
             : null
         }

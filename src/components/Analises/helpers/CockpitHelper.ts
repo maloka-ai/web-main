@@ -7,7 +7,7 @@ import {
   MonthlyRevenue,
   CustomerSegmentation,
   StockMetrics,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 import { GraphType } from '@/utils/enums';
 import { formatCurrency } from '@/utils/format';
 

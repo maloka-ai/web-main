@@ -12,7 +12,10 @@ import {
 } from '@mui/material';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
-import { analysisService, CockpitAlert } from '@/services/analysisService';
+import {
+  analysisService,
+  CockpitAlert,
+} from '@/services/analysis/analysisService';
 
 import * as XLSX from 'xlsx';
 import { FileDownloadOutlined } from '@mui/icons-material';
@@ -63,7 +66,8 @@ function downloadArrayAsXLSX<T extends Record<string, any>>(
 }
 
 interface ActionsAlertProps {
-  cockpitAlert: CockpitAlert[];
+  cockpitAlert: CockpitAlert[] | undefined;
+  isLoading: boolean;
 }
 
 export function AlertaSkeleton() {
@@ -171,6 +175,7 @@ export function AlertaSkeleton() {
 
 export default function AlertasEAcoes({
   cockpitAlert,
+  isLoading,
 }: ActionsAlertProps): ReactElement {
   const [alertDetailsl, setAlertDetails] = useState<CockpitAlert | null>(null);
 
@@ -182,7 +187,7 @@ export default function AlertasEAcoes({
     setAlertDetails(null);
   }
 
-  if (!cockpitAlert.length) {
+  if (isLoading || !cockpitAlert) {
     return (
       <Grid container spacing={'1.5rem'}>
         <Grid

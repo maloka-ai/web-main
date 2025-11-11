@@ -28,7 +28,7 @@ import {
   analysisService,
   type ProductByABC,
   type ProductDetail,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 
 interface ProductAnalysisProps {
   product: ProductByABC;

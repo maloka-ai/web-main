@@ -1,5 +1,5 @@
 import api from '@/utils/api';
-import { DailyRevenue } from '@/services/analysisService';
+import { DailyRevenue } from '@/services/analysis/analysisService';
 import { toQS } from '@/services/helpers/toQS';
 import { AtypicalTopProduct } from '@/services/sales/types';
 

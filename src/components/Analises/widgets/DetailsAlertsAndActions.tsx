@@ -2,7 +2,7 @@
 
 import { Box, Button, IconButton, Modal, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { CockpitAlert } from '@/services/analysisService';
+import { CockpitAlert } from '@/services/analysis/analysisService';
 import { FileDownloadOutlined } from '@mui/icons-material';
 import { DynamicTable } from '@/components/table/DynamicTable';
 

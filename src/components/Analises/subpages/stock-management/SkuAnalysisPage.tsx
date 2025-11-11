@@ -29,7 +29,7 @@ import {
   type ProductByABC,
   ProductStatus,
   ABCCurve,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 import DialogDetails from '@/components/dialog/DialogDetails';
 import ProductAnalysis from '@/components/Analises/subpages/stock-management/ProductAnalysis';
 import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
@@ -64,13 +64,48 @@ export default function SkuAnalysisPage() {
   // columns da tabela
   const columns = useMemo<MRT_ColumnDef<ProductByABC>[]>(
     () => [
-      { accessorKey: 'id_sku', header: 'ID SKU', size: 110, filterFn: 'contains' },
-      { accessorKey: 'nome_produto', header: 'Produto', size: 280, filterFn: 'contains' },
-      { accessorKey: 'nome_categoria', header: 'Categoria', size: 180, filterFn: 'contains' },
-      { accessorKey: 'estoque_atual', header: 'Estoque Atual', size: 120, filterFn: 'contains' },
-      { accessorKey: 'curva_abc', header: 'Curva ABC', size: 100, filterFn: 'contains' },
-      { accessorKey: 'situacao_do_produto', header: 'Situação', size: 200, filterFn: 'contains' },
-      { accessorKey: 'data_ultima_venda', header: 'Última Venda', size: 160, filterFn: 'contains' },
+      {
+        accessorKey: 'id_sku',
+        header: 'ID SKU',
+        size: 110,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'nome_produto',
+        header: 'Produto',
+        size: 280,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'nome_categoria',
+        header: 'Categoria',
+        size: 180,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'estoque_atual',
+        header: 'Estoque Atual',
+        size: 120,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'curva_abc',
+        header: 'Curva ABC',
+        size: 100,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'situacao_do_produto',
+        header: 'Situação',
+        size: 200,
+        filterFn: 'contains',
+      },
+      {
+        accessorKey: 'data_ultima_venda',
+        header: 'Última Venda',
+        size: 160,
+        filterFn: 'contains',
+      },
     ],
     [],
   );
@@ -259,20 +294,20 @@ export default function SkuAnalysisPage() {
         <MaterialReactTable table={table} />
 
         <Snackbar
-            open={toastOpen}
-            autoHideDuration={2000}
+          open={toastOpen}
+          autoHideDuration={2000}
+          onClose={() => setToastOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
             onClose={() => setToastOpen(false)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            severity="success"
+            variant="filled"
+            sx={{ width: '100%' }}
           >
-            <Alert
-              onClose={() => setToastOpen(false)}
-              severity="success"
-              variant="filled"
-              sx={{ width: '100%' }}
-            >
-              ID SKU copiado!
-            </Alert>
-          </Snackbar>
+            ID SKU copiado!
+          </Alert>
+        </Snackbar>
       </Box>
 
       <DialogDetails
