@@ -48,7 +48,7 @@ export const Assistants = [
   },
   {
     id: 'dados',
-    label: 'Analista de Dados',
+    label: 'Analista de Vendas',
     description: 'Solicite análises baseadas nos dados da sua empresa',
     type: AssistantType.DATA,
     icon: <LeaderboardOutlinedIcon sx={{ color: '#75aad0' }} />,
