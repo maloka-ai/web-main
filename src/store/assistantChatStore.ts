@@ -1,4 +1,3 @@
-// src/stores/ui/assistantChat.store.ts
 'use client';
 
 import { create } from 'zustand';

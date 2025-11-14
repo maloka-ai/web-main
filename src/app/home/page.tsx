@@ -18,7 +18,10 @@ import styles from './page.module.css';
 
 import HeaderSistema from '@/components/Layouts/SystemHeader/SystemHeader';
 import Analises from '@/components/Analises/Analises';
-import { ExpandedState, useAssistantChatStore } from '@/store/sidebar.store';
+import {
+  ExpandedState,
+  useAssistantChatStore,
+} from '@/store/assistantChatStore';
 
 // Dica: carregue o chat sob demanda (especialmente útil no mobile)
 const AssistantChat = lazy(
@@ -132,6 +135,11 @@ export default function Home() {
     expanded: '60%',
     full: '0%',
   };
+  const minWidthMapAnalises: Record<ExpandedState, string> = {
+    collapsed: '75%',
+    expanded: '60%',
+    full: '200px',
+  };
   return (
     <Box
       className={styles.container}
@@ -143,7 +151,9 @@ export default function Home() {
         className={styles.content}
         sx={{
           width: widthMapAnalises[expanded],
-          minWidth: '200px',
+          minWidth: {
+            md: minWidthMapAnalises[expanded],
+          },
         }}
       >
         <HeaderSistema />
