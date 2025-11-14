@@ -44,7 +44,10 @@ import { DrawerConversation } from '@/components/AssistantChat/components/Drawer
 
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
-import { ExpandedState, useAssistantChatStore } from '@/store/sidebar.store';
+import {
+  ExpandedState,
+  useAssistantChatStore,
+} from '@/store/assistantChatStore';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -53,8 +56,10 @@ const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   transform: 'translate(-50%, -50%)',
   backgroundColor: '#bfbba9',
   boxShadow: theme.shadows[2],
-  borderTopRightRadius: 18,
-  borderBottomRightRadius: 18,
+  borderTopRightRadius: 12,
+  borderBottomRightRadius: 12,
+  borderTopLeftRadius: 0,
+  borderBottomLeftRadius: 0,
   overflow: 'hidden',
   // tira borda entre os botões
   '& .MuiButton-root': {
@@ -639,6 +644,12 @@ export default function AssistantChat() {
     expanded: '40%',
     full: '100%',
   };
+  const maxWidthMap: Record<ExpandedState, string> = {
+    collapsed: '25%',
+    expanded: '40%',
+    full: 'calc(100% - 200px)',
+  };
+
   return (
     <Box
       className={styles.wrapper}
@@ -649,6 +660,9 @@ export default function AssistantChat() {
         width: {
           xs: '100%',
           md: widthMap[expanded],
+        },
+        maxWidth: {
+          md: maxWidthMap[expanded],
         },
       }}
     >

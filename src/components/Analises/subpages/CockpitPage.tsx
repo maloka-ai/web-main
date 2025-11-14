@@ -6,7 +6,6 @@ import AlertasEAcoes from '../widgets/AlertasEAcoes';
 import { useEffect, useState } from 'react';
 import {
   analysisService,
-  CockpitAlert,
   CustomerAnnualRecurrence,
   CustomerQuarterlyRecurrence,
   CustomerSegmentation,

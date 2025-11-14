@@ -6,7 +6,7 @@ import { Box, Typography, Menu, MenuItem, IconButton } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useAssistantChatStore } from '@/store/sidebar.store';
+import { useAssistantChatStore } from '@/store/assistantChatStore';
 
 function UserAccount({ email: propEmail }: { email?: string | null }) {
   const [mounted, setMounted] = useState(false);

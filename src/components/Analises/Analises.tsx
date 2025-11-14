@@ -14,6 +14,7 @@ import InactiveityAnalysisPage from './subpages/stock-management/InactivityAnaly
 import SkuAnalysisPage from '@/components/Analises/subpages/stock-management/SkuAnalysisPage';
 import { CustomerBussinessGrowth } from '@/components/Analises/subpages/customers/CustomerBussinessGrowth';
 import { Customer360 } from '@/components/Analises/subpages/customers/Customer360';
+import { useAnalysisStore } from '@/store/analysisStore';
 
 const CustomersSubpages = {
   [AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE]: {
@@ -105,9 +106,7 @@ export const AnalysisMenuConfig = [
 ];
 
 export default function Analises() {
-  const [activePage, setActivePage] = useState<AnalysisSubPages>(
-    AnalysisSubPages.COCKPIT,
-  );
+  const { activePage, setActivePage } = useAnalysisStore((store) => store);
   const [activeMenu, setActiveMenu] = useState<string>(
     AnalysisMenuConfig[0].title,
   );
