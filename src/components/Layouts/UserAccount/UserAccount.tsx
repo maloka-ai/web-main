@@ -6,6 +6,7 @@ import { Box, Typography, Menu, MenuItem, IconButton } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useAssistantChatStore } from '@/store/sidebar.store';
 
 function UserAccount({ email: propEmail }: { email?: string | null }) {
   const [mounted, setMounted] = useState(false);
@@ -14,7 +15,7 @@ function UserAccount({ email: propEmail }: { email?: string | null }) {
   const open = Boolean(anchorEl);
   const router = useRouter();
   const isMobile = useIsMobile();
-
+  const expanded = useAssistantChatStore((store) => store.expanded);
   useEffect(() => {
     setMounted(true);
     const fromProp = (propEmail ?? '').trim();
@@ -39,6 +40,8 @@ function UserAccount({ email: propEmail }: { email?: string | null }) {
     router.push('/login');
   };
 
+  const expadedFull = expanded === 'full';
+  if (expadedFull) return null;
   return (
     <Box>
       {isMobile ? (
@@ -69,11 +72,13 @@ function UserAccount({ email: propEmail }: { email?: string | null }) {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            mt: 1,
-            minWidth: 180,
+        slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              mt: 1,
+              minWidth: 180,
+            },
           },
         }}
       >

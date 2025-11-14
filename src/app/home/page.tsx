@@ -4,11 +4,13 @@ import { lazy, Suspense, useState } from 'react';
 import {
   AppBar,
   Box,
+  Button,
   Stack,
   styled,
   Tab,
   tabClasses,
   Tabs,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -16,6 +18,7 @@ import styles from './page.module.css';
 
 import HeaderSistema from '@/components/Layouts/SystemHeader/SystemHeader';
 import Analises from '@/components/Analises/Analises';
+import { ExpandedState, useAssistantChatStore } from '@/store/sidebar.store';
 
 // Dica: carregue o chat sob demanda (especialmente útil no mobile)
 const AssistantChat = lazy(
@@ -69,10 +72,24 @@ function TabPanel(props: {
     </div>
   );
 }
-
+function AnalisesColapsed({ handleReset }: { handleReset: () => void }) {
+  return (
+    <Stack
+      alignItems={'center'}
+      spacing={1}
+      height={'100%'}
+      justifyContent={'center'}
+    >
+      <img src={'/images/area-de-analise@3x.webp'} width={60} />
+      <Typography color={'#737064'}>Área de análises</Typography>
+      <Button onClick={handleReset}>Expandir</Button>
+    </Stack>
+  );
+}
 export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });
+  const { expanded, resetState } = useAssistantChatStore((state) => state);
   const [tab, setTab] = useState(0);
 
   if (isMobile) {
@@ -109,7 +126,12 @@ export default function Home() {
       </Box>
     );
   }
-
+  const isFullExpanded = expanded === 'full';
+  const widthMapAnalises: Record<ExpandedState, string> = {
+    collapsed: '75%',
+    expanded: '60%',
+    full: '0%',
+  };
   return (
     <Box
       className={styles.container}
@@ -117,9 +139,19 @@ export default function Home() {
     >
       {' '}
       <AssistantChat />{' '}
-      <Box className={styles.content}>
+      <Box
+        className={styles.content}
+        sx={{
+          width: widthMapAnalises[expanded],
+          minWidth: '200px',
+        }}
+      >
         <HeaderSistema />
-        <Analises />
+        {isFullExpanded ? (
+          <AnalisesColapsed handleReset={resetState} />
+        ) : (
+          <Analises />
+        )}
       </Box>
     </Box>
   );
