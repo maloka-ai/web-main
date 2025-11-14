@@ -6,22 +6,20 @@ import * as Recharts from 'recharts';
 import {
   Box,
   Button,
+  ButtonGroup,
   IconButton,
-  List,
-  ListItem,
   Menu,
   MenuItem,
   Paper,
+  Skeleton,
+  Stack,
+  styled,
   TextField,
   Typography,
-  Skeleton,
-  ClickAwayListener,
-  Stack,
 } from '@mui/material';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { ArrowLeft, ArrowRight, MoreVert } from '@mui/icons-material';
 
 import styles from './assistantChat.module.css';
 import assistantService, {
@@ -44,6 +42,42 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { ContentEmpty } from '@/components/AssistantChat/components/ContentEmpty';
 import { DrawerConversation } from '@/components/AssistantChat/components/DrawerConversation';
 
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
+import { ExpandedState, useAssistantChatStore } from '@/store/sidebar.store';
+
+const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
+  position: 'absolute',
+  top: '50%',
+  right: '-27px',
+  transform: 'translate(-50%, -50%)',
+  backgroundColor: '#bfbba9',
+  boxShadow: theme.shadows[2],
+  borderTopRightRadius: 18,
+  borderBottomRightRadius: 18,
+  overflow: 'hidden',
+  // tira borda entre os botões
+  '& .MuiButton-root': {
+    minWidth: 0,
+    padding: 4,
+    border: 'none',
+    color: '#fff',
+    backgroundColor: '#d4d1c5',
+    boxShadow: 'none',
+  },
+  // botão de cima: maior à direita, cortado em diagonal na parte de baixo
+
+  '& .btn-top': {
+    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 73%)',
+    backgroundColor: '#d3d1c6',
+  },
+  // botão de baixo: maior à esquerda, encaixando na diagonal
+  '& .btn-bottom': {
+    clipPath: 'polygon(0 0, 100% 27%, 100% 100%, 0 100%)',
+    backgroundColor: '#c5c2b2',
+    marginTop: '-12px',
+  },
+}));
 function downloadCSVasXLSX(csvString: string, filename = 'dados.xlsx') {
   const worksheet = XLSX.read(csvString, { type: 'string' }).Sheets.Sheet1;
   const workbook = XLSX.utils.book_new();
@@ -204,7 +238,9 @@ function DynamicChart({
 
 export default function AssistantChat() {
   const [input, setInput] = useState('');
-  const [expanded, setExpanded] = useState(false);
+  const { expanded, expandStep, collapseStep } = useAssistantChatStore(
+    (s) => s,
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -596,7 +632,13 @@ export default function AssistantChat() {
     AssistantTypeLabels[assistantType] || 'Assistente';
   const assistantLegend = AssistantTypeLegends[assistantType] || '';
   const hasConversation = Boolean(activeConversationId) && messages.length > 0;
-
+  const canExpand = expanded !== 'full';
+  const canCollapse = expanded !== 'collapsed';
+  const widthMap: Record<ExpandedState, string> = {
+    collapsed: '25%',
+    expanded: '40%',
+    full: '100%',
+  };
   return (
     <Box
       className={styles.wrapper}
@@ -606,23 +648,53 @@ export default function AssistantChat() {
         },
         width: {
           xs: '100%',
-          md: !expanded ? '25%' : '40%',
+          md: widthMap[expanded],
         },
       }}
     >
       {!isMobile && (
-        <IconButton
-          className={styles.toggleButton}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? (
-            <ArrowLeft fontSize={'large'} />
-          ) : (
-            <ArrowRight fontSize={'large'} />
-          )}
-        </IconButton>
-      )}
+        <SideButtonGroup orientation="vertical" variant="outlined">
+          <Button
+            sx={{
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              width: '18px',
+              height: '45px',
+            }}
+            className="btn-top"
+            onClick={collapseStep}
+            disabled={!canCollapse}
+          >
+            <ArrowLeftIcon fontSize="large" />
+          </Button>
 
+          <Button
+            sx={{
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              width: '18px',
+              height: '45px',
+            }}
+            onClick={expandStep}
+            disabled={!canExpand}
+            className="btn-bottom"
+          >
+            <ArrowRightIcon fontSize="large" />
+          </Button>
+        </SideButtonGroup>
+      )}
+      {/*<IconButton*/}
+      {/*    className={styles.toggleButton}*/}
+      {/*    onClick={() => setExpanded(!expanded)}*/}
+      {/*>*/}
+      {/*  {expanded ? (*/}
+      {/*      <ArrowLeft fontSize={'large'} />*/}
+      {/*  ) : (*/}
+      {/*      <ArrowRight fontSize={'large'} />*/}
+      {/*  )}*/}
+      {/*</IconButton>*/}
       <DrawerConversation
         drawerOpen={drawerOpen}
         setDrawerOpen={setDrawerOpen}
