@@ -49,6 +49,7 @@ import {
   ExpandedState,
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
+import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -261,7 +262,7 @@ export default function AssistantChat() {
     string | null
   >(null);
   const [assistantType, setAssistantType] = useState<AssistantType>(
-    AssistantType.GENERAL,
+    AssistantType.DATA,
   );
   const [isGeneratingMessage, setIsGeneratingMessage] =
     useState<boolean>(false);
@@ -278,6 +279,8 @@ export default function AssistantChat() {
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
 
   // ID da última mensagem do usuário (âncora) e seu nó
   const [lastUserMsgId, setLastUserMsgId] = useState<string | null>(null);
@@ -314,21 +317,27 @@ export default function AssistantChat() {
   };
 
   const scrollToUserMessage = (behavior: ScrollBehavior = 'smooth') => {
-    const container = messageAreaRef.current;
-    const target = lastUserMsgRef.current;
-    if (!container || !target) return;
+    // const container = messageAreaRef.current;
+    // const target = lastUserMsgRef.current;
+    // if (!container || !target) return;
 
-    const cRect = container.getBoundingClientRect();
-    const tRect = target.getBoundingClientRect();
+    // const cRect = container.getBoundingClientRect();
+    // const tRect = target.getBoundingClientRect();
 
-    // alinhar o topo da msg com o topo do container (ajuste um padding se quiser)
-    const padding = 8; // px
-    const delta = tRect.top - cRect.top - padding;
+    // // alinhar o topo da msg com o topo do container (ajuste um padding se quiser)
+    // const padding = 8; // px
+    // const delta = tRect.top - cRect.top - padding;
 
-    container.scrollTo({
-      top: container.scrollTop + delta,
-      behavior,
-    });
+    // container.scrollTo({
+    //   top: container.scrollTop + delta,
+    //   behavior,
+    // });
+      const target = messagesEndRef.current;
+      if (!target) return;
+
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior })
+      });
   };
 
   const userMsgReachedTop = (threshold = 10) => {
@@ -418,18 +427,13 @@ export default function AssistantChat() {
     updateListConversations();
   }, [drawerOpen]);
 
-  //// Efeito para scrollar a tela quando usuário fazer nova pergunta
-  useEffect(() => {
-    if (lastUserMsgId) {
-      scrollToUserMessage('smooth');
-    }
-  }, [lastUserMsgId]);
-
   const handleSend = async (msgPersonalized?: string) => {
     const inputMessage = msgPersonalized ? msgPersonalized : input.trim();
     if (!inputMessage || isGeneratingMessage) return;
     setInput('');
     setIsGeneratingMessage(true);
+    scrollToUserMessage('smooth');
+
 
     // Cria mensagem do usuário + placeholder do assistente
     const userMsgId = crypto.randomUUID();
@@ -605,6 +609,10 @@ export default function AssistantChat() {
       },
     );
   };
+
+  const handleCopyMessageToInput = (msg: string) => {
+    setInput(msg);
+  }
 
   const handleCreateConversation = async (
     title: string,
@@ -859,7 +867,8 @@ export default function AssistantChat() {
             ref={messageAreaRef}
             sx={{
               xs: {
-                overflow: 'hidden',
+                overflowX: 'hidden',
+                overflowY: 'auto',
               },
             }}
           >
@@ -924,33 +933,9 @@ export default function AssistantChat() {
 
                   {
                     showCodeSQLContainer(msg) && (
-                      <Box
-                        sx={{
-                          marginTop: 2,
-                          padding: 2,
-                          borderRadius: 1,
-                          backgroundColor: '#f3f4f6',
-                          border: '1px solid #d1d5db',
-                        }}
-                      >
-                        <Typography
-                          variant="subtitle2"
-                          sx={{ marginBottom: 1, fontWeight: 'bold' }}
-                        >
-                          Código SQL utilizado:
-                        </Typography>
-                        <Box
-                          component="pre"
-                          sx={{
-                            backgroundColor: '#e5e7eb',
-                            padding: 2,
-                            borderRadius: 1,
-                            overflowX: 'auto',
-                          }}
-                        >
-                          <code>{(msg.spreadsheet_metadata as SpreadsheetMetadata).code_sql}</code>
-                        </Box>
-                      </Box>
+                      <SqlCodeBox
+                        code={(msg.spreadsheet_metadata as SpreadsheetMetadata).code_sql || ''}
+                        />
                     )
                   }
 
@@ -1005,9 +990,14 @@ export default function AssistantChat() {
                 </Box>
               );
             })}
+            <div ref={messagesEndRef} />
           </Box>
         ) : (
-          <ContentEmpty handleSendMessage={handleSend} />
+          <ContentEmpty
+            handleSendMessage={handleSend}
+            handleCopyMessageToInput={handleCopyMessageToInput}
+            assistantType={assistantType}
+          />
         )}
 
         {/* Input */}
