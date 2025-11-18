@@ -26,6 +26,7 @@ import assistantService, {
   AssistanteMessage,
   AssistantThreadResume,
   AssistantType,
+  SpreadsheetMetadata,
 } from '@/services/AssistantService';
 
 import CreateConversationModal from './CreateConversationModal';
@@ -633,6 +634,22 @@ export default function AssistantChat() {
     }
   }
 
+  function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
+    if (!msg.spreadsheet_metadata) return;
+    if (typeof msg.spreadsheet_metadata === 'object') {
+      return !msg.spreadsheet_metadata.code_sql;
+    }
+    return true;
+  }
+
+  function showCodeSQLContainer(msg: AssistanteMessage) {
+    if (!msg.spreadsheet_metadata) return false;
+    if (typeof msg.spreadsheet_metadata === 'object') {
+      return !!msg.spreadsheet_metadata.code_sql;
+    }
+    return false;
+  }
+
   const selectAssistantLabel =
     AssistantTypeLabels[assistantType] || 'Assistente';
   const assistantLegend = AssistantTypeLegends[assistantType] || '';
@@ -888,7 +905,7 @@ export default function AssistantChat() {
                   <MarkdownMUI>{msg.content}</MarkdownMUI>
 
                   {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
-                  {msg.spreadsheet_metadata && (
+                  { showDownloadSpreadsheetButton(msg) && (
                     <Button
                       variant="outlined"
                       color="primary"
@@ -904,6 +921,38 @@ export default function AssistantChat() {
                       Baixar Planilha
                     </Button>
                   )}
+
+                  {
+                    showCodeSQLContainer(msg) && (
+                      <Box
+                        sx={{
+                          marginTop: 2,
+                          padding: 2,
+                          borderRadius: 1,
+                          backgroundColor: '#f3f4f6',
+                          border: '1px solid #d1d5db',
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ marginBottom: 1, fontWeight: 'bold' }}
+                        >
+                          Código SQL utilizado:
+                        </Typography>
+                        <Box
+                          component="pre"
+                          sx={{
+                            backgroundColor: '#e5e7eb',
+                            padding: 2,
+                            borderRadius: 1,
+                            overflowX: 'auto',
+                          }}
+                        >
+                          <code>{(msg.spreadsheet_metadata as SpreadsheetMetadata).code_sql}</code>
+                        </Box>
+                      </Box>
+                    )
+                  }
 
                   {/* CHART: Skeleton se estiver carregando */}
                   {chartLoading[msg.id] && (
