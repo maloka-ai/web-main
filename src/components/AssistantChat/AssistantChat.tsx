@@ -317,21 +317,6 @@ export default function AssistantChat() {
   };
 
   const scrollToUserMessage = (behavior: ScrollBehavior = 'smooth') => {
-    // const container = messageAreaRef.current;
-    // const target = lastUserMsgRef.current;
-    // if (!container || !target) return;
-
-    // const cRect = container.getBoundingClientRect();
-    // const tRect = target.getBoundingClientRect();
-
-    // // alinhar o topo da msg com o topo do container (ajuste um padding se quiser)
-    // const padding = 8; // px
-    // const delta = tRect.top - cRect.top - padding;
-
-    // container.scrollTo({
-    //   top: container.scrollTop + delta,
-    //   behavior,
-    // });
       const target = messagesEndRef.current;
       if (!target) return;
 
@@ -349,7 +334,6 @@ export default function AssistantChat() {
     return nodeTop <= areaTop + threshold;
   };
 
-  // Atualiza lista de conversas
   const updateListConversations = async () => {
     const data = await assistantService.listConversations().catch((error) => {
       console.error('Error fetching conversations:', error);
