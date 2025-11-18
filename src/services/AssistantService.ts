@@ -24,6 +24,7 @@ export interface AssistantThreadDelete {
 export interface SpreadsheetMetadata {
   message_id: string;
   spreadsheet_id: string;
+  code_sql?: string;
 }
 
 export interface AssistanteMessage {
