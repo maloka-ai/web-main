@@ -61,6 +61,8 @@ interface AssistantSelectorProps {
   onSelectAssistantType: (type: AssistantType) => void;
 }
 
+const DEFAULT_ASSISTANT = 'dados';
+
 export default function AssistantSelector({
   assistantType,
   className,
@@ -69,7 +71,7 @@ export default function AssistantSelector({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [current, setCurrent] = useState(
     Assistants.find((assitant) => assitant.type === assistantType)?.id ||
-      'geral',
+      DEFAULT_ASSISTANT,
   );
 
   const open = Boolean(anchorEl);
@@ -91,7 +93,7 @@ export default function AssistantSelector({
     (a) =>
       a.id ===
       (Assistants.find((assitant) => assitant.type === assistantType)?.id ||
-        'geral'),
+        DEFAULT_ASSISTANT),
   );
 
   return (

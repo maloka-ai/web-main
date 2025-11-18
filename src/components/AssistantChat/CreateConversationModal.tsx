@@ -16,7 +16,7 @@ interface CreateConversationModalProps {
 
 export default function CreateConversationModal({ open, onClose, onCreate }: CreateConversationModalProps) {
   const [title, setTitle] = useState('');
-  const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.GENERAL)
+  const [assistantType, setAssistantType] = useState<AssistantType>(AssistantType.DATA)
 
   const handleCreate = () => {
     if (title.trim()) {
