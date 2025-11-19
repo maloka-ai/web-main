@@ -627,11 +627,7 @@ export default function AssistantChat() {
   }
 
   function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
-    if (!msg.spreadsheet_metadata) return;
-    if (typeof msg.spreadsheet_metadata === 'object') {
-      return !msg.spreadsheet_metadata.code_sql;
-    }
-    return true;
+    return Boolean(msg.spreadsheet_metadata);
   }
 
   function showCodeSQLContainer(msg: AssistanteMessage) {
