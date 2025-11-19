@@ -68,7 +68,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
     setLoading(true);
     setErr(null);
     analysisService
-      .getProductDetailById(product.id_sku)
+      .getProductDetailById(product.id_produto)
       .then((res) => {
         if (!alive) return;
         setDetail(res);
@@ -84,7 +84,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
     return () => {
       alive = false;
     };
-  }, [product.id_sku]);
+  }, [product.id_produto]);
 
   // --- Helpers
   const fmtInt = (v: number | null | undefined) =>
@@ -185,7 +185,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
             >
               <Typography variant="h6">{product.nome_produto}</Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Chip label={`SKU ID: ${product.id_sku}`} size="small" />
+                <Chip label={`SKU ID: ${product.id_produto}`} size="small" />
                 <Chip
                   label={`Código: ${product.codigo_barras || '—'}`}
                   size="small"
@@ -196,7 +196,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   size="small"
                 />
                 <Chip
-                  label={`Estoque: ${fmtInt(product.estoque_atual)}`}
+                  label={`Estoque: ${fmtInt(product.qt_estoque_disponivel)}`}
                   size="small"
                 />
               </Stack>

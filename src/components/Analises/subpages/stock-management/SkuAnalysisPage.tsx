@@ -65,7 +65,7 @@ export default function SkuAnalysisPage() {
   const columns = useMemo<MRT_ColumnDef<ProductByABC>[]>(
     () => [
       {
-        accessorKey: 'id_sku',
+        accessorKey: 'id_produto',
         header: 'ID SKU',
         size: 110,
         filterFn: 'contains',
@@ -83,7 +83,7 @@ export default function SkuAnalysisPage() {
         filterFn: 'contains',
       },
       {
-        accessorKey: 'estoque_atual',
+        accessorKey: 'qt_estoque_disponivel',
         header: 'Estoque Atual',
         size: 120,
         filterFn: 'contains',
@@ -135,7 +135,7 @@ export default function SkuAnalysisPage() {
     muiTableBodyCellProps: ({ cell }) => ({
       onClick: (e) => {
         const columnId = cell.column.id;
-        if (columnId === 'id_sku') {
+        if (columnId === 'id_produto') {
           e.stopPropagation();
           const value = cell.getValue()?.toString();
           if (value) {
@@ -151,7 +151,7 @@ export default function SkuAnalysisPage() {
           }
         }
       },
-      sx: { cursor: cell.column.id === 'id_sku' ? 'copy' : 'pointer' },
+      sx: { cursor: cell.column.id === 'id_produto' ? 'copy' : 'pointer' },
     }),
   });
 

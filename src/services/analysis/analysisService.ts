@@ -151,23 +151,23 @@ export interface StockSituation {
 }
 
 export interface InactiveProduct {
-  id_sku: number;
+  id_produto: number;
   codigo_barras: string;
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   dias_inativo: number;
   data_ultima_venda: string;
 }
 
 export interface ProductByABC {
-  id_sku: number;
+  id_produto: number;
   codigo_barras: string;
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   curva_abc: ABCCurve;
   situacao_do_produto: string;
   data_ultima_venda: string | null;
@@ -179,7 +179,7 @@ export interface ProductDetail {
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   curva_abc: ABCCurve;
   situacao_do_produto: string;
   data_ultima_venda: string | null;
