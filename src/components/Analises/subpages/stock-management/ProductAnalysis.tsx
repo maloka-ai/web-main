@@ -215,10 +215,10 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   Cobertura (dias): {detail.cobertura_dias ?? '—'}
                 </Typography>
                 <Typography variant="body2">
-                  Cobertura 30d: {detail.cobertura_percentual_30d ?? '—'}%
+                  Cobertura 30d: {detail.cobertura_percentual ?? '—'}%
                 </Typography>
                 <Typography variant="body2">
-                  Média 12m (qtd): {fmtInt(detail.media_12m_qtd)}
+                  Média 12m (qtd): {fmtInt(detail.qtd_media_vendas_12m)}
                 </Typography>
                 <Typography variant="body2">
                   Qtd total 12m: {fmtInt(detail.quantidade_total_12m)}
