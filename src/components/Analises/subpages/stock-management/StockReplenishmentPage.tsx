@@ -12,6 +12,7 @@ import { makeStockReplenishmentGraphs } from '@/components/Analises/helpers/Stoc
 import DialogDetailsTable, {
   DetailsDialogTableProps,
 } from '@/components/dialog/DialogDetailsTable';
+import { GRAPH_ALL_LABEL } from '../../widgets/graphics';
 
 const StockReplenishmentPage = () => {
   const [detailsTable, setDetailsTable] =
@@ -29,7 +30,9 @@ const StockReplenishmentPage = () => {
     setDetailsTable({
       title: `Produtos com Criticidade: ${name}`,
       description: `Exibindo todos os produtos com cobertura ${name}`,
-      linkDataTable: `/stock/cobertura/produtos_por_criticidade?criticidade=${encodeURIComponent(name)}`,
+      linkDataTable: `/stock/cobertura/produtos_por_criticidade?criticidade=${
+        GRAPH_ALL_LABEL!==name? encodeURIComponent(name): ''
+      }`,
     });
   };
 
