@@ -16,6 +16,7 @@ import {
 import { useMemo } from "react";
 import { BarDatum } from "@/utils/graphics";
 import { formatLabelBar, formatNumber } from "@/utils/format";
+import { GRAPH_ALL_LABEL } from ".";
 
 export interface BarGraphProps {
   data: BarDatum[];
@@ -155,7 +156,14 @@ export default function BarGraph({
   dataKey = "value",
 }: BarGraphProps) {
   const total = useMemo(
-    () => data.reduce((acc, d) => acc + (d.value || 0), 0),
+    () => data.reduce((acc, d) => acc + (
+      d.name!==GRAPH_ALL_LABEL? d.value : 0 || 0
+    ), 0),
+    [data],
+  );
+
+  const max_value = useMemo(
+    () => data.reduce((mv, d) => d.value > mv ? d.value : mv, 0),
     [data],
   );
 
@@ -196,7 +204,10 @@ export default function BarGraph({
           angle={xAxisAngle ?? 0}
           textAnchor={xAxisAngle ? "end" : "middle"}
         />
-        <YAxis axisLine={{ stroke: "#ded9c6" }} />
+        <YAxis
+          axisLine={{ stroke: "#ded9c6" }}
+          domain={[0, Math.floor((max_value*1.1)/10)*10]}
+        />
 
         <Tooltip
           cursor={{ fill: "rgba(0,0,0,0.04)" }}
