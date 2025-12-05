@@ -16,6 +16,7 @@ export interface GraphData {
   subtitle?: string;
   value?: string;
   gain?: number;
+  info?: string;
   xLabelMap?: Record<string, string>;
   hideXAxis?: boolean;
   xAxisAngle?: number;

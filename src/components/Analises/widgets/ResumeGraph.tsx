@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box, Divider, IconButton, Typography } from '@mui/material';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 import RenderGraphic from './RenderGraphic';
 import { GraphData, useGetStrokeColor } from '@/utils/graphics';
@@ -27,6 +27,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
     value,
     data,
     gain,
+    info,
     secondData,
     xLabelMap,
     hideXAxis,
@@ -82,6 +83,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             value,
             data,
             gain,
+            info,
             secondData,
             xLabelMap,
             hideXAxis,
@@ -136,6 +138,15 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             </span>
           )}
         </Typography>
+      )}
+
+      {info && (
+        <>
+          <Divider sx={{ my: 1 }} />
+          <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
+            {info}
+          </Typography>
+        </>
       )}
     </Box>
   );

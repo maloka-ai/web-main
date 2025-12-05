@@ -7,6 +7,7 @@ import {
   IconButton,
   Chip,
   Button,
+  Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
@@ -45,6 +46,7 @@ export default function DetailGraph({
     hideXAxis,
     xAxisAngle,
     tooltipFormatter,
+    info,
   } = graph;
 
   // const sugestoes: string[] = [
@@ -128,6 +130,14 @@ export default function DetailGraph({
                 </span>
               )}
             </Typography>
+          )}
+          {info && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
+                {info}
+              </Typography>
+            </>
           )}
         </Box>
 

@@ -108,6 +108,9 @@ export interface StockMetrics {
   total_sku_grupo_a: number;
   total_sku_grupo_b: number;
   total_sku_grupo_c: number;
+  total_sku_grupo_a_sem_estoque: number;
+  total_sku_grupo_b_sem_estoque: number;
+  total_sku_grupo_c_sem_estoque: number;
   total_venda_grupo_a: number;
   total_venda_grupo_b: number;
   total_venda_grupo_c: number;
