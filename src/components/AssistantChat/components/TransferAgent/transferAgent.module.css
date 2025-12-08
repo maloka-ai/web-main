@@ -1,0 +1,205 @@
+/* container externo do componente */
+.container {
+  display: block;
+}
+
+/* card principal */
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+  min-width: 280px;
+}
+
+/* parte esquerda com avatar + textos */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Avatar no card */
+.avatar {
+  width: 38px;
+  height: 38px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 18px;
+}
+
+/* textos: label, name, preview */
+.texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.analyst {
+  font-weight: 600;
+  font-size: 13px;
+  color: #111827;
+}
+
+.questionPreview {
+  font-size: 12px;
+  color: #4b5563;
+  max-width: 280px;
+  white-space: nowrap;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* actions (botão transferir) */
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+/* dialog title */
+.dialogTitle {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dialogTitleInner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.dialogAvatar {
+  width: 44px;
+  height: 44px;
+  background: #f3f4f6;
+}
+
+/* botão fechar no título */
+.closeBtn {
+  margin-left: auto;
+}
+
+/* Dialog content */
+.dialogContent {
+  padding: 12px 16px;
+}
+
+/* layout de linhas de info */
+.infoRow {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* caixa da questão */
+.questionBox {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.questionPreviewBox {
+  flex: 1;
+  background: #fbfbfb;
+  border: 1px solid #f1f5f9;
+  padding: 10px;
+  border-radius: 6px;
+  max-height: 160px;
+  overflow: auto;
+  font-size: 13px;
+  color: #111827;
+}
+
+/* versão curta quando estiver fora do dialog (preview) */
+.questionPreviewShort {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* textarea editável (quando editableQuestion=true) */
+.textarea {
+  width: 100%;
+  min-height: 90px;
+  border-radius: 6px;
+  border: 1px solid #e6e6e6;
+  padding: 10px;
+  resize: vertical;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111827;
+}
+
+.floatingBtnWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px; /* distância da box principal */
+}
+
+/* Botão flutuante – apenas ícone, estilo discreto */
+.floatingBtn {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: #b45309; /* marrom/laranja suave */
+  transition: 0.2s ease;
+}
+
+.floatingBtn:hover {
+  background: #fff7ed;
+  border-color: #f97316; /* laranja */
+  color: #9a3412;
+  transform: translateY(-1px);
+}
+@media (max-width: 400px) {
+  .questionPreview {
+    max-width: 200px;
+  }
+}
+
+@media (min-width: 400px) {
+  .questionPreview {
+    max-width: 250px;
+  }
+}
+/* erro de transferência */
+.error {
+  margin-top: 8px;
+}
+
+/* dialog actions (botoes rodape) */
+.dialogActions {
+  padding: 10px 16px;
+  gap: 8px;
+}
+
+/* botão confirmar */
+.confirmButton {
+  background: #0f766e; /* tom verde/teal similar a plataformas */
+  color: #fff;
+  text-transform: none;
+}
+
+/* estado de hover para confirm */
+.confirmButton:hover {
+  background: #0e6b66;
+}
