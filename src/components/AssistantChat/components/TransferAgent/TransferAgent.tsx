@@ -22,7 +22,7 @@ import {
 import styles from './transferAgent.module.css';
 import { TextField } from '@mui/material';
 
-type Payload = {
+export type Payload = {
   analyst: string;
   question: string;
 };

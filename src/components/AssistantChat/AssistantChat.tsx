@@ -51,7 +51,7 @@ import {
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
-import TransferAgent from './components/TransferAgent/TransferAgent';
+import TransferAgent, { Payload } from './components/TransferAgent/TransferAgent';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -680,11 +680,6 @@ export default function AssistantChat() {
     return false;
   }
 
-
-  function showTransferAgentContainer(msg: AssistanteMessage) {
-    return !!msg.transfer_to_agent;
-  }
-
   const selectAssistantLabel =
     AssistantTypeLabels[assistantType] || 'Assistente';
   const assistantLegend = AssistantTypeLegends[assistantType] || '';
@@ -967,9 +962,9 @@ export default function AssistantChat() {
                   }
 
                   {
-                    showTransferAgentContainer(msg) && (
+                    !!msg.transfer_to_agent && (
                       <TransferAgent
-                        payload={msg.transfer_to_agent}
+                        payload={msg.transfer_to_agent as Payload}
                         onTransfer={handleTransfer}
                         getAnalystInfo={getAnalystInfo}
                         editableQuestion={true}
