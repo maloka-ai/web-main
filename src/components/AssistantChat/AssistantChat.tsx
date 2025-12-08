@@ -31,6 +31,7 @@ import assistantService, {
 
 import CreateConversationModal from './CreateConversationModal';
 import AssistantSelector, {
+  Assistants,
   AssistantTypeLabels,
   AssistantTypeLegends,
 } from './AssistenteSelector';
@@ -50,6 +51,7 @@ import {
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
+import TransferAgent from './components/TransferAgent/TransferAgent';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -277,6 +279,12 @@ export default function AssistantChat() {
     {},
   );
 
+  // transfer to agent states
+  const [transferAgentInfo, setTransferAgentInfo] = useState<{
+    [msgId: string]: { analyst: string; question: string };
+  }>({});
+
+
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -367,6 +375,24 @@ export default function AssistantChat() {
     setDeleteModalOpen(true);
   };
 
+  const handleTransfer = async (p: { analyst: string; question: string }) => {
+    handleCreateConversation(
+      p.question,
+      p.analyst as AssistantType,
+      (conversationIdPersonalized: string) => {
+        handleSend(p.question, true, conversationIdPersonalized);
+      }
+    );
+  };
+
+  const getAnalystInfo = (id: string) => {
+    return {
+      id,
+      name: AssistantTypeLabels[id as AssistantType],
+      avatar: Assistants.find((a) => a.type == (id as AssistantType))?.icon || '',
+    }
+  };
+
   // Carrega mensagens quando muda a conversa ativa
   useEffect(() => {
     if (!activeConversationId) return;
@@ -411,7 +437,7 @@ export default function AssistantChat() {
     updateListConversations();
   }, [drawerOpen]);
 
-  const handleSend = async (msgPersonalized?: string) => {
+  const handleSend = async (msgPersonalized?: string, reset?: boolean, conversationIdPersonalized?: string) => {
     const inputMessage = msgPersonalized ? msgPersonalized : input.trim();
     if (!inputMessage || isGeneratingMessage) return;
     setInput('');
@@ -424,7 +450,7 @@ export default function AssistantChat() {
     const assistantPlaceholderId = crypto.randomUUID();
 
     const newMessages: AssistanteMessage[] = [
-      ...messages,
+      ...(reset? [] : messages),
       {
         content: inputMessage,
         role: 'user',
@@ -456,11 +482,14 @@ export default function AssistantChat() {
         : inputMessage;
 
     const isNewConversation =
-      !activeConversationId ||
+      !reset
+      && (!activeConversationId ||
       conversations.find((c) => c.thread_id === activeConversationId)
-        ?.assistant_id !== assistantType;
+        ?.assistant_id !== assistantType);
 
-    let conversationId: string = activeConversationId || '';
+    let conversationId: string = conversationIdPersonalized?
+      conversationIdPersonalized
+      : activeConversationId || '';
 
     if (isNewConversation) {
       const newConversation = await assistantService.createConversation(
@@ -577,6 +606,12 @@ export default function AssistantChat() {
             [assistantPlaceholderId]: errorMsg ?? true,
           }));
         },
+        onTransfer: (analyst, question) => {
+          setTransferAgentInfo((prev) => ({
+            ...prev,
+            [assistantPlaceholderId]: { analyst, question },
+          }));
+        },
         onError: (err) => {
           //////////// FAZER COMPONENTE PARA ERRO
           console.error('Invalid response message:', err);
@@ -601,12 +636,19 @@ export default function AssistantChat() {
   const handleCreateConversation = async (
     title: string,
     type: AssistantType,
+    callback?: ((conversationIdPersonalized: string) => void) | undefined,
   ) => {
     const newConversation = await assistantService.createConversation(
       type,
       title,
     );
     setActiveConversationId(newConversation.thread_id);
+    if (callback){
+      setTimeout(() =>
+        callback(newConversation.thread_id)
+      , 2000);
+      return;
+    }
     setMessages([]);
   };
 
@@ -636,6 +678,11 @@ export default function AssistantChat() {
       return !!msg.spreadsheet_metadata.code_sql;
     }
     return false;
+  }
+
+
+  function showTransferAgentContainer(msg: AssistanteMessage) {
+    return !!msg.transfer_to_agent;
   }
 
   const selectAssistantLabel =
@@ -916,6 +963,17 @@ export default function AssistantChat() {
                       <SqlCodeBox
                         code={(msg.spreadsheet_metadata as SpreadsheetMetadata).code_sql || ''}
                         />
+                    )
+                  }
+
+                  {
+                    showTransferAgentContainer(msg) && (
+                      <TransferAgent
+                        payload={msg.transfer_to_agent}
+                        onTransfer={handleTransfer}
+                        getAnalystInfo={getAnalystInfo}
+                        editableQuestion={true}
+                      />
                     )
                   }
 

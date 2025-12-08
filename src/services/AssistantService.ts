@@ -35,6 +35,10 @@ export interface AssistanteMessage {
   content: string;
   chart_code: string | null;
   spreadsheet_metadata: string | SpreadsheetMetadata | null;
+  transfer_to_agent?: {
+    analyst: string;
+    question: string;
+  };
   created_at: Date;
 }
 
@@ -54,6 +58,8 @@ type StreamingCallbacks = {
   onChartCode?: (chartCode: string) => void;
   onChartCodeEnd?: () => void;
   onChartCodeError?: (errorMsg?: string) => void;
+  // agent transfer-specific
+  onTransfer?: (analyst: string, question: string) => void;
 };
 
 const META_START = "__METADATA_SEND_START__";
@@ -64,6 +70,10 @@ const CHART_LOADING = "__CHART_CODE_LOADING__";
 const CHART_START = "__CHART_CODE_START__";
 const CHART_END = "__CHART_CODE_END__";
 const CHART_ERROR = "__CHART_CODE_ERROR__";
+
+// Agent transfer markers
+const START_TRANSFER = '__START_TRANSFER__';
+const END_TRANSFER = '__END_TRANSFER__';
 
 function createMetadataParser(callbacks: StreamingCallbacks) {
   let buffer = "";
@@ -96,10 +106,25 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
       const idxChartStart = buffer.indexOf(CHART_START);
       const idxMetaStart = buffer.indexOf(META_START);
       const idxChartError = buffer.indexOf(CHART_ERROR);
+      const idxTransferStart = buffer.indexOf(START_TRANSFER);
 
       // Se não encontramos nenhum marcador especial, emitimos texto "seguro" (evitando dividir marcador em dois chunks)
-      if (idxChartLoading === -1 && idxChartStart === -1 && idxMetaStart === -1 && idxChartError === -1) {
-        const safeLen = Math.max(0, buffer.length - Math.max(CHART_START.length, META_START.length, CHART_LOADING.length, CHART_ERROR.length));
+      if (
+        idxChartLoading === -1
+        && idxChartStart === -1
+        && idxMetaStart === -1
+        && idxChartError === -1
+        && idxTransferStart === -1
+      ) {
+        const safeLen = Math.max(
+          0,
+          buffer.length - Math.max(
+            CHART_START.length,
+            META_START.length,
+            CHART_LOADING.length,
+            CHART_ERROR.length,
+            START_TRANSFER.length,
+          ));
         if (safeLen > 0) {
           emitText(buffer.slice(0, safeLen));
           buffer = buffer.slice(safeLen);
@@ -108,11 +133,12 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
       }
 
       // Determina qual marcador vem primeiro no buffer (menor índice >=0)
-      const candidates: { idx: number; type: "chartLoading" | "chartStart" | "metaStart" | "chartError" }[] = [];
+      const candidates: { idx: number; type: "chartLoading" | "chartStart" | "metaStart" | "chartError" | "transferStart" }[] = [];
       if (idxChartLoading !== -1) candidates.push({ idx: idxChartLoading, type: "chartLoading" });
       if (idxChartStart !== -1) candidates.push({ idx: idxChartStart, type: "chartStart" });
       if (idxMetaStart !== -1) candidates.push({ idx: idxMetaStart, type: "metaStart" });
       if (idxChartError !== -1) candidates.push({ idx: idxChartError, type: "chartError" });
+      if (idxTransferStart !== -1) candidates.push({ idx: idxTransferStart, type: "transferStart" });
 
       candidates.sort((a, b) => a.idx - b.idx);
       const next = candidates[0];
@@ -195,6 +221,41 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         buffer = buffer.slice(e + META_END.length);
         continue;
       }
+
+      if (next.type === "transferStart") {
+        // procura o Start e End Transfer markers
+        const s = buffer.indexOf(START_TRANSFER);
+        if (s === -1) break;
+
+        const e = buffer.indexOf(END_TRANSFER, s + START_TRANSFER.length);
+        if (e === -1) {
+          break;
+        }
+
+        const transferData = buffer.slice(s + START_TRANSFER.length, e).trim();
+        // esperamos um JSON {"analyst": string, "question": string}
+        try {
+          const parsed = JSON.parse(transferData);
+          if (parsed
+            && typeof parsed.analyst === "string"
+            && typeof parsed.question === "string") {
+            callbacks.onTransfer?.(parsed.analyst, parsed.question);
+          } else {
+            callbacks.onError?.(
+              "Dados de transferência inválidos ou faltando campos obrigatórios",
+            );
+          }
+        } catch (err) {
+          callbacks.onError?.(
+            "Falha ao parsear dados de transferência: " + (err as Error).message,
+          );
+        }
+
+        // remove bloco do buffer (não emite como texto)
+        buffer = buffer.slice(e + END_TRANSFER.length);
+        // continua o loop
+        continue;
+      }
     }
   };
 
@@ -268,7 +329,7 @@ const assistantService = {
       `/assistants/threads/${thread_id}/messages`,
     );
     // Ensure if message has spreadsheet metadata, it is parsed correctly
-    return response.data.map((message) => {
+    return response.data.map((message: any) => {
 
       const content = message.content;
 
@@ -279,12 +340,23 @@ const assistantService = {
       const errorCodeMatch = content.match(
         /__CHART_CODE_ERROR__(.*)/,
       );
+      const transferMatch = content.match(
+        /__START_TRANSFER__(.*?)__END_TRANSFER__/,
+      );
       if (chartCodeMatch) {
         message.content = content.replace(
           /__CHART_CODE_START__.*?__CHART_CODE_END__/,
           "",
         ).replace(
           "__CHART_CODE_LOADING__", "",
+        ).trim();
+      }
+
+      // extract transfer agent info if present
+      if (transferMatch) {
+        message.content = content.replace(
+          /__START_TRANSFER__.*?__END_TRANSFER__/,
+          "",
         ).trim();
       }
 
@@ -304,6 +376,9 @@ const assistantService = {
         typeof message.spreadsheet_metadata === "string"
           ? JSON.parse(message.spreadsheet_metadata)
           : message.spreadsheet_metadata,
+      transfer_to_agent: transferMatch
+        ? JSON.parse(transferMatch[1].trim())
+        : undefined,
     }});
   },
   async downloadSpreadsheet(message_id: string): Promise<string> {
