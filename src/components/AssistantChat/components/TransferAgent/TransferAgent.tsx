@@ -65,10 +65,7 @@ export default function TransferAgent({
   const [question, setQuestion] = useState(payload.question);
 
   useEffect(() => {
-    console.log('getAnalystInfo', getAnalystInfo);
-    console.log('payload', payload);
     if (getAnalystInfo) {
-      console.log('Fetching analyst info for', payload.analyst);
       const info = getAnalystInfo(payload.analyst);
       setAnalystInfo(info);
       return;

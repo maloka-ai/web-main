@@ -237,7 +237,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         try {
           const parsed = JSON.parse(transferData);
           if (parsed
-            && typeof parsed.analyst === "string"
+            && (typeof parsed.analyst === "string" || typeof parsed.analyst === "number")
             && typeof parsed.question === "string") {
             callbacks.onTransfer?.(parsed.analyst, parsed.question);
           } else {

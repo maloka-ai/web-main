@@ -413,10 +413,6 @@ export default function AssistantChat() {
         console.error('Invalid messages data:', data);
         return;
       }
-      // set chartComponents if chart_code is present
-      //O argumento do tipo 'string[]' não é atribuível ao parâmetro do tipo 'SetStateAction<Record<string, string>>'.
-      //O tipo 'string[]' não pode ser atribuído ao tipo 'Record<string, string>'.
-      //A assinatura do índice para o tipo 'string' está ausente no tipo 'string[]'.ts(2345)
 
       const chartComponents = data.reduce(
         (acc, msg) => {
@@ -899,6 +895,7 @@ export default function AssistantChat() {
                 msg.role === 'assistant' && index === messages.length - 1;
               const hasChartForMsg = Boolean(chartComponents[msg.id]);
               const isChartLoadingForMsg = Boolean(chartLoading[msg.id]);
+              const isTransferAgentMsg = Boolean(transferAgentInfo[msg.id])
               const isContentEmpty = !msg.content || !msg.content.trim();
 
               const isGeneratingMessage =
@@ -962,9 +959,9 @@ export default function AssistantChat() {
                   }
 
                   {
-                    !!msg.transfer_to_agent && (
+                    (!!msg.transfer_to_agent || isTransferAgentMsg) && (
                       <TransferAgent
-                        payload={msg.transfer_to_agent as Payload}
+                        payload={msg.transfer_to_agent as Payload || transferAgentInfo[msg.id]}
                         onTransfer={handleTransfer}
                         getAnalystInfo={getAnalystInfo}
                         editableQuestion={true}
