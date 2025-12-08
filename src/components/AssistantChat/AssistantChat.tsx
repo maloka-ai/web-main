@@ -52,6 +52,7 @@ import {
 } from '@/store/assistantChatStore';
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
 import TransferAgent, { Payload } from './components/TransferAgent/TransferAgent';
+import { tr } from 'date-fns/locale';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -280,10 +281,9 @@ export default function AssistantChat() {
   );
 
   // transfer to agent states
-  const [transferAgentInfo, setTransferAgentInfo] = useState<{
-    [msgId: string]: { analyst: string; question: string };
-  }>({});
-
+  const [transferAgentInfo, setTransferAgentInfo] = useState<
+    Record<string, { analyst: string; question: string }>
+    >({});
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
@@ -425,6 +425,7 @@ export default function AssistantChat() {
       );
       setChartComponents(chartComponents);
       setMessages(data.length ? data : []);
+      setTransferAgentInfo({});
     });
   }, [activeConversationId]);
 
@@ -463,6 +464,7 @@ export default function AssistantChat() {
         id: assistantPlaceholderId,
         spreadsheet_metadata: null,
         chart_code: null,
+        transfer_to_agent: undefined,
         created_at: new Date(),
         thread_id: activeConversationId ?? '',
         user_id: '',
@@ -603,6 +605,24 @@ export default function AssistantChat() {
           }));
         },
         onTransfer: (analyst, question) => {
+          setMessages((prev) => {
+            const i = prev.length - 1;
+            const last = prev[i];
+
+            if (i >= 0 && last?.role === 'assistant') {
+              const updated = {
+                ...last,
+                transfer_to_agent: { analyst, question },
+              };
+              return [...prev.slice(0, i), updated];
+            }
+
+            return [
+              ...prev,
+              { role: 'assistant', transfer_to_agent: { analyst, question } } as AssistanteMessage,
+            ];
+          });
+
           setTransferAgentInfo((prev) => ({
             ...prev,
             [assistantPlaceholderId]: { analyst, question },
