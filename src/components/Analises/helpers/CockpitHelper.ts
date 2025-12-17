@@ -670,15 +670,15 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
   const currentStock = stock[stock.length - 1];
 
   const rupturaPercentages = stock.map((s) => {
-    const totalAtivoComEstoqueMaiorQueZero =
-      s.total_sku_ativo_com_estoque_maior_que_zero || 0;
-    const totalAtivoComEstoqueMenorOuIgualZero =
-      s.total_sku_ativo_com_estoque_menor_ou_igual_zero || 0;
+    const totalSemEstoque =
+      s.total_sku_grupo_a_sem_estoque +
+      s.total_sku_grupo_b_sem_estoque +
+      s.total_sku_grupo_c_sem_estoque;
     const totalAtivo =
-      totalAtivoComEstoqueMaiorQueZero + totalAtivoComEstoqueMenorOuIgualZero;
+      s.total_sku_grupo_a + s.total_sku_grupo_b + s.total_sku_grupo_c;
     const rupturaPercentage =
       totalAtivo > 0
-        ? (totalAtivoComEstoqueMenorOuIgualZero / totalAtivo) * 100
+        ? (totalSemEstoque / totalAtivo) * 100
         : 0;
     // Obtem dia/mes da data_hora_analise
     const date = new Date(s.data_hora_analise);
