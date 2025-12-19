@@ -1,14 +1,9 @@
 .wrapper {
   position: relative;
   height: 100%;
-  width: 25%;
   transition: ease-in-out all 0.8s;
-  padding-top: 40px;
 }
 
-.wrapper-expanded {
-  width: 60%;
-}
 
 .header{
   display: flex;
@@ -16,20 +11,25 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  background: inherit;
+  z-index: 9;
+  padding-top: 1rem;
 }
 
 .chatContainer {
+
   display: flex;
   flex-direction: column;
-  min-height: 600px;
   min-width: 260px;
   height: 100%;
   background-color: #f4f3ed;
-  border-radius: 12px 12px 0 0;
+  /*border-radius: 12px 12px 0 0;*/
   border: solid 1px #c8c4b4;
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .headerTitle {
@@ -39,11 +39,10 @@
 
 .messageArea {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  margin: 0 10px 3.5px 1px;
-  padding: 10.5px 5px 5px 11px;
+  margin: 0 0 3.5px 0;
+  padding: 10.5px 0 5px 0;
   border-radius: 7.5px;
 }
 
@@ -53,7 +52,7 @@
   border-radius: 12px;
   padding: 0.6rem 0.9rem;
   font-size: 0.95rem;
-  max-width: 80%;
+  max-width: 90%;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   border: 1px solid #eee;
 }
@@ -63,16 +62,34 @@
   border-radius: 12px;
   padding: 0.6rem 0.9rem;
   font-size: 0.95rem;
-  max-width: 80%;
+  max-width: 95%;
 }
-
+.activeConversation {
+  background-color: #ffffff;
+  &:before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height:10px;
+    border-radius: 100%;
+    background-color: #c47b5b;
+  }
+}
 .inputArea {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   padding-top: 0.75rem;
   border-top: 1px solid #e3e3e3;
   background-color: #f4f3ed;
-
+  position: sticky;
+  bottom: -1rem;
+  padding-bottom: -1rem;
+  z-index: 9;
   & .MuiInputBase-root{
     border: none;
     box-shadow: none;
@@ -95,9 +112,8 @@
 
 .sendButton {
   background-color: #df8157 !important;
-  color: #4b4b4b !important;
   border-radius: 10px !important;
-  padding: 0.5rem !important;
+  padding: 0 0.5rem !important;
   transition: background-color 0.2s ease;
 }
 
@@ -107,7 +123,6 @@
 
 .drawerOverlay {
   position: absolute;
-  top: 40px;
   left: 0;
   bottom: 0;
   width: 80%;
@@ -118,7 +133,7 @@
 
 .drawer {
   width: 95%;
-  background-color: #f9f8f4;
+  background-color: #f4f3ed;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
   height: 100%;
   z-index: 1201;
@@ -134,8 +149,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 1rem;
-
+  padding: 1rem 0 1rem 0.2rem;
   position: sticky;
   top: 0;
   z-index: 2;
@@ -150,10 +164,10 @@
 .drawerBackdrop {
   flex: 1;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -50%;
+  left: -50%;
+  width: 150vw;
+  height: 150vh;
   background-color: transparent;
   z-index: 1200;
 }
@@ -173,12 +187,8 @@
     transition: transform 0.3s ease;
   }
 
-  & span:hover {
-    animation: scroll-text 3s linear forwards;
-  }
-
   &:hover {
-    background-color: #e3e3e3;
+    background-color: #e6e2d4;
   }
 }
 .conversationItem.active {
@@ -188,16 +198,27 @@
 .conversationItem.active:hover {
   background-color: #eb9b76;
 }
+
 .conversationName {
-  font-size: 0.95rem;
-  color: #4b4b4b;
-  margin-left: 0.5rem;
+  display: inline-block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  position: relative;
 }
 
-@keyframes scroll-text {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(-100% + 200px)); }
+.menuButton {
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
+
+.conversationItem:hover .menuButton {
+  opacity: 1;
+}
+
 
 .toggleButton {
   position: absolute;
@@ -282,4 +303,41 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+.conversationName {
+  position: relative;
+  overflow: hidden;
+  /* fade só nos ~20% finais */
+  -webkit-mask-image: linear-gradient(to right, #000 95%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 95%, transparent 100%);
+}
+
+.marquee {
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
+  position: relative;
+}
+
+.marqueeContent {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  margin-left: 8px;
+}
+
+@keyframes marqueeX {
+  0%   { transform: translateX(0); }
+  10%  { transform: translateX(0); } /* pequena pausa inicial */
+  90%  { transform: translateX(calc(-1 * var(--scroll-distance) - 8px)); }
+  100% { transform: translateX(calc(-1 * var(--scroll-distance) - 8px)); } /* volta pro início */
+}
+
+.marqueeRunning {
+  animation: marqueeX var(--scroll-duration, 8s) linear infinite;
+}
+
+.marqueeContent {
+  transition: transform 0s;
 }

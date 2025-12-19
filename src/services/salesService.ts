@@ -1,5 +1,7 @@
 import api from '@/utils/api';
-import { DailyRevenue } from '@/services/analysisService';
+import { DailyRevenue } from '@/services/analysis/analysisService';
+import { toQS } from '@/services/helpers/toQS';
+import { AtypicalTopProduct } from '@/services/sales/types';
 
 export interface AnnualRevenue {
   ano: number;
@@ -34,14 +36,20 @@ export interface MonthlyRevenue {
   total_venda: number;
 }
 
-function toQS(params: Record<string, string | number | undefined | null>) {
-  const usp = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') usp.append(k, String(v));
-  });
-  const q = usp.toString();
-  return q ? `?${q}` : '';
-}
+export type SaleItem = {
+  acrescimo: number;
+  desconto: number;
+  descricao_servico: string | null;
+  id_produto: number | null;
+  id_servico: number | null;
+  id_venda: number;
+  id_venda_item: number;
+  nome_produto: string | null;
+  preco_bruto: number;
+  quantidade: number;
+  tipo: 'P' | 'S';
+  total_item: number;
+};
 
 export const salesService = {
   async getAnnualRevenue(ano?: number): Promise<AnnualRevenue[]> {
@@ -81,8 +89,8 @@ export const salesService = {
     return data;
   },
 
-  async getAtypicalTop10Products(): Promise<any[]> {
-    const { data } = await api.get<any[]>(
+  async getAtypicalTop10Products() {
+    const { data } = await api.get<AtypicalTopProduct[]>(
       `/sales/vendas_atipicas/top10_produtos`,
     );
     return data;
@@ -101,9 +109,9 @@ export const salesService = {
     return data;
   },
 
-  async getSaleItems(id_venda: number): Promise<any[]> {
+  async getSaleItems(id_venda: number) {
     const qs = toQS({ id_venda });
-    const { data } = await api.get<any[]>(`/sales/vendas/itens${qs}`);
+    const { data } = await api.get<SaleItem[]>(`/sales/vendas/itens${qs}`);
     return data;
   },
 };

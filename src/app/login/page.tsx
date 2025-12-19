@@ -1,11 +1,20 @@
 'use client';
 
-import { Button, TextField, Typography, Box, InputAdornment, IconButton, CircularProgress, Alert } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  Typography,
+} from '@mui/material';
+import { VisibilityOffOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { useState } from 'react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/authService';
+import AutoFillAwareTextField from '@/app/login/AutoFillAwareTextField';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,13 +40,30 @@ export default function LoginPage() {
 
   return (
     <Box className={styles.container}>
-      <Box className={styles.card}>
-        <img src="/images/marca-medio@3x.png" alt="Lara Logo" className={styles.logo} />
+      <Box
+        className={styles.card}
+        sx={{
+          p: {
+            xs: 2,
+            sm: 4,
+          },
+          overflow: 'auto',
+        }}
+      >
+        <img
+          src="/images/marca-maloka-grande@3x.webp"
+          alt="Lara Logo"
+          className={styles.logo}
+        />
 
-        <Typography  variant='h5' className={styles.title}>
+        <Typography variant="h6" className={styles.title} mt={3}>
           Converse com seus dados
         </Typography>
-        <Typography  variant='h5' className={`${styles.title} ${styles.subtitle}`}>
+        <Typography
+          variant="h6"
+          className={`${styles.title} ${styles.subtitle}`}
+          mb={2}
+        >
           e aumente suas vendas
         </Typography>
 
@@ -47,39 +73,58 @@ export default function LoginPage() {
           </Alert>
         )}
 
-        <TextField
+        <AutoFillAwareTextField
           fullWidth
           label="E-mail"
           type="email"
           variant="outlined"
           margin="normal"
+          size={'small'}
           className={styles.input}
           value={email}
+          sx={{
+            bgcolor: '#FFFFFF',
+          }}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <TextField
+        <AutoFillAwareTextField
           fullWidth
           label="Senha"
+          size={'small'}
           type={showPassword ? 'text' : 'password'}
           variant="outlined"
           margin="normal"
           className={styles.input}
           value={password}
+          sx={{
+            bgcolor: '#FFFFFF',
+          }}
           onChange={(e) => setPassword(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword((prev) => !prev)} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                    color={'primary'}
+                  >
+                    {showPassword ? (
+                      <VisibilityOffOutlined />
+                    ) : (
+                      <VisibilityOutlined />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
         <Button
           variant="contained"
           className={styles.button}
           fullWidth
+          size={'small'}
           disabled={loading}
           onClick={handleLogin}
         >
@@ -90,8 +135,12 @@ export default function LoginPage() {
 
         <Box className={styles.divider} />
 
-        <Typography className={styles.accountTitle}>Ainda não tem uma conta?</Typography>
-        <Typography className={styles.accountSubtitle}>Solicite agora uma versão demo</Typography>
+        <Typography className={styles.accountTitle}>
+          Ainda não tem uma conta?
+        </Typography>
+        <Typography className={styles.accountSubtitle}>
+          Solicite agora uma versão demo
+        </Typography>
         <Button variant="outlined" className={styles.outlined} fullWidth>
           Solicitar uma demonstração
         </Button>

@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
-import { getString } from "@/utils/strings";
-import { Typography } from "@mui/material";
-import { Box } from "@mui/system";
-import { analysisService, StockSituation } from "@/services/analysisService";
-import { handleDownloadAlertDetail } from "../../widgets/AlertasEAcoes";
-import RenderGraphic from "../../widgets/RenderGraphic";
-import { makeStockReplenishmentGraphs } from "@/components/Analises/helpers/StockReplenishmentHelper";
+import { useEffect, useState } from 'react';
+import { getString } from '@/utils/strings';
+import { Typography } from '@mui/material';
+import { Box } from '@mui/system';
+import {
+  analysisService,
+  StockSituation,
+} from '@/services/analysis/analysisService';
+import { handleDownloadAlertDetail } from '../../widgets/AlertasEAcoes';
+import RenderGraphic from '../../widgets/RenderGraphic';
+import { makeStockReplenishmentGraphs } from '@/components/Analises/helpers/StockReplenishmentHelper';
 import DialogDetailsTable, {
   DetailsDialogTableProps,
-} from "@/components/dialog/DialogDetailsTable";
+} from '@/components/dialog/DialogDetailsTable';
+import { GRAPH_ALL_LABEL } from '../../widgets/graphics';
 
 const StockReplenishmentPage = () => {
   const [detailsTable, setDetailsTable] =
@@ -26,7 +30,9 @@ const StockReplenishmentPage = () => {
     setDetailsTable({
       title: `Produtos com Criticidade: ${name}`,
       description: `Exibindo todos os produtos com cobertura ${name}`,
-      linkDataTable: `/stock/cobertura/produtos_por_criticidade?criticidade=${encodeURIComponent(name)}`,
+      linkDataTable: `/stock/cobertura/produtos_por_criticidade?criticidade=${
+        GRAPH_ALL_LABEL!==name? encodeURIComponent(name): ''
+      }`,
     });
   };
 
@@ -37,7 +43,7 @@ const StockReplenishmentPage = () => {
         `estoque_${data
           .description!.toString()
           .toLowerCase()
-          .replace(/\s+/g, "_")}.xlsx`,
+          .replace(/\s+/g, '_')}.xlsx`,
       );
     }
   }
@@ -49,7 +55,7 @@ const StockReplenishmentPage = () => {
         }}
       >
         <Typography variant="h3" fontWeight={500} fontSize={18} color="#3e3e3e">
-          {getString("analysis-stock-replenishment-graph-title")}
+          {getString('analysis-stock-replenishment-graph-title')}
         </Typography>
       </Box>
 

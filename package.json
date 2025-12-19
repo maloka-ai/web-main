@@ -1,6 +1,6 @@
 {
   "name": "web-main",
-  "version": "1.2.1",
+  "version": "1.7.4",
   "private": true,
   "scripts": {
     "dev": "next dev -p 8000",
@@ -11,6 +11,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@babel/standalone": "^7.28.5",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -18,7 +19,9 @@
     "@mui/material": "^7.1.0",
     "@mui/material-nextjs": "^7.1.0",
     "@mui/system": "^7.1.0",
-    "@mui/x-date-pickers": "^8.10.2",
+    "@mui/x-date-pickers": "^8.17.0",
+    "@tanstack/react-query": "^5.90.5",
+    "@tanstack/react-query-devtools": "^5.90.2",
     "axios": "^1.10.0",
     "date-fns": "^4.1.0",
     "markdown-to-jsx": "^7.7.12",
@@ -27,7 +30,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3",
@@ -39,6 +43,7 @@
     "@storybook/nextjs": "^8.6.14",
     "@storybook/react": "^8.6.14",
     "@storybook/test": "^8.6.14",
+    "@types/babel__standalone": "^7",
     "@types/node": "^20",
     "@types/prop-types": "^15",
     "@types/react": "^19",

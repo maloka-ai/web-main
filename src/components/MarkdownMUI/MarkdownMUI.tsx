@@ -93,7 +93,7 @@ export default function MarkdownMUI({ children }: MarkdownMUIProps) {
             },
             li: {
               component: (props: any) => (
-                <Typography component="li" variant="body1" sx={{ mb: 0.5 }}>
+                <Typography component="li" variant="body1" sx={{ mb: 0.5, ml: 4}}>
                   {props.children}
                 </Typography>
               ),

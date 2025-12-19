@@ -28,7 +28,7 @@ import {
   analysisService,
   type ProductByABC,
   type ProductDetail,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 
 interface ProductAnalysisProps {
   product: ProductByABC;
@@ -68,7 +68,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
     setLoading(true);
     setErr(null);
     analysisService
-      .getProductDetailById(product.id_sku)
+      .getProductDetailById(product.id_produto)
       .then((res) => {
         if (!alive) return;
         setDetail(res);
@@ -84,7 +84,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
     return () => {
       alive = false;
     };
-  }, [product.id_sku]);
+  }, [product.id_produto]);
 
   // --- Helpers
   const fmtInt = (v: number | null | undefined) =>
@@ -185,7 +185,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
             >
               <Typography variant="h6">{product.nome_produto}</Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Chip label={`SKU ID: ${product.id_sku}`} size="small" />
+                <Chip label={`SKU ID: ${product.id_produto}`} size="small" />
                 <Chip
                   label={`Código: ${product.codigo_barras || '—'}`}
                   size="small"
@@ -196,7 +196,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   size="small"
                 />
                 <Chip
-                  label={`Estoque: ${fmtInt(product.estoque_atual)}`}
+                  label={`Estoque: ${fmtInt(product.qt_estoque_disponivel)}`}
                   size="small"
                 />
               </Stack>
@@ -215,10 +215,10 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   Cobertura (dias): {detail.cobertura_dias ?? '—'}
                 </Typography>
                 <Typography variant="body2">
-                  Cobertura 30d: {detail.cobertura_percentual_30d ?? '—'}%
+                  Cobertura 30d: {detail.cobertura_percentual ?? '—'}%
                 </Typography>
                 <Typography variant="body2">
-                  Média 12m (qtd): {fmtInt(detail.media_12m_qtd)}
+                  Média 12m (qtd): {fmtInt(detail.qtd_media_vendas_12m)}
                 </Typography>
                 <Typography variant="body2">
                   Qtd total 12m: {fmtInt(detail.quantidade_total_12m)}
@@ -227,13 +227,10 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   Valor total 12m: {fmtBRL(detail.valor_total_12m)}
                 </Typography>
                 <Typography variant="body2">
-                  Últ. fornecedor: {detail.ultimo_fornecedor ?? '—'}
+                  Sugestão 1m: {detail.sugestao_1m}
                 </Typography>
                 <Typography variant="body2">
-                  Últ. preço compra: {fmtBRL(detail.ultimo_preco_compra)}
-                </Typography>
-                <Typography variant="body2">
-                  Últ. compra: {fmtDate(detail.data_ultima_compra)}
+                  Sugestão 3m: {detail.sugestao_3m}
                 </Typography>
               </Stack>
             ) : (
@@ -242,6 +239,80 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
           }
         />
       </Card>
+
+      {detail && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            Últimas compras
+          </Typography>
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems="stretch"
+          >
+            {/* Helper para renderizar um card de compra */}
+            {[
+              {
+                keyPrefix: 'ultimo',
+                title: 'Última compra',
+                price: detail.ultimo_preco_compra,
+                qty: detail.ultima_qtd_comprada,
+                supplier: detail.ultimo_fornecedor,
+                date: detail.data_ultima_compra,
+              },
+              {
+                keyPrefix: 'penultimo',
+                title: 'Penúltima compra',
+                price: detail.penultimo_preco_compra,
+                qty: detail.penultima_qtd_comprada,
+                supplier: detail.penultimo_fornecedor,
+                date: detail.data_penultima_compra,
+              },
+              {
+                keyPrefix: 'antepenultimo',
+                title: 'Antepenúltima compra',
+                price: detail.antepenultimo_preco_compra,
+                qty: detail.antepenultima_qtd_comprada,
+                supplier: detail.antepenultimo_fornecedor,
+                date: detail.data_antepenultima_compra,
+              },
+            ].map((c) => (
+              <Card
+                key={c.keyPrefix}
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <CardHeader
+                  title={<Typography variant="subtitle2">{c.title}</Typography>}
+                  sx={{ pb: 0 }}
+                />
+                <CardContent sx={{ pt: 0 }}>
+                  <Stack spacing={0.5}>
+                    <Typography variant="body2">
+                      <strong>Fornecedor:</strong> {c.supplier ?? '—'}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Preço:</strong> {fmtBRL(c.price)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Quantidade:</strong> {fmtInt(c.qty)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Data:</strong> {fmtDate(c.date)}
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
 
       {err && (
         <Alert severity="error" sx={{ mb: 2 }}>

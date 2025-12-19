@@ -37,7 +37,6 @@ const InactiveityAnalysisPage = () => {
           lockEndDays={0}
           initialRangeDays={[0, 365]}
           onApply={({ start, end, rangeDays }) => {
-            console.log('Aplicar filtro:', { start, end, rangeDays });
             setDetailsTable({
               title: `Lista de produtos inatuvos: Ultimos ${rangeDays[1]} dias`,
               description: `Exibindo todos os produtos que não foram vendidos no período selecionado ${fmtDate(start)} — ${fmtDate(end)}`,

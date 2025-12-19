@@ -1,24 +1,23 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f6f5f0;
+  align-content: center;
+  background-color: #f4f3ed;
   padding: 2rem;
+  overflow: auto;
 }
 
 .card {
+  margin: auto;
   max-width: 400px;
   width: 100%;
-  padding: 2rem;
   border-radius: 16px;
   text-align: center;
 }
 
 .logo {
-  width: 60.5px;
-  height: 44px;
-  margin: 0 auto 1.5rem;
+  width:auto;
+  height: 73px;
 }
 
 .title {

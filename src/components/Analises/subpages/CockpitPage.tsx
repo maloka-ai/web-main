@@ -1,16 +1,15 @@
 'use client';
 
-import { Box, Typography } from '@mui/material';
+import { Box, Divider, Typography } from '@mui/material';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import AlertasEAcoes from '../widgets/AlertasEAcoes';
 import { useEffect, useState } from 'react';
 import {
   analysisService,
-  CockpitAlert,
   CustomerAnnualRecurrence,
   CustomerQuarterlyRecurrence,
   CustomerSegmentation,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 import {
   clientsMakeGraphs,
   salesMakeGraphs,
@@ -18,7 +17,24 @@ import {
 } from '../helpers/CockpitHelper';
 import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
+import { useListAlertsCockipt } from '@/services/analysis/queries';
 
+function WrapperGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gap: '1rem',
+        gridTemplateColumns: {
+          xs: 'repeat(auto-fit, minmax(225px, 1fr))',
+          xl: 'repeat(auto-fit, minmax(270px, 1fr))',
+        },
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
 export default function CockpitPage() {
   const [customer, setCustomer] = useState<CustomerSegmentation[]>([]);
   const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] =
@@ -33,7 +49,8 @@ export default function CockpitPage() {
   >([]);
   const [lastYearDailyRevenues, setLastYearDailyRevenues] = useState<any[]>([]);
   const [stock, setStock] = useState<any[]>([]);
-  const [cockpitAlert, setCockpitAlert] = useState<CockpitAlert[]>([]);
+  const { data: alertsCockpit, isLoading: isLoadingAlertsCockpit } =
+    useListAlertsCockipt();
 
   useEffect(() => {
     analysisService
@@ -72,11 +89,6 @@ export default function CockpitPage() {
       .catch(console.error);
 
     analysisService.getStockMetrics().then(setStock).catch(console.error);
-
-    analysisService
-      .getCockpitAlert()
-      .then(setCockpitAlert)
-      .catch(console.error);
   }, []);
 
   return (
@@ -84,37 +96,83 @@ export default function CockpitPage() {
       sx={{
         display: 'flex',
         gap: '1.5rem',
-        height: 'calc(100vh - 100px)',
-        overflow: 'hidden',
+        overflow: {
+          xs: 'visible',
+          md: 'hidden',
+        },
+        flexDirection: {
+          xs: 'column',
+          md: 'row',
+        },
       }}
     >
-      <Box sx={{ width: '350px', overflow: 'auto', pr: 1, pb: 16 }}>
-        <Typography variant="subtitle1" fontWeight={600} color="#4b4b4b" mb={1}>
+      <Box
+        sx={{
+          maxWidth: {
+            xs: '100%',
+            md: '400px',
+          },
+          overflow: 'auto',
+          pr: 1,
+          pb: 2,
+          minHeight: {
+            xs: '40vh',
+            md: 'initial',
+          },
+          maxHeight: {
+            xs: '40vh',
+            md: 'initial',
+          },
+          backgroundColor: {
+            xs: '#f9f7f1',
+            md: 'transparent',
+          },
+          borderRadius: {
+            xs: '12px',
+            md: '0px',
+          },
+        }}
+      >
+        <Typography variant="h6" fontWeight={'normal'} color="#3e3e3e" mb={1}>
           Alertas e Ações
         </Typography>
-        <AlertasEAcoes cockpitAlert={cockpitAlert} />
+        <Divider sx={{ mb: 2 }} />
+        <AlertasEAcoes
+          cockpitAlert={alertsCockpit}
+          isLoading={isLoadingAlertsCockpit}
+        />
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
-        <Typography variant="h6" fontWeight={600} color="#4b4b4b" mb={1.5}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: {
+            xs: 'visible',
+            md: 'auto',
+          },
+          pb: 2,
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6" fontWeight={'normal'} color="#3e3e3e" mb={1}>
           Resultados • KPIs
         </Typography>
+        <Divider sx={{ mb: 2 }} />
 
-        <Box
-          sx={{
-            marginBottom: '2rem',
-            // overflowY: 'auto',
-          }}
-        >
+        <Box>
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
             mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Vendas
           </Typography>
+
           {!annualRevenues &&
           !monthlyRevenues &&
           !currentYearDailyRevenues &&
@@ -139,14 +197,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))',
-              }}
-            >
+            <WrapperGrid>
               {annualRevenues &&
                 monthlyRevenues &&
                 salesMakeGraphs(
@@ -160,16 +211,19 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
 
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
             mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Estoque
           </Typography>
           {!stock ? (
@@ -193,15 +247,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                mb: 4,
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))',
-              }}
-            >
+            <WrapperGrid>
               {stock &&
                 stockMakeGraphs(stock).map((graph, index) => (
                   <ResumeGraph
@@ -209,15 +255,19 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
 
           <Typography
-            variant="subtitle1"
-            fontWeight={600}
-            color="#4b4b4b"
+            fontSize={'1.1rem'}
+            fontWeight={'bold'}
+            color="#3e3e3e"
             mb={1}
+            mt={2}
           >
+            <Box component={'span'} color="#c8c4b4" mr={1}>
+              •
+            </Box>
             Cliente
           </Typography>
           {!stock ? (
@@ -241,14 +291,7 @@ export default function CockpitPage() {
               <Typography color="#737064">Gerando análises...</Typography>
             </Box>
           ) : (
-            <Box
-              sx={{
-                padding: '4px',
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(3, minmax(250px, 1fr))',
-              }}
-            >
+            <WrapperGrid>
               {customer &&
                 customerQuarterlyRecurrence &&
                 customerAnnualRecurrence &&
@@ -262,7 +305,7 @@ export default function CockpitPage() {
                     graph={{ ...graph, index } as GraphData}
                   />
                 ))}
-            </Box>
+            </WrapperGrid>
           )}
         </Box>
       </Box>

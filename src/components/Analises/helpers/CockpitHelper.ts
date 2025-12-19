@@ -7,7 +7,7 @@ import {
   MonthlyRevenue,
   CustomerSegmentation,
   StockMetrics,
-} from '@/services/analysisService';
+} from '@/services/analysis/analysisService';
 import { GraphType } from '@/utils/enums';
 import { formatCurrency } from '@/utils/format';
 
@@ -16,6 +16,7 @@ type Graphs = {
   title: string;
   data: any[] | string;
   subtitle?: string;
+  info?: string;
   gain?: number;
   value?: string;
   xLabelMap?: { [key: string]: string };
@@ -291,6 +292,7 @@ export function clientsMakeGraphs(
       data: last3QuarterlyRecurrence,
       value: `${last3QuarterlyRecurrence[2].value}%`,
       gain: last3QuarterlyRecurrenceGain,
+      info: 'Taxa de recorrência trimestral dos últimos 3 trimestres.',
       xLabelMap: xLabelMapLast3QuarterlyRecurrence,
     },
     {
@@ -298,6 +300,7 @@ export function clientsMakeGraphs(
       title: 'Taxa de Retenção Anual',
       subtitle: 'vs Último ano',
       gain: lastAnnualRecurrenceGain,
+      info:'Clientes que continuam a comprar com o passar dos anos',
       data: last3AnnualRecurrence,
       value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
@@ -666,17 +669,16 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
 
   const currentStock = stock[stock.length - 1];
 
-  // Para cara StockMetrics, calcula (TOTAL SKU ATIVO (ESTOQUE <= 0)) / (TOTAL SKU ATIVO (ESTOQUE > 0) + TOTAL SKU ATIVO (ESTOQUE <= 0)), lista de ruptura
   const rupturaPercentages = stock.map((s) => {
-    const totalAtivoComEstoqueMaiorQueZero =
-      s.total_sku_ativo_com_estoque_maior_que_zero || 0;
-    const totalAtivoComEstoqueMenorOuIgualZero =
-      s.total_sku_ativo_com_estoque_menor_ou_igual_zero || 0;
+    const totalSemEstoque =
+      s.total_sku_grupo_a_sem_estoque +
+      s.total_sku_grupo_b_sem_estoque +
+      s.total_sku_grupo_c_sem_estoque;
     const totalAtivo =
-      totalAtivoComEstoqueMaiorQueZero + totalAtivoComEstoqueMenorOuIgualZero;
+      s.total_sku_grupo_a + s.total_sku_grupo_b + s.total_sku_grupo_c;
     const rupturaPercentage =
       totalAtivo > 0
-        ? (totalAtivoComEstoqueMenorOuIgualZero / totalAtivo) * 100
+        ? (totalSemEstoque / totalAtivo) * 100
         : 0;
     // Obtem dia/mes da data_hora_analise
     const date = new Date(s.data_hora_analise);
@@ -693,18 +695,22 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       type: GraphType.KPI,
       title: 'Valor Total Em Estoque',
       data: formatCurrency(currentStock.custo_total_estoque_positivo),
+      info: 'Estoque Disponível em Preço de Custo',
     },
     {
       type: GraphType.KPI,
       title: 'Total de SKUs Ativas',
+      info: 'Total de SKUs com venda nos últimos 90 dias',
       data: (
-        currentStock.total_sku_ativo_com_estoque_maior_que_zero +
-        currentStock.total_sku_ativo_com_estoque_menor_ou_igual_zero
+        currentStock.total_sku_grupo_a +
+        currentStock.total_sku_grupo_b +
+        currentStock.total_sku_grupo_c
       ).toString(),
     },
     {
       type: GraphType.PIE,
       title: '% SKUs por Curva ABC',
+      info: 'Total de SKUs por Curva ABC',
       data: [
         {
           name: 'Grupo A',
@@ -723,6 +729,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     {
       type: GraphType.PIE,
       title: '% Venda por Curva ABC',
+      info: 'Representatividade nas Vendas por Curva ABC',
       data: [
         {
           name: 'Grupo A',
@@ -741,6 +748,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     {
       type: GraphType.LINE,
       title: '% Ruptura (Estoque ativo)',
+      info: 'Total de SKUs da Curva ABC com estoque zero',
       data: rupturaPercentages,
       value: `${Number(rupturaPercentages.slice(-1)[0].value.toFixed(2))}%`,
       hideXAxis: true,

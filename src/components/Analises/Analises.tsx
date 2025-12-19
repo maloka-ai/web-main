@@ -13,11 +13,17 @@ import StockReplenishmentPage from '@/components/Analises/subpages/stock-managem
 import InactiveityAnalysisPage from './subpages/stock-management/InactivityAnalysisPage';
 import SkuAnalysisPage from '@/components/Analises/subpages/stock-management/SkuAnalysisPage';
 import { CustomerBussinessGrowth } from '@/components/Analises/subpages/customers/CustomerBussinessGrowth';
+import { Customer360 } from '@/components/Analises/subpages/customers/Customer360';
+import { useAnalysisStore } from '@/store/analysisStore';
 
 const CustomersSubpages = {
   [AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE]: {
     content: <CustomerMoreLessActivePage />,
     title: getString('analysis-customers-more-or-less-active-customers'),
+  },
+  [AnalysisSubPages.CUSTOMERS_360]: {
+    content: <Customer360 />,
+    title: getString('analysis-customers-360'),
   },
   [AnalysisSubPages.CUSTOMERS_PROBABILITY_OF_RETURN]: {
     content: <div>Em construção</div>,
@@ -73,6 +79,7 @@ export const AnalysisMenuConfig = [
     title: getString('analysis-know-your-customer-title'),
     items: [
       AnalysisSubPages.CUSTOMERS_MORE_OR_LESS_ACTIVE,
+      AnalysisSubPages.CUSTOMERS_360,
     ].map((page) => ({
       title: AnalysisSubpagesConfig[page].title,
       page,
@@ -80,9 +87,7 @@ export const AnalysisMenuConfig = [
   },
   {
     title: getString('analysis-sales-performance-title'),
-    items: [
-      AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH,
-    ].map((page) => ({
+    items: [AnalysisSubPages.CUSTOMERS_BUSINESS_GROWTH].map((page) => ({
       title: AnalysisSubpagesConfig[page].title,
       page,
     })),
@@ -101,9 +106,7 @@ export const AnalysisMenuConfig = [
 ];
 
 export default function Analises() {
-  const [activePage, setActivePage] = useState<AnalysisSubPages>(
-    AnalysisSubPages.COCKPIT,
-  );
+  const { activePage, setActivePage } = useAnalysisStore((store) => store);
   const [activeMenu, setActiveMenu] = useState<string>(
     AnalysisMenuConfig[0].title,
   );
@@ -114,14 +117,30 @@ export default function Analises() {
   };
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        maxHeight: { md: 'calc(100vh - 80px)' },
+      }}
+    >
       <HeaderAnalises
         current={activePage}
         menu={activeMenu}
         onNavigate={handleNavigate}
       />
       <Box
-        sx={{ padding: '1rem', overflowY: 'auto', height: 'calc(100% - 60px)' }}
+        sx={{
+          padding: '1rem',
+          overflowY: {
+            xs: 'auto',
+            md: activePage === AnalysisSubPages.COCKPIT ? 'hidden' : 'auto',
+          },
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         {AnalysisSubpagesConfig[activePage].content}
       </Box>

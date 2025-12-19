@@ -1,5 +1,4 @@
 import api from '@/utils/api';
-import { get } from 'node:http';
 
 export interface CustomerSegmentation {
   id_cliente: number;
@@ -109,6 +108,9 @@ export interface StockMetrics {
   total_sku_grupo_a: number;
   total_sku_grupo_b: number;
   total_sku_grupo_c: number;
+  total_sku_grupo_a_sem_estoque: number;
+  total_sku_grupo_b_sem_estoque: number;
+  total_sku_grupo_c_sem_estoque: number;
   total_venda_grupo_a: number;
   total_venda_grupo_b: number;
   total_venda_grupo_c: number;
@@ -152,23 +154,23 @@ export interface StockSituation {
 }
 
 export interface InactiveProduct {
-  id_sku: number;
+  id_produto: number;
   codigo_barras: string;
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   dias_inativo: number;
   data_ultima_venda: string;
 }
 
 export interface ProductByABC {
-  id_sku: number;
+  id_produto: number;
   codigo_barras: string;
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   curva_abc: ABCCurve;
   situacao_do_produto: string;
   data_ultima_venda: string | null;
@@ -180,18 +182,21 @@ export interface ProductDetail {
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  estoque_atual: number;
+  qt_estoque_disponivel: number;
   curva_abc: ABCCurve;
   situacao_do_produto: string;
   data_ultima_venda: string | null;
   cobertura_dias: number | null;
-  cobertura_meses: number | null;
-  cobertura_percentual_30d: number | null;
+  cobertura_percentual: number | null;
   criticidade: string;
   critico: string;
+  sugestao_1m: number | null;
+  sugestao_3m: number | null;
+  sugestao_6m: number | null;
+  valor_estimado_compra_6m: number | null;
   data_ultima_movimentacao: string | null;
-  media_12m_qtd: number | null;
-  media_vendas_3m: number | null;
+  qtd_media_vendas_12m: number | null;
+  qtd_media_vendas_3m: number | null;
   quantidade_total_12m: number | null;
   valor_total_12m: number | null;
   transacoes_12m: number | null;
@@ -220,6 +225,48 @@ export interface ProductDetail {
   antepenultimo_preco_compra: number | null;
   data_antepenultima_compra: string | null;
   prazo_reposicao_dias: number | null;
+  id_marca: string | null;
+  nome_marca: string | null;
+
+  media_valor_monetario_campeoes: number | null;
+  media_recencia_campeoes: number | null;
+  media_frequencia_campeoes: number | null;
+  media_antiguidade_campeoes: number | null;
+
+  media_valor_monetario_fieis_alto_valor: number | null;
+  media_recencia_fieis_alto_valor: number | null;
+  media_frequencia_fieis_alto_valor: number | null;
+  media_antiguidade_fieis_alto_valor: number | null;
+
+  media_valor_monetario_fieis_baixo_valor: number | null;
+  media_recencia_fieis_baixo_valor: number | null;
+  media_frequencia_fieis_baixo_valor: number | null;
+  media_antiguidade_fieis_baixo_valor: number | null;
+
+  media_valor_monetario_inativos: number | null;
+  media_recencia_inativos: number | null;
+  media_frequencia_inativos: number | null;
+  media_antiguidade_inativos: number | null;
+
+  media_valor_monetario_novos: number | null;
+  media_recencia_novos: number | null;
+  media_frequencia_novos: number | null;
+  media_antiguidade_novos: number | null;
+
+  media_valor_monetario_recentes_alto_valor: number | null;
+  media_recencia_recentes_alto_valor: number | null;
+  media_frequencia_recentes_alto_valor: number | null;
+  media_antiguidade_recentes_alto_valor: number | null;
+
+  media_valor_monetario_recentes_baixo_valor: number | null;
+  media_recencia_recentes_baixo_valor: number | null;
+  media_frequencia_recentes_baixo_valor: number | null;
+  media_antiguidade_recentes_baixo_valor: number | null;
+
+  media_valor_monetario_sumidos: number | null;
+  media_recencia_sumidos: number | null;
+  media_frequencia_sumidos: number | null;
+  media_antiguidade_sumidos: number | null;
 }
 
 export enum ABCCurve {

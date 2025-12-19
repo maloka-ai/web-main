@@ -1,13 +1,17 @@
 // app/components/Layout/SystemHeader.tsx
 'use client';
 
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useMediaQuery } from '@mui/material';
 import TuneIcon from '@mui/icons-material/Tune';
 import Image from 'next/image';
 import UserAccount from '../UserAccount/UserAccount';
+import { useTheme } from '@mui/material/styles';
 
 export default function HeaderSistema() {
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') ?? '' : '';
+  const userEmail =
+    typeof window !== 'undefined'
+      ? (localStorage.getItem('user_email') ?? '')
+      : '';
 
   return (
     <Box
@@ -21,7 +25,12 @@ export default function HeaderSistema() {
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Image src='/images/marca-maloka-medio@3x.png' alt="Maloka'ai" width={147} height={22} />
+        <Image
+          src="/images/marca-maloka-medio@3x.png"
+          alt="Maloka'ai"
+          width={147}
+          height={22}
+        />
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
@@ -29,6 +38,7 @@ export default function HeaderSistema() {
           <TuneIcon sx={{ fontSize: 20, color: '#a36e4f' }} />
           <Typography variant="body2" sx={{ fontSize: '0.95rem', color: '#4b4b4b' }}>Configurações</Typography>
         </Box> */}
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <UserAccount email={userEmail} />
         </Box>
