@@ -152,7 +152,7 @@
 │   │   │   ├── AssistenteSelector.tsx
 │   │   │   └── CreateConversationModal.tsx
 │   │   ├── dialog
-│   │   │   ├── DialogDetailsTable.tsx
+│   │   │   ├── CardDetailsReplenishment.tsx
 │   │   │   └── DialogDetails.tsx
 │   │   ├── filters
 │   │   │   └── RangeFilter

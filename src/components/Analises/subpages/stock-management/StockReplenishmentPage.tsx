@@ -1,6 +1,7 @@
+'use client';
 import { useEffect, useState } from 'react';
 import { getString } from '@/utils/strings';
-import { Typography } from '@mui/material';
+import { Card, CardContent, CardHeader, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import {
   analysisService,
@@ -9,10 +10,9 @@ import {
 import { handleDownloadAlertDetail } from '../../widgets/AlertasEAcoes';
 import RenderGraphic from '../../widgets/RenderGraphic';
 import { makeStockReplenishmentGraphs } from '@/components/Analises/helpers/StockReplenishmentHelper';
-import DialogDetailsTable, {
-  DetailsDialogTableProps,
-} from '@/components/dialog/DialogDetailsTable';
+import { DetailsDialogTableProps } from '@/components/dialog/DialogDetailsTable';
 import { GRAPH_ALL_LABEL } from '../../widgets/graphics';
+import CardDetailsReplenishment from '@/components/Analises/subpages/stock-management/components/CardDetailsReplenishment';
 
 const StockReplenishmentPage = () => {
   const [detailsTable, setDetailsTable] =
@@ -26,15 +26,15 @@ const StockReplenishmentPage = () => {
       .catch(console.error);
   }, []);
 
-  const handleBarSelected = (name: string) => {
+  function handleBarSelected(name: string) {
     setDetailsTable({
       title: `Produtos com Criticidade: ${name}`,
       description: `Exibindo todos os produtos com cobertura ${name}`,
       linkDataTable: `/stock/cobertura/produtos_por_criticidade?criticidade=${
-        GRAPH_ALL_LABEL!==name? encodeURIComponent(name): ''
+        GRAPH_ALL_LABEL !== name ? encodeURIComponent(name) : ''
       }`,
     });
-  };
+  }
 
   function handleDownloadTable(data: DetailsDialogTableProps | null) {
     if (data) {
@@ -48,33 +48,41 @@ const StockReplenishmentPage = () => {
     }
   }
   return (
-    <>
-      <Box
+    <Box>
+      <Card
         sx={{
           marginBottom: 2,
         }}
       >
-        <Typography variant="h3" fontWeight={500} fontSize={18} color="#3e3e3e">
-          {getString('analysis-stock-replenishment-graph-title')}
-        </Typography>
-      </Box>
+        <CardContent sx={{ padding: '0.5rem' }}>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight={700} m={0} p={0}>
+                {getString('analysis-stock-replenishment-graph-title')}{' '}
+              </Typography>
+            }
+          />
 
-      <RenderGraphic
-        graph={{
-          ...makeStockReplenishmentGraphs(stockSituation)[0],
-          onBarSelected: handleBarSelected,
-        }}
-      />
+          <RenderGraphic
+            graph={{
+              ...makeStockReplenishmentGraphs(stockSituation)[0],
+              onBarSelected: handleBarSelected,
+            }}
+          />
+        </CardContent>
+      </Card>
 
-      <DialogDetailsTable
-        data={detailsTable}
-        open={!!detailsTable}
-        onClose={() => {
-          setDetailsTable(null);
-        }}
-        onDownload={() => handleDownloadTable(detailsTable)}
-      />
-    </>
+      {detailsTable && (
+        <CardDetailsReplenishment
+          data={detailsTable}
+          open={!!detailsTable}
+          onClose={() => {
+            setDetailsTable(null);
+          }}
+          onDownload={() => handleDownloadTable(detailsTable)}
+        />
+      )}
+    </Box>
   );
 };
 
