@@ -1,6 +1,8 @@
 import { GraphType } from './enums';
 import { useTheme } from '@mui/material/styles';
 
+import * as htmlToImage from 'html-to-image';
+
 export interface DataPoint {
   name: string;
   value: number;
@@ -96,3 +98,33 @@ export function useGetStrokeColor() {
   }
   return getStrokeColor;
 }
+
+
+
+export function downloadChartAsImage(container: HTMLElement) {
+  const chartEl = container.querySelector(
+    '.recharts-responsive-container'
+  ) as HTMLElement | null;
+
+  if (!chartEl) {
+    alert('Gráfico não encontrado para exportação.');
+    return;
+  }
+
+  htmlToImage
+    .toPng(chartEl, {
+      backgroundColor: '#ffffff',
+      pixelRatio: 2, // melhora qualidade
+    })
+    .then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = 'grafico.png';
+      link.href = dataUrl;
+      link.click();
+    })
+    .catch((err) => {
+      console.error('Erro ao exportar gráfico', err);
+      alert('Erro ao exportar gráfico.');
+    });
+}
+

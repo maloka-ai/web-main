@@ -53,6 +53,7 @@ import {
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
 import TransferAgent, { Payload } from './components/TransferAgent/TransferAgent';
 import { tr } from 'date-fns/locale';
+import { downloadChartAsImage } from '@/utils/graphics';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -233,16 +234,34 @@ function DynamicChart({
   }, [code]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100%',
-        height,
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: '#fff',
-      }}
-    />
+    <div>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height,
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: '#fff',
+        }}
+      />
+      <Button
+        variant="outlined"
+        color="primary"
+        sx={{
+          marginTop: '8px',
+          color: '#df8157',
+          borderColor: '#df8157',
+        }}
+        onClick={() => {
+          if (containerRef.current) {
+            downloadChartAsImage(containerRef.current);
+          }
+        }}
+      >
+        Baixar gráfico
+      </Button>
+    </div>
   );
 }
 
