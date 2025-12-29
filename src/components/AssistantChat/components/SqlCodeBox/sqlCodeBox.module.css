@@ -23,7 +23,7 @@
 }
 
 .sqlCode {
-  background-color: #e5e7eb;
+  background-color: #0f1829;
   padding: 12px;
   border-radius: 6px;
   margin-top: 12px;
@@ -31,3 +31,5 @@
   font-size: 14px;
   white-space: pre-wrap;
 }
+
+

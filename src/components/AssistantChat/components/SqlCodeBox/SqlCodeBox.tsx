@@ -1,10 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp, ContentCopy } from '@mui/icons-material';
 import styles from './sqlCodeBox.module.css';
+import { parseMarkdown } from '@/components/MarkdownMUI/MarkdownHelper';
 
 export default function SqlCodeBox({ code }: { code: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [htmlCode, setHtmlCode] = useState<string>('');
+
+  useEffect(() => {
+    async function convertMarkdown() {
+      const parsed = await parseMarkdown(code);
+      setHtmlCode(parsed);
+    }
+    convertMarkdown();
+  }, [code]);
 
   const handleCopy = async () => {
     try {
@@ -37,8 +47,8 @@ export default function SqlCodeBox({ code }: { code: string }) {
       </Box>
 
       {expanded && (
-        <Box component="pre" className={styles.sqlCode}>
-          <code>{code}</code>
+        <Box className={styles.sqlCode}>
+          <div dangerouslySetInnerHTML={{ __html: htmlCode }} />
         </Box>
       )}
     </Box>

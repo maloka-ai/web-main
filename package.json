@@ -1,6 +1,6 @@
 {
   "name": "web-main",
-  "version": "1.7.4",
+  "version": "1.7.5",
   "private": true,
   "scripts": {
     "dev": "next dev -p 8000",
@@ -15,6 +15,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mapbox/rehype-prism": "^0.9.0",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@mui/material-nextjs": "^7.1.0",
@@ -30,6 +31,12 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
+    "rehype-format": "^5.0.1",
+    "rehype-raw": "^7.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.8"
   },
@@ -44,6 +51,7 @@
     "@storybook/react": "^8.6.14",
     "@storybook/test": "^8.6.14",
     "@types/babel__standalone": "^7",
+    "@types/mapbox__rehype-prism": "^0.8.3",
     "@types/node": "^20",
     "@types/prop-types": "^15",
     "@types/react": "^19",
