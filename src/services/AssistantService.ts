@@ -25,6 +25,7 @@ export interface SpreadsheetMetadata {
   message_id: string;
   spreadsheet_id: string;
   code_sql?: string;
+  insufficient_data_?: boolean;
 }
 
 export interface AssistanteMessage {
