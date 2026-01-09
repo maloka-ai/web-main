@@ -325,8 +325,8 @@ export function salesMakeGraphs(
   // const lastYearDailyRevenuesFilled = fillMissingDays(lastYearDailyRevenues, currentYear - 1, currentMonth); // TODO: Wait for API to populate last year data
   const lastYearDailyRevenuesFilled = fillMissingDays(
     groupRevenueDailyByDate(lastYearDailyRevenues),
-    currentYear,
-    currentMonth - 1,
+    currentMonth === 1 ? currentYear - 1 : currentYear,
+    currentMonth === 1 ? 12 : currentMonth - 1,
   );
 
   const annualRevenuesGrouped = groupRevenueAnnualByYear(annualRevenues);
