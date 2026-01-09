@@ -53,17 +53,20 @@ export default function CockpitPage() {
     useListAlertsCockipt();
 
   useEffect(() => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
     analysisService
       .getSegmentacaoClientes()
       .then(setCustomer)
       .catch(console.error);
 
     analysisService
-      .getCustomerQuarterlyRecurrence(new Date().getFullYear() - 1)
+      .getCustomerQuarterlyRecurrence(currentYear - 1)
       .then(setCustomerQuarterlyRecurrence)
       .catch(console.error);
     analysisService
-      .getCustomerAnnualRecurrence(new Date().getFullYear() - 2)
+      .getCustomerAnnualRecurrence(currentYear - 2)
       .then(setCustomerAnnualRecurrence)
       .catch(console.error);
 
@@ -78,13 +81,13 @@ export default function CockpitPage() {
       .catch(console.error);
 
     analysisService
-      .getDailyRevenues(new Date().getFullYear(), new Date().getMonth() + 1)
+      .getDailyRevenues(currentYear, new Date().getMonth() + 1)
       .then(setCurrentYearDailyRevenues)
       .catch(console.error);
 
     // analysisService.getDailyRevenues((new Date()).getFullYear() - 1, (new Date()).getMonth()) // TODO: Wait for API to populate last year data
     analysisService
-      .getDailyRevenues(new Date().getFullYear(), new Date().getMonth())
+      .getDailyRevenues(currentMonth===1? currentYear - 1 : currentYear, currentMonth===1? 12 : currentMonth - 1)
       .then(setLastYearDailyRevenues)
       .catch(console.error);
 
@@ -270,7 +273,7 @@ export default function CockpitPage() {
             </Box>
             Cliente
           </Typography>
-          {!stock ? (
+          {!customer ? (
             <Box
               sx={{
                 width: '100%',

@@ -124,7 +124,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
       {subtitle && (
         <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
           {subtitle}
-          {gain && (
+          {!!gain && (
             <span
               style={{
                 color: gain >= 0 ? colorSuccess : colorError,

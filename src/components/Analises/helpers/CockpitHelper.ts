@@ -197,7 +197,7 @@ export function clientsMakeGraphs(
 ): Graphs[] {
   if (
     customerQuarterlyRecurrence.length < 3 ||
-    customerAnnualRecurrence.length < 3
+    customerAnnualRecurrence.length < 2
   ) {
     return [];
   }
@@ -406,7 +406,7 @@ export function salesMakeGraphs(
   const currentYearRevenuesData: { name: string; value: number }[] = [];
   const previousYearRevenuesData: { name: string; value: number }[] = [];
 
-  for (let i = 0; i < currentMonth - 1; i++) {
+  for (let i = 0; i < currentMonth; i++) {
     const month = i + 1;
 
     const current =
@@ -541,7 +541,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
-      subtitle: `Comparação até ${(currentMonth - 1).toString().padStart(2, '0')}/${currentYear}`,
+      subtitle: `Comparação até ${(currentMonth).toString().padStart(2, '0')}/${currentYear}`,
       data: currentYearRevenuesData,
       secondData: previousYearRevenuesData,
       gain: growthRateMonthly,
@@ -556,8 +556,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      // title: `Receita Mensal Acumulada ${currentYear - 1} x ${currentYear}`, // TODO: Wait for API to populate last year data
-      title: `Receita Mensal ${monthNamesPt[currentMonth - 2]} x ${monthNamesPt[currentMonth - 1]}`,
+      title: `Receita Mensal ${monthNamesPt[currentMonth===1? 11 : currentMonth - 2]} x ${monthNamesPt[currentMonth - 1]}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
@@ -668,7 +667,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
   }
 
   const currentStock = stock[stock.length - 1];
-
+  let findRupturaInfo = false;
   const rupturaPercentages = stock.map((s) => {
     const totalSemEstoque =
       s.total_sku_grupo_a_sem_estoque +
@@ -688,6 +687,11 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       name: `${dia}/${mes}`,
       value: Number(rupturaPercentage.toFixed(2)),
     };
+  }).filter((s) => {
+    if (!findRupturaInfo && s.value > 0) {
+      findRupturaInfo = true;
+    }
+    return findRupturaInfo;
   });
 
   return [
