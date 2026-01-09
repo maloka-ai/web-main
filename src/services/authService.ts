@@ -1,5 +1,6 @@
 // src/services/authService.ts
 import api from '@/utils/api'
+import { is } from 'date-fns/locale';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -58,6 +59,19 @@ export const authService = {
 
   getRefreshToken(): string | null {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
+  },
+
+  isTokenExpired(token: string): boolean {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < currentTime;
+    } catch (error) {
+      console.error('Erro ao verificar expiração do token:', error);
+      return true;
+    }
   },
 
   logout() {

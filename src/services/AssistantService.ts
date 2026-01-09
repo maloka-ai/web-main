@@ -1,6 +1,7 @@
 // services/AssistantService.ts
 import api from "@/utils/api";
 import { authService } from "@/services/authService";
+import { ensureValidAccessToken } from "@/services/authGuard";
 
 export interface Assistant {
   id: string;
@@ -395,9 +396,10 @@ const assistantService = {
     callbacks: StreamingCallbacks,
     signal?: AbortSignal,
   ) {
-    const token = authService.getAccessToken();
+    const token = await ensureValidAccessToken();
+
     try {
-      const res = await fetch(
+      let res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
         {
           method: "POST",
@@ -409,6 +411,24 @@ const assistantService = {
           signal,
         },
       );
+
+      if (res.status === 401) {
+        await authService.refreshToken();
+
+        const retryToken = authService.getAccessToken();
+        res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: retryToken ? `Bearer ${retryToken}` : "",
+            },
+            body: JSON.stringify({ message }),
+            signal,
+          },
+        );
+      }
 
       if (!res.ok || !res.body) {
         throw new Error(`HTTP ${res.status} ${res.statusText}`);
