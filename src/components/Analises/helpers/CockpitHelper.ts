@@ -364,11 +364,11 @@ export function salesMakeGraphs(
   const hasToDismemberSales = !!lastCurrentAnnualRevenue.faturameno_em_servicos;
 
   const currentMonthlyAccumulated = currentYearMonthlyRevenue
-    .filter((mr) => mr.mes < currentMonth)
+    .filter((mr) => mr.mes <= currentMonth)
     .reduce((acc, mr) => acc + mr.total_venda, 0);
 
   const lastYearMonthlyAccumulated = lastYearMonthlyRevenue
-    .filter((mr) => mr.mes < currentMonth)
+    .filter((mr) => mr.mes <= currentMonth)
     .reduce((acc, mr) => acc + mr.total_venda, 0);
 
   const currentYearDailyAccumulated = currentYearDailyRevenuesFilled.reduce(
