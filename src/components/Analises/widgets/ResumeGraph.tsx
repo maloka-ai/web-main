@@ -33,6 +33,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
     hideXAxis,
     xAxisAngle,
     tooltipFormatter,
+    xTicks,
   } = graph;
 
   const theme = useTheme();
@@ -89,6 +90,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             hideXAxis,
             xAxisAngle,
             tooltipFormatter,
+            xTicks,
           }}
         />
       </Box>
@@ -117,6 +119,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             hideXAxis,
             xAxisAngle,
             tooltipFormatter,
+            xTicks,
           }}
         />
       </Box>

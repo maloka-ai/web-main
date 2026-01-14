@@ -17,6 +17,7 @@ interface LineGraphProps {
   xAxisAngle?: number;
   secondData?: DataPoint[];
   tooltipFormatter?: (value: number, name?: string) => string;
+  xTicks?: string[];
 }
 
 export default function LineGraph({
@@ -26,6 +27,7 @@ export default function LineGraph({
   xAxisAngle,
   secondData,
   tooltipFormatter,
+  xTicks,
 }: LineGraphProps) {
   const getStrokeColor = useGetStrokeColor();
   return (
@@ -36,6 +38,7 @@ export default function LineGraph({
       >
         <XAxis
           dataKey="name"
+          ticks={xTicks}
           interval={0}
           tickLine={false}
           axisLine={false}

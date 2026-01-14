@@ -16,3 +16,39 @@ export const dateFromDaysAgo = (daysAgo: number) => addDays(today(), -daysAgo);
 
 export const fmtDate = (d: Date) =>
   d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+function parseDateBR(dateStr: string): Date {
+  const [day, month] = dateStr.split('/').map(Number);
+  return new Date(2024, month - 1, day); // ano fixo ou ajustável
+}
+
+export function buildXTicksEveryNDays(
+  data: { name: string }[],
+  daysInterval = 5
+): string[] {
+  if (!data.length) return [];
+
+  const ticks: string[] = [];
+  let lastAnchorDate: Date | null = null;
+
+  for (const point of data) {
+    const currentDate = parseDateBR(point.name);
+
+    if (!lastAnchorDate) {
+      ticks.push(point.name); // primeira sempre entra
+      lastAnchorDate = currentDate;
+      continue;
+    }
+
+    const diffDays =
+      (currentDate.getTime() - lastAnchorDate.getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    if (diffDays >= daysInterval) {
+      ticks.push(point.name);
+      lastAnchorDate = currentDate;
+    }
+  }
+
+  return ticks;
+}

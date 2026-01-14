@@ -10,6 +10,7 @@ import {
 } from '@/services/analysis/analysisService';
 import { GraphType } from '@/utils/enums';
 import { formatCurrency } from '@/utils/format';
+import { buildXTicksEveryNDays } from '@/utils/date';
 
 type Graphs = {
   type: GraphType;
@@ -24,6 +25,7 @@ type Graphs = {
   xAxisAngle?: number;
   secondData?: any[];
   tooltipFormatter?: (value: number, name?: string) => string;
+  xTicks?: string[];
 };
 
 export function fillMissingDays(
@@ -174,6 +176,7 @@ function groupRevenueAnnualByYear(data: AnnualRevenue[]) {
   // Ordena por ano
   return grouped.sort((a, b) => a.ano - b.ano);
 }
+
 
 const monthNamesPt = [
   'Jan',
@@ -755,7 +758,8 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       info: 'Total de SKUs da Curva ABC com estoque zero',
       data: rupturaPercentages,
       value: `${Number(rupturaPercentages.slice(-1)[0].value.toFixed(2))}%`,
-      hideXAxis: true,
+      xAxisAngle: -45,
+      xTicks: buildXTicksEveryNDays(rupturaPercentages, 14),
     },
   ];
 }

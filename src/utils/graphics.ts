@@ -29,6 +29,7 @@ export interface GraphData {
   height?: number;
   barColors?: string[];
   tooltipFormatter?: (value: number, name?: string) => string;
+  xTicks?: string[];
   secondValueFormatter?: (value: number) => string;
   onBarSelected?: (name: string) => void;
   dataKey?: string;
