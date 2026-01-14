@@ -21,6 +21,7 @@ export default function RenderGraphic({ graph }: RenderGraphicProps) {
           xAxisAngle={graph.xAxisAngle}
           secondData={graph.secondData as DataPoint[]}
           tooltipFormatter={graph.tooltipFormatter}
+          xTicks={graph.xTicks}
         />
       );
     case GraphType.PIE:
