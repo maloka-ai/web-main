@@ -706,7 +706,7 @@ export default function AssistantChat() {
   function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
     if (!msg.spreadsheet_metadata) return false;
     if (typeof msg.spreadsheet_metadata === 'object') {
-      return !msg.spreadsheet_metadata.code_sql && !msg.spreadsheet_metadata.insufficient_data_;
+      return !!msg.spreadsheet_metadata.message_id && !msg.spreadsheet_metadata.insufficient_data_;
     }
     return false;
   }
