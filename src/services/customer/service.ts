@@ -3,8 +3,11 @@ import {
   Customer,
   CustomerDetails,
   CustomerSale,
+  CustomerSegmentationMetric,
 } from '@/services/customer/types';
 import { toQS } from '@/services/helpers/toQS';
+
+
 
 export const customerService = {
   async getAllCustomers() {
@@ -26,4 +29,11 @@ export const customerService = {
 
     return data;
   },
+  async getTotalCustomerSegmentationMetric(year: number, month?: number): Promise<CustomerSegmentationMetric[]> {
+    const qs = toQS({ ano: year, mes: month });
+    const { data } = await api.get<CustomerSegmentationMetric[]>(
+      `/customer/metricas_segmentacao/totais_segmentos${qs}`,
+    );
+    return data;
+  }
 };
