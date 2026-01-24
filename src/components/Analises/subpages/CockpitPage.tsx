@@ -18,6 +18,9 @@ import {
 import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
 import { useListAlertsCockipt } from '@/services/analysis/queries';
+import { AverageMonthlyDiscountItem, MonthlyGrossProfitItem, MonthlyReturnPercentageItem, salesService } from '@/services/salesService';
+import { CustomerSegmentationMetric } from '@/services/customer/types';
+import { customerService } from '@/services/customer/service';
 
 function WrapperGrid({ children }: { children: React.ReactNode }) {
   return (
@@ -42,6 +45,9 @@ export default function CockpitPage() {
   const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<
     CustomerAnnualRecurrence[]
   >([]);
+  const [totalCustomerSegmentationMetric, setTotalCustomerSegmentationMetric] =
+    useState<CustomerSegmentationMetric[]>([]);
+
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
   const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
   const [currentYearDailyRevenues, setCurrentYearDailyRevenues] = useState<
@@ -52,6 +58,15 @@ export default function CockpitPage() {
   const { data: alertsCockpit, isLoading: isLoadingAlertsCockpit } =
     useListAlertsCockipt();
 
+  const [averageMonthlyDiscount, setAverageMonthlyDiscount] = useState<
+    AverageMonthlyDiscountItem[]
+  >([]);
+  const [monthlyGrossProfit, setMonthlyGrossProfit] = useState<
+    MonthlyGrossProfitItem[]
+  >([]);
+  const [monthlyReturnPercentage, setMonthlyReturnPercentage] = useState<
+  MonthlyReturnPercentageItem[]>([]);
+
   useEffect(() => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
@@ -59,6 +74,10 @@ export default function CockpitPage() {
     analysisService
       .getSegmentacaoClientes()
       .then(setCustomer)
+      .catch(console.error);
+    customerService
+      .getTotalCustomerSegmentationMetric(currentYear)
+      .then(setTotalCustomerSegmentationMetric)
       .catch(console.error);
 
     analysisService
@@ -81,17 +100,30 @@ export default function CockpitPage() {
       .catch(console.error);
 
     analysisService
-      .getDailyRevenues(currentYear, new Date().getMonth() + 1)
+      .getDailyRevenues(currentYear, currentMonth)
       .then(setCurrentYearDailyRevenues)
       .catch(console.error);
-
-    // analysisService.getDailyRevenues((new Date()).getFullYear() - 1, (new Date()).getMonth()) // TODO: Wait for API to populate last year data
     analysisService
-      .getDailyRevenues(currentMonth===1? currentYear - 1 : currentYear, currentMonth===1? 12 : currentMonth - 1)
+      .getDailyRevenues(currentYear - 1, currentMonth)
       .then(setLastYearDailyRevenues)
       .catch(console.error);
 
     analysisService.getStockMetrics().then(setStock).catch(console.error);
+
+    salesService
+      .getAverageMonthlyDiscount(undefined, currentYear)
+      .then(setAverageMonthlyDiscount)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyGrossProfit(undefined, currentYear)
+      .then(setMonthlyGrossProfit)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyReturnPercentage(undefined, currentYear)
+      .then(setMonthlyReturnPercentage)
+      .catch(console.error);
   }, []);
 
   return (
@@ -203,11 +235,17 @@ export default function CockpitPage() {
             <WrapperGrid>
               {annualRevenues &&
                 monthlyRevenues &&
+                averageMonthlyDiscount &&
+                monthlyGrossProfit &&
+                monthlyReturnPercentage &&
                 salesMakeGraphs(
                   annualRevenues,
                   monthlyRevenues,
                   currentYearDailyRevenues,
                   lastYearDailyRevenues,
+                  averageMonthlyDiscount,
+                  monthlyGrossProfit,
+                  monthlyReturnPercentage,
                 ).map((graph, index) => (
                   <ResumeGraph
                     key={`sales-resume-graph-${index}`}
@@ -302,6 +340,7 @@ export default function CockpitPage() {
                   customer,
                   customerQuarterlyRecurrence,
                   customerAnnualRecurrence,
+                  totalCustomerSegmentationMetric,
                 ).map((graph, index) => (
                   <ResumeGraph
                     key={`clients-resume-graph-${index}`}
