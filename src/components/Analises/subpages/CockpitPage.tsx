@@ -67,6 +67,15 @@ export default function CockpitPage() {
   const [monthlyReturnPercentage, setMonthlyReturnPercentage] = useState<
   MonthlyReturnPercentageItem[]>([]);
 
+  const [averageMonthlyDiscountLastYear, setAverageMonthlyDiscountLastYear] = useState<
+    AverageMonthlyDiscountItem[]
+  >([]);
+  const [monthlyGrossProfitLastYear, setMonthlyGrossProfitLastYear] = useState<
+    MonthlyGrossProfitItem[]
+  >([]);
+  const [monthlyReturnPercentageLastYear, setMonthlyReturnPercentageLastYear] = useState<
+  MonthlyReturnPercentageItem[]>([]);
+
   useEffect(() => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
@@ -123,6 +132,21 @@ export default function CockpitPage() {
     salesService
       .getMonthlyReturnPercentage(undefined, currentYear)
       .then(setMonthlyReturnPercentage)
+      .catch(console.error);
+
+    salesService
+      .getAverageMonthlyDiscount(undefined, currentYear - 1)
+      .then(setAverageMonthlyDiscountLastYear)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyGrossProfit(undefined, currentYear - 1)
+      .then(setMonthlyGrossProfitLastYear)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyReturnPercentage(undefined, currentYear - 1)
+      .then(setMonthlyReturnPercentageLastYear)
       .catch(console.error);
   }, []);
 
@@ -246,6 +270,9 @@ export default function CockpitPage() {
                   averageMonthlyDiscount,
                   monthlyGrossProfit,
                   monthlyReturnPercentage,
+                  averageMonthlyDiscountLastYear,
+                  monthlyGrossProfitLastYear,
+                  monthlyReturnPercentageLastYear
                 ).map((graph, index) => (
                   <ResumeGraph
                     key={`sales-resume-graph-${index}`}

@@ -364,7 +364,10 @@ export function salesMakeGraphs(
   lastYearDailyRevenues: DailyRevenue[],
   averageMonthlyDiscount: AverageMonthlyDiscountItem[],
   monthlyGrossProfit: MonthlyGrossProfitItem[],
-  monthlyReturnPercentage: MonthlyReturnPercentageItem[]
+  monthlyReturnPercentage: MonthlyReturnPercentageItem[],
+  averageMonthlyDiscountLastYear: AverageMonthlyDiscountItem[],
+  monthlyGrossProfitLastYear: MonthlyGrossProfitItem[],
+  monthlyReturnPercentageLastYear: MonthlyReturnPercentageItem[]
 ): Graphs[] {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -620,7 +623,7 @@ export function salesMakeGraphs(
           return [d, d];
         }),
       ),
-      xAxisAngle: -45,
+      xAxisAngle: -60,
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
     ...(averageMonthlyDiscount.length > 0
@@ -631,9 +634,13 @@ export function salesMakeGraphs(
           name: monthNamesPt[d.mes - 1],
           value: d.percentual_desconto_medio,
         })),
-        value: formatCurrency(
-          averageMonthlyDiscount[averageMonthlyDiscount.length - 1].percentual_desconto_medio,
-        ),
+        secondData: averageMonthlyDiscountLastYear.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_desconto_medio,
+        })),
+        value: `${
+          averageMonthlyDiscount[averageMonthlyDiscount.length - 1].percentual_desconto_medio
+        }%`,
         gain: averageMonthlyDiscount.length > 1 ? Number(
           (
             ((averageMonthlyDiscount[averageMonthlyDiscount.length - 1]
@@ -652,7 +659,7 @@ export function salesMakeGraphs(
           }),
         ),
         xAxisAngle: -45,
-        tooltipFormatter: (value: number) => formatCurrency(value),
+        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
       },]
       : []),
     ...(monthlyGrossProfit.length > 0
@@ -663,9 +670,11 @@ export function salesMakeGraphs(
           name: monthNamesPt[d.mes - 1],
           value: d.percentual_lucro_bruto,
         })),
-        value: formatCurrency(
-          monthlyGrossProfit[monthlyGrossProfit.length - 1].percentual_lucro_bruto,
-        ),
+        secondData: monthlyGrossProfitLastYear.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_lucro_bruto,
+        })),
+        value: `${monthlyGrossProfit[monthlyGrossProfit.length - 1].percentual_lucro_bruto.toFixed(2)}%`,
         gain: monthlyGrossProfit.length > 1 ? Number(
           (
             ((monthlyGrossProfit[monthlyGrossProfit.length - 1]
@@ -684,7 +693,7 @@ export function salesMakeGraphs(
           }),
         ),
         xAxisAngle: -45,
-        tooltipFormatter: (value: number) => formatCurrency(value),
+        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
       },]
       : []),
     ...(monthlyReturnPercentage.length > 0
@@ -692,6 +701,10 @@ export function salesMakeGraphs(
         type: GraphType.LINE,
         title: 'Percentual de Devoluções Mensal',
         data: monthlyReturnPercentage.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_devolucao,
+        })),
+        secondData: monthlyReturnPercentageLastYear.map((d) => ({
           name: monthNamesPt[d.mes - 1],
           value: d.percentual_devolucao,
         })),
