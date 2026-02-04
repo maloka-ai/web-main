@@ -51,7 +51,9 @@ import {
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
-import TransferAgent, { Payload } from './components/TransferAgent/TransferAgent';
+import TransferAgent, {
+  Payload,
+} from './components/TransferAgent/TransferAgent';
 import { tr } from 'date-fns/locale';
 import { downloadChartAsImage } from '@/utils/graphics';
 
@@ -288,7 +290,32 @@ export default function AssistantChat() {
   );
   const [isGeneratingMessage, setIsGeneratingMessage] =
     useState<boolean>(false);
+  const [isShowEllipsisLoading, setIsShowEllipsisLoading] = useState(false);
+
   const isMobile = useIsMobile();
+
+  // refs do timer/controle
+  const ellipsisTimerRef = useRef<number | null>(null);
+
+  const clearEllipsisTimer = () => {
+    if (ellipsisTimerRef.current) {
+      window.clearTimeout(ellipsisTimerRef.current);
+      ellipsisTimerRef.current = null;
+    }
+  };
+
+  const scheduleEllipsis = () => {
+    clearEllipsisTimer();
+
+    // em 1s sem chunk novo → mostra ...
+    ellipsisTimerRef.current = window.setTimeout(() => {
+      setIsShowEllipsisLoading(true);
+    }, 1000);
+  };
+
+  const hideEllipsis = () => {
+    setIsShowEllipsisLoading(false);
+  };
 
   // chart states: por mensagem id
   const [chartComponents, setChartComponents] = useState<
@@ -302,12 +329,11 @@ export default function AssistantChat() {
   // transfer to agent states
   const [transferAgentInfo, setTransferAgentInfo] = useState<
     Record<string, { analyst: string; question: string }>
-    >({});
+  >({});
 
   // ===== Scroll & Anchoring Refs/State =====
   const messageAreaRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
 
   // ID da última mensagem do usuário (âncora) e seu nó
   const [lastUserMsgId, setLastUserMsgId] = useState<string | null>(null);
@@ -344,12 +370,12 @@ export default function AssistantChat() {
   };
 
   const scrollToUserMessage = (behavior: ScrollBehavior = 'smooth') => {
-      const target = messagesEndRef.current;
-      if (!target) return;
+    const target = messagesEndRef.current;
+    if (!target) return;
 
-      requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior })
-      });
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior });
+    });
   };
 
   const userMsgReachedTop = (threshold = 10) => {
@@ -400,7 +426,7 @@ export default function AssistantChat() {
       p.analyst as AssistantType,
       (conversationIdPersonalized: string) => {
         handleSend(p.question, true, conversationIdPersonalized);
-      }
+      },
     );
   };
 
@@ -408,8 +434,9 @@ export default function AssistantChat() {
     return {
       id,
       name: AssistantTypeLabels[id as AssistantType],
-      avatar: Assistants.find((a) => a.type == (id as AssistantType))?.icon || '',
-    }
+      avatar:
+        Assistants.find((a) => a.type == (id as AssistantType))?.icon || '',
+    };
   };
 
   // Carrega mensagens quando muda a conversa ativa
@@ -453,20 +480,23 @@ export default function AssistantChat() {
     updateListConversations();
   }, [drawerOpen]);
 
-  const handleSend = async (msgPersonalized?: string, reset?: boolean, conversationIdPersonalized?: string) => {
+  const handleSend = async (
+    msgPersonalized?: string,
+    reset?: boolean,
+    conversationIdPersonalized?: string,
+  ) => {
     const inputMessage = msgPersonalized ? msgPersonalized : input.trim();
     if (!inputMessage || isGeneratingMessage) return;
     setInput('');
     setIsGeneratingMessage(true);
     scrollToUserMessage('smooth');
 
-
     // Cria mensagem do usuário + placeholder do assistente
     const userMsgId = crypto.randomUUID();
     const assistantPlaceholderId = crypto.randomUUID();
 
     const newMessages: AssistanteMessage[] = [
-      ...(reset? [] : messages),
+      ...(reset ? [] : messages),
       {
         content: inputMessage,
         role: 'user',
@@ -499,13 +529,13 @@ export default function AssistantChat() {
         : inputMessage;
 
     const isNewConversation =
-      !reset
-      && (!activeConversationId ||
-      conversations.find((c) => c.thread_id === activeConversationId)
-        ?.assistant_id !== assistantType);
+      !reset &&
+      (!activeConversationId ||
+        conversations.find((c) => c.thread_id === activeConversationId)
+          ?.assistant_id !== assistantType);
 
-    let conversationId: string = conversationIdPersonalized?
-      conversationIdPersonalized
+    let conversationId: string = conversationIdPersonalized
+      ? conversationIdPersonalized
       : activeConversationId || '';
 
     if (isNewConversation) {
@@ -524,6 +554,9 @@ export default function AssistantChat() {
       conversationId ?? '',
       {
         onChunk: (chunk) => {
+          hideEllipsis();
+          scheduleEllipsis();
+
           setMessages((prev) => {
             const i = prev.length - 1;
             const last = prev[i];
@@ -638,7 +671,10 @@ export default function AssistantChat() {
 
             return [
               ...prev,
-              { role: 'assistant', transfer_to_agent: { analyst, question } } as AssistanteMessage,
+              {
+                role: 'assistant',
+                transfer_to_agent: { analyst, question },
+              } as AssistanteMessage,
             ];
           });
 
@@ -648,6 +684,8 @@ export default function AssistantChat() {
           }));
         },
         onError: (err) => {
+          clearEllipsisTimer();
+
           //////////// FAZER COMPONENTE PARA ERRO
           console.error('Invalid response message:', err);
           setMessages((prevMessages) => [
@@ -657,6 +695,8 @@ export default function AssistantChat() {
           setIsGeneratingMessage(false);
         },
         onDone: () => {
+          clearEllipsisTimer();
+
           setChunkAutoScroll(false);
           setIsGeneratingMessage(false);
         },
@@ -666,7 +706,7 @@ export default function AssistantChat() {
 
   const handleCopyMessageToInput = (msg: string) => {
     setInput(msg);
-  }
+  };
 
   const handleCreateConversation = async (
     title: string,
@@ -678,10 +718,8 @@ export default function AssistantChat() {
       title,
     );
     setActiveConversationId(newConversation.thread_id);
-    if (callback){
-      setTimeout(() =>
-        callback(newConversation.thread_id)
-      , 2000);
+    if (callback) {
+      setTimeout(() => callback(newConversation.thread_id), 2000);
       return;
     }
     setMessages([]);
@@ -706,7 +744,10 @@ export default function AssistantChat() {
   function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
     if (!msg.spreadsheet_metadata) return false;
     if (typeof msg.spreadsheet_metadata === 'object') {
-      return !!msg.spreadsheet_metadata.message_id && !msg.spreadsheet_metadata.insufficient_data_;
+      return (
+        !!msg.spreadsheet_metadata.message_id &&
+        !msg.spreadsheet_metadata.insufficient_data_
+      );
     }
     return false;
   }
@@ -946,10 +987,10 @@ export default function AssistantChat() {
                 msg.role === 'assistant' && index === messages.length - 1;
               const hasChartForMsg = Boolean(chartComponents[msg.id]);
               const isChartLoadingForMsg = Boolean(chartLoading[msg.id]);
-              const isTransferAgentMsg = Boolean(transferAgentInfo[msg.id])
+              const isTransferAgentMsg = Boolean(transferAgentInfo[msg.id]);
               const isContentEmpty = !msg.content || !msg.content.trim();
 
-              const isGeneratingMessage =
+              const isGeneratingThisMessage =
                 isLastAssistant &&
                 isContentEmpty &&
                 !hasChartForMsg &&
@@ -961,7 +1002,7 @@ export default function AssistantChat() {
                   ? { ref: lastUserMsgRef }
                   : {};
 
-              if (isGeneratingMessage) {
+              if (isGeneratingThisMessage) {
                 return (
                   <Box key={msg.id} className={styles.botMsg}>
                     Analisando
@@ -982,9 +1023,16 @@ export default function AssistantChat() {
                   }
                 >
                   <MarkdownMUI>{msg.content}</MarkdownMUI>
-
+                  {isGeneratingMessage &&
+                  isShowEllipsisLoading &&
+                  isLastAssistant ? (
+                    <span
+                      className={styles.typingDots}
+                      aria-label="digitando"
+                    />
+                  ) : null}
                   {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
-                  { showInsufficientDataWarning(msg) && (
+                  {showInsufficientDataWarning(msg) && (
                     <Box
                       sx={{
                         marginTop: 2,
@@ -995,11 +1043,12 @@ export default function AssistantChat() {
                       }}
                     >
                       <Typography variant="body2" sx={{ color: '#663c00' }}>
-                        Não há dados suficientes para gerar a planilha solicitada.
+                        Não há dados suficientes para gerar a planilha
+                        solicitada.
                       </Typography>
                     </Box>
                   )}
-                  { showDownloadSpreadsheetButton(msg) && (
+                  {showDownloadSpreadsheetButton(msg) && (
                     <Button
                       variant="outlined"
                       color="primary"
@@ -1016,24 +1065,26 @@ export default function AssistantChat() {
                     </Button>
                   )}
 
-                  {
-                    showCodeSQLContainer(msg) && (
-                      <SqlCodeBox
-                        code={(msg.spreadsheet_metadata as SpreadsheetMetadata).code_sql || ''}
-                        />
-                    )
-                  }
+                  {showCodeSQLContainer(msg) && (
+                    <SqlCodeBox
+                      code={
+                        (msg.spreadsheet_metadata as SpreadsheetMetadata)
+                          .code_sql || ''
+                      }
+                    />
+                  )}
 
-                  {
-                    (!!msg.transfer_to_agent || isTransferAgentMsg) && (
-                      <TransferAgent
-                        payload={msg.transfer_to_agent as Payload || transferAgentInfo[msg.id]}
-                        onTransfer={handleTransfer}
-                        getAnalystInfo={getAnalystInfo}
-                        editableQuestion={true}
-                      />
-                    )
-                  }
+                  {(!!msg.transfer_to_agent || isTransferAgentMsg) && (
+                    <TransferAgent
+                      payload={
+                        (msg.transfer_to_agent as Payload) ||
+                        transferAgentInfo[msg.id]
+                      }
+                      onTransfer={handleTransfer}
+                      getAnalystInfo={getAnalystInfo}
+                      editableQuestion={true}
+                    />
+                  )}
 
                   {/* CHART: Skeleton se estiver carregando */}
                   {chartLoading[msg.id] && (
