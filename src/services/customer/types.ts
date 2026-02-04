@@ -44,3 +44,17 @@ export type CustomerSale = {
   valor_total_venda_produto: number;
   valor_total_venda_servico: number;
 };
+
+export type CustomerSegmentationMetric = {
+  data: string;
+  mes: number;
+  ano: number;
+  total_campeoes: number;
+  total_fieis_alto_valor: number;
+  total_fieis_baixo_valor: number;
+  total_inativos: number;
+  total_novos: number;
+  total_recentes_alto_valor: number;
+  total_recentes_baixo_valor: number;
+  total_sumidos: number;
+};

@@ -1,5 +1,6 @@
 export enum GraphType {
   LINE = 'line',
+  MULTI_LINE = 'multi_line',
   BAR = 'bar',
   SCATTER = 'scatter',
   KPI = 'kpi',

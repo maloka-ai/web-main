@@ -18,6 +18,9 @@ import {
 import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
 import { useListAlertsCockipt } from '@/services/analysis/queries';
+import { AverageMonthlyDiscountItem, MonthlyGrossProfitItem, MonthlyReturnPercentageItem, salesService } from '@/services/salesService';
+import { CustomerSegmentationMetric } from '@/services/customer/types';
+import { customerService } from '@/services/customer/service';
 
 function WrapperGrid({ children }: { children: React.ReactNode }) {
   return (
@@ -42,6 +45,9 @@ export default function CockpitPage() {
   const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<
     CustomerAnnualRecurrence[]
   >([]);
+  const [totalCustomerSegmentationMetric, setTotalCustomerSegmentationMetric] =
+    useState<CustomerSegmentationMetric[]>([]);
+
   const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
   const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
   const [currentYearDailyRevenues, setCurrentYearDailyRevenues] = useState<
@@ -52,18 +58,43 @@ export default function CockpitPage() {
   const { data: alertsCockpit, isLoading: isLoadingAlertsCockpit } =
     useListAlertsCockipt();
 
+  const [averageMonthlyDiscount, setAverageMonthlyDiscount] = useState<
+    AverageMonthlyDiscountItem[]
+  >([]);
+  const [monthlyGrossProfit, setMonthlyGrossProfit] = useState<
+    MonthlyGrossProfitItem[]
+  >([]);
+  const [monthlyReturnPercentage, setMonthlyReturnPercentage] = useState<
+  MonthlyReturnPercentageItem[]>([]);
+
+  const [averageMonthlyDiscountLastYear, setAverageMonthlyDiscountLastYear] = useState<
+    AverageMonthlyDiscountItem[]
+  >([]);
+  const [monthlyGrossProfitLastYear, setMonthlyGrossProfitLastYear] = useState<
+    MonthlyGrossProfitItem[]
+  >([]);
+  const [monthlyReturnPercentageLastYear, setMonthlyReturnPercentageLastYear] = useState<
+  MonthlyReturnPercentageItem[]>([]);
+
   useEffect(() => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
     analysisService
       .getSegmentacaoClientes()
       .then(setCustomer)
       .catch(console.error);
+    customerService
+      .getTotalCustomerSegmentationMetric(currentYear)
+      .then(setTotalCustomerSegmentationMetric)
+      .catch(console.error);
 
     analysisService
-      .getCustomerQuarterlyRecurrence(new Date().getFullYear() - 1)
+      .getCustomerQuarterlyRecurrence(currentYear - 1)
       .then(setCustomerQuarterlyRecurrence)
       .catch(console.error);
     analysisService
-      .getCustomerAnnualRecurrence(new Date().getFullYear() - 2)
+      .getCustomerAnnualRecurrence(currentYear - 2)
       .then(setCustomerAnnualRecurrence)
       .catch(console.error);
 
@@ -78,17 +109,45 @@ export default function CockpitPage() {
       .catch(console.error);
 
     analysisService
-      .getDailyRevenues(new Date().getFullYear(), new Date().getMonth() + 1)
+      .getDailyRevenues(currentYear, currentMonth)
       .then(setCurrentYearDailyRevenues)
       .catch(console.error);
-
-    // analysisService.getDailyRevenues((new Date()).getFullYear() - 1, (new Date()).getMonth()) // TODO: Wait for API to populate last year data
     analysisService
-      .getDailyRevenues(new Date().getFullYear(), new Date().getMonth())
+      .getDailyRevenues(currentYear - 1, currentMonth)
       .then(setLastYearDailyRevenues)
       .catch(console.error);
 
     analysisService.getStockMetrics().then(setStock).catch(console.error);
+
+    salesService
+      .getAverageMonthlyDiscount(undefined, currentYear)
+      .then(setAverageMonthlyDiscount)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyGrossProfit(undefined, currentYear)
+      .then(setMonthlyGrossProfit)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyReturnPercentage(undefined, currentYear)
+      .then(setMonthlyReturnPercentage)
+      .catch(console.error);
+
+    salesService
+      .getAverageMonthlyDiscount(undefined, currentYear - 1)
+      .then(setAverageMonthlyDiscountLastYear)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyGrossProfit(undefined, currentYear - 1)
+      .then(setMonthlyGrossProfitLastYear)
+      .catch(console.error);
+
+    salesService
+      .getMonthlyReturnPercentage(undefined, currentYear - 1)
+      .then(setMonthlyReturnPercentageLastYear)
+      .catch(console.error);
   }, []);
 
   return (
@@ -200,11 +259,20 @@ export default function CockpitPage() {
             <WrapperGrid>
               {annualRevenues &&
                 monthlyRevenues &&
+                averageMonthlyDiscount &&
+                monthlyGrossProfit &&
+                monthlyReturnPercentage &&
                 salesMakeGraphs(
                   annualRevenues,
                   monthlyRevenues,
                   currentYearDailyRevenues,
                   lastYearDailyRevenues,
+                  averageMonthlyDiscount,
+                  monthlyGrossProfit,
+                  monthlyReturnPercentage,
+                  averageMonthlyDiscountLastYear,
+                  monthlyGrossProfitLastYear,
+                  monthlyReturnPercentageLastYear
                 ).map((graph, index) => (
                   <ResumeGraph
                     key={`sales-resume-graph-${index}`}
@@ -270,7 +338,7 @@ export default function CockpitPage() {
             </Box>
             Cliente
           </Typography>
-          {!stock ? (
+          {!customer ? (
             <Box
               sx={{
                 width: '100%',
@@ -299,6 +367,7 @@ export default function CockpitPage() {
                   customer,
                   customerQuarterlyRecurrence,
                   customerAnnualRecurrence,
+                  totalCustomerSegmentationMetric,
                 ).map((graph, index) => (
                   <ResumeGraph
                     key={`clients-resume-graph-${index}`}

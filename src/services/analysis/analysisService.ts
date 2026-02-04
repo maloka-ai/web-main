@@ -176,6 +176,35 @@ export interface ProductByABC {
   data_ultima_venda: string | null;
 }
 
+export interface ProductByCriticity {
+  id_produto: number;
+  nome_produto: string;
+  id_categoria: number | null;
+  nome_categoria: string | null;
+  estoque_atual: number;
+  cobertura_percentual: number | null;
+  cobertura_dias: number | null;
+  sugestao_1m: number | null;
+  sugestao_3m: number | null;
+  sugestao_6m: number | null;
+  data_ultima_compra: string | null;
+  ultima_qtd_comprada: number | null;
+  ultimo_preco_compra: number | null;
+  ultimo_fornecedor: string | null;
+  data_penultima_compra: string | null;
+  penultima_qtd_comprada: number | null;
+  penultimo_preco_compra: number | null;
+  penultimo_fornecedor: string | null;
+  data_antepenultima_compra: string | null;
+  antepenultima_qtd_comprada: number | null;
+  antepenultimo_preco_compra: number | null;
+  antepenultimo_fornecedor: string | null;
+  criticidade: string;
+  id_marca: number | null;
+  nome_marca: string | null;
+  qtd_media_vendas_3m: number | null;
+  media_vendas_diaria: number | null;
+}
 export interface ProductDetail {
   id_produto: number;
   codigo_barras: string;

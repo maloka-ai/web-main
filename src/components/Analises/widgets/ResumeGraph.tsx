@@ -33,6 +33,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
     hideXAxis,
     xAxisAngle,
     tooltipFormatter,
+    xTicks,
   } = graph;
 
   const theme = useTheme();
@@ -89,6 +90,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             hideXAxis,
             xAxisAngle,
             tooltipFormatter,
+            xTicks,
           }}
         />
       </Box>
@@ -117,6 +119,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             hideXAxis,
             xAxisAngle,
             tooltipFormatter,
+            xTicks,
           }}
         />
       </Box>
@@ -124,7 +127,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
       {subtitle && (
         <Typography variant="body2" fontWeight={400} color="#777" mt={1}>
           {subtitle}
-          {gain && (
+          {!!gain && (
             <span
               style={{
                 color: gain >= 0 ? colorSuccess : colorError,

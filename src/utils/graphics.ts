@@ -1,6 +1,8 @@
 import { GraphType } from './enums';
 import { useTheme } from '@mui/material/styles';
 
+import * as htmlToImage from 'html-to-image';
+
 export interface DataPoint {
   name: string;
   value: number;
@@ -12,7 +14,7 @@ export type BarDatum = DataPoint & { secondValue?: number };
 export interface GraphData {
   type: GraphType;
   title?: string;
-  data: BarDatum[];
+  data: BarDatum[] | Record<string, DataPoint[]>;
   subtitle?: string;
   value?: string;
   gain?: number;
@@ -27,17 +29,18 @@ export interface GraphData {
   height?: number;
   barColors?: string[];
   tooltipFormatter?: (value: number, name?: string) => string;
+  xTicks?: string[];
   secondValueFormatter?: (value: number) => string;
   onBarSelected?: (name: string) => void;
   dataKey?: string;
+  colors?: Record<string, string>;
 }
 
-export function getStrokeColor(data: DataPoint[], secondData?: DataPoint[]) {
-  if (!data || data.length === 0) return '#75aad0';
+export function getStrokeColor(data: DataPoint[] | Record<string, DataPoint[]>, secondData?: DataPoint[]) {
+  if (!data || (Array.isArray(data) && data.length === 0)) return '#75aad0';
 
   let value_b;
-  const value_a = data[data.length - 1].value;
-
+  const value_a = Array.isArray(data) ? data[data.length - 1].value : data[Object.keys(data)[0]]?.[data[Object.keys(data)[0]].length - 1]?.value || 0;
   if (secondData) {
     value_b =
       secondData.length > 0
@@ -63,13 +66,13 @@ export function getStrokeColor(data: DataPoint[], secondData?: DataPoint[]) {
 }
 
 export function useGetStrokeColor() {
-  function getStrokeColor(data: DataPoint[], secondData?: DataPoint[]) {
+  function getStrokeColor(data: DataPoint[] | Record<string, DataPoint[]>, secondData?: DataPoint[]) {
     const theme = useTheme();
 
-    if (!data || data.length === 0) return '#75aad0';
+    if (!data || (Array.isArray(data) && data.length === 0)) return '#75aad0';
 
     let value_b;
-    const value_a = data[data.length - 1].value;
+    const value_a = Array.isArray(data) ? data[data.length - 1].value : data[Object.keys(data)[0]]?.[data[Object.keys(data)[0]].length - 1]?.value || 0;
 
     if (secondData) {
       value_b =
@@ -96,3 +99,33 @@ export function useGetStrokeColor() {
   }
   return getStrokeColor;
 }
+
+
+
+export function downloadChartAsImage(container: HTMLElement) {
+  const chartEl = container.querySelector(
+    '.recharts-responsive-container'
+  ) as HTMLElement | null;
+
+  if (!chartEl) {
+    alert('Gráfico não encontrado para exportação.');
+    return;
+  }
+
+  htmlToImage
+    .toPng(chartEl, {
+      backgroundColor: '#ffffff',
+      pixelRatio: 2, // melhora qualidade
+    })
+    .then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = 'grafico.png';
+      link.href = dataUrl;
+      link.click();
+    })
+    .catch((err) => {
+      console.error('Erro ao exportar gráfico', err);
+      alert('Erro ao exportar gráfico.');
+    });
+}
+

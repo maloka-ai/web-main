@@ -53,6 +53,7 @@ import {
 import SqlCodeBox from './components/SqlCodeBox/SqlCodeBox';
 import TransferAgent, { Payload } from './components/TransferAgent/TransferAgent';
 import { tr } from 'date-fns/locale';
+import { downloadChartAsImage } from '@/utils/graphics';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -233,16 +234,34 @@ function DynamicChart({
   }, [code]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100%',
-        height,
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: '#fff',
-      }}
-    />
+    <div>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height,
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: '#fff',
+        }}
+      />
+      <Button
+        variant="outlined"
+        color="primary"
+        sx={{
+          marginTop: '8px',
+          color: '#df8157',
+          borderColor: '#df8157',
+        }}
+        onClick={() => {
+          if (containerRef.current) {
+            downloadChartAsImage(containerRef.current);
+          }
+        }}
+      >
+        Baixar gráfico
+      </Button>
+    </div>
   );
 }
 
@@ -685,13 +704,25 @@ export default function AssistantChat() {
   }
 
   function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
-    return Boolean(msg.spreadsheet_metadata);
+    if (!msg.spreadsheet_metadata) return false;
+    if (typeof msg.spreadsheet_metadata === 'object') {
+      return !!msg.spreadsheet_metadata.message_id && !msg.spreadsheet_metadata.insufficient_data_;
+    }
+    return false;
   }
 
   function showCodeSQLContainer(msg: AssistanteMessage) {
     if (!msg.spreadsheet_metadata) return false;
     if (typeof msg.spreadsheet_metadata === 'object') {
       return !!msg.spreadsheet_metadata.code_sql;
+    }
+    return false;
+  }
+
+  function showInsufficientDataWarning(msg: AssistanteMessage) {
+    if (!msg.spreadsheet_metadata) return false;
+    if (typeof msg.spreadsheet_metadata === 'object') {
+      return !!msg.spreadsheet_metadata.insufficient_data_;
     }
     return false;
   }
@@ -953,6 +984,21 @@ export default function AssistantChat() {
                   <MarkdownMUI>{msg.content}</MarkdownMUI>
 
                   {/* Se a mensagem tem spreadsheet_metadata, botão de download */}
+                  { showInsufficientDataWarning(msg) && (
+                    <Box
+                      sx={{
+                        marginTop: 2,
+                        padding: 2,
+                        borderRadius: 1,
+                        backgroundColor: '#fff4e5',
+                        border: '1px solid #ffd8b5',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: '#663c00' }}>
+                        Não há dados suficientes para gerar a planilha solicitada.
+                      </Typography>
+                    </Box>
+                  )}
                   { showDownloadSpreadsheetButton(msg) && (
                     <Button
                       variant="outlined"

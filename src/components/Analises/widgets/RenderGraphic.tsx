@@ -21,6 +21,19 @@ export default function RenderGraphic({ graph }: RenderGraphicProps) {
           xAxisAngle={graph.xAxisAngle}
           secondData={graph.secondData as DataPoint[]}
           tooltipFormatter={graph.tooltipFormatter}
+          xTicks={graph.xTicks}
+        />
+      );
+    case GraphType.MULTI_LINE:
+      return (
+        <Graphics.MultiLine
+          data={graph.data as Record<string, DataPoint[]>}
+          colors={graph.colors}
+          xLabelMap={graph.xLabelMap}
+          hideXAxis={graph.hideXAxis}
+          xAxisAngle={graph.xAxisAngle}
+          tooltipFormatter={graph.tooltipFormatter}
+          xTicks={graph.xTicks}
         />
       );
     case GraphType.PIE:

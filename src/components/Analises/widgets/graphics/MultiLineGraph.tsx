@@ -8,33 +8,58 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { DataPoint, useGetStrokeColor } from '@/utils/graphics';
+import { DataPoint } from '@/utils/graphics';
 
-interface LineGraphProps {
-  data: DataPoint[];
+interface MultiLineGraphProps {
+  data: Record<string, DataPoint[]>;
+  colors?: Record<string, string>;
   xLabelMap?: Record<string, string>;
   hideXAxis?: boolean;
   xAxisAngle?: number;
-  secondData?: DataPoint[];
   tooltipFormatter?: (value: number, name?: string) => string;
   xTicks?: string[];
 }
 
-export default function LineGraph({
+/**
+ * Paleta base de cores (pode ajustar depois)
+ */
+const COLORS = [
+  '#78a27f',
+  '#f3b52e',
+  '#f44336',
+  '#5c6bc0',
+  '#26a69a',
+  '#ff7043',
+];
+
+export default function MultiLineGraph({
   data,
+  colors,
   xLabelMap,
   hideXAxis,
   xAxisAngle,
-  secondData,
   tooltipFormatter,
   xTicks,
-}: LineGraphProps) {
-  const getStrokeColor = useGetStrokeColor();
+}: MultiLineGraphProps) {
+  const seriesKeys = Object.keys(data);
+
+  const baseData = data[seriesKeys[0]] ?? [];
+
+  const mergedData = baseData.map((point, index) => {
+    const row: Record<string, any> = { name: point.name };
+
+    seriesKeys.forEach((key) => {
+      row[key] = data[key][index]?.value ?? null;
+    });
+
+    return row;
+  });
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
-        data={data}
-        margin={{ top: secondData ? 80 : 40, bottom: 10, left: 0, right: 0 }}
+        data={mergedData}
+        margin={{ top: 40, bottom: 10, left: 0, right: 40 }}
       >
         <XAxis
           dataKey="name"
@@ -45,11 +70,12 @@ export default function LineGraph({
           hide={hideXAxis}
           fontSize={12}
           tick={{ fill: '#666' }}
-          padding={{ left: 24, right: 24 }}
           tickFormatter={(name) => xLabelMap?.[name] || name}
           angle={xAxisAngle ?? 0}
         />
+
         <YAxis hide />
+
         <Tooltip
           contentStyle={{ fontSize: '0.8rem' }}
           wrapperStyle={{ zIndex: 1000 }}
@@ -59,26 +85,19 @@ export default function LineGraph({
             tooltipFormatter ? tooltipFormatter(value, name) : value
           }
         />
-        <Line
-          type="monotone"
-          dataKey="value"
-          stroke={getStrokeColor(data, secondData)}
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={false}
-          connectNulls
-        />
-        {secondData && (
+
+        {seriesKeys.map((key, index) => (
           <Line
+            key={key}
             type="monotone"
-            dataKey="value"
-            data={secondData}
-            stroke="#ccc"
-            strokeWidth={1}
+            dataKey={key}
+            stroke={colors?.[key] || COLORS[index % COLORS.length]}
+            strokeWidth={2}
             dot={false}
             isAnimationActive={false}
+            connectNulls
           />
-        )}
+        ))}
       </LineChart>
     </ResponsiveContainer>
   );

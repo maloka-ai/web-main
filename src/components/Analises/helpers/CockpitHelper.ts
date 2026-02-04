@@ -10,11 +10,15 @@ import {
 } from '@/services/analysis/analysisService';
 import { GraphType } from '@/utils/enums';
 import { formatCurrency } from '@/utils/format';
+import { buildXTicksEveryNDays } from '@/utils/date';
+import { AverageMonthlyDiscountItem, MonthlyGrossProfitItem, MonthlyReturnPercentageItem } from '@/services/salesService';
+import { DataPoint } from '@/utils/graphics';
+import { CustomerSegmentationMetric } from '@/services/customer/types';
 
 type Graphs = {
   type: GraphType;
   title: string;
-  data: any[] | string;
+  data: any[] | string | Record<string, any[]>;
   subtitle?: string;
   info?: string;
   gain?: number;
@@ -24,6 +28,7 @@ type Graphs = {
   xAxisAngle?: number;
   secondData?: any[];
   tooltipFormatter?: (value: number, name?: string) => string;
+  xTicks?: string[];
 };
 
 export function fillMissingDays(
@@ -175,6 +180,7 @@ function groupRevenueAnnualByYear(data: AnnualRevenue[]) {
   return grouped.sort((a, b) => a.ano - b.ano);
 }
 
+
 const monthNamesPt = [
   'Jan',
   'Fev',
@@ -190,14 +196,44 @@ const monthNamesPt = [
   'Dez',
 ];
 
+function buildSegmentationMultiLineData(
+  metrics: CustomerSegmentationMetric[],
+): Record<string, DataPoint[]> {
+  if (!metrics.length) return {};
+
+  const totalKeys = Object.keys(metrics[0]).filter(
+    (key) => key.startsWith('total_')
+  ) as (keyof CustomerSegmentationMetric)[];
+
+  const result: Record<string, DataPoint[]> = {};
+
+  totalKeys.forEach((key) => {
+    result[key] = [];
+  });
+
+  metrics.forEach((item) => {
+    const label = `${item.mes.toString().padStart(2, '0')}/${item.ano - 2000}`;
+
+    totalKeys.forEach((key) => {
+      result[key].push({
+        name: label,
+        value: Number(item[key]) || 0,
+      });
+    });
+  });
+
+  return result;
+}
+
 export function clientsMakeGraphs(
   clients: CustomerSegmentation[],
   customerQuarterlyRecurrence: CustomerQuarterlyRecurrence[],
   customerAnnualRecurrence: CustomerAnnualRecurrence[],
+  totalCustomerSegmentationMetric: CustomerSegmentationMetric[],
 ): Graphs[] {
   if (
     customerQuarterlyRecurrence.length < 3 ||
-    customerAnnualRecurrence.length < 3
+    customerAnnualRecurrence.length < 2
   ) {
     return [];
   }
@@ -274,6 +310,8 @@ export function clientsMakeGraphs(
     ).toFixed(2),
   );
 
+  const multiLineCustomerSegmentationData = buildSegmentationMultiLineData(totalCustomerSegmentationMetric);
+
   return [
     {
       type: GraphType.KPI,
@@ -305,6 +343,17 @@ export function clientsMakeGraphs(
       value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
     },
+    ...(totalCustomerSegmentationMetric.length > 0 ? [{
+      type: GraphType.MULTI_LINE,
+      title: 'Evolução dos Clientes',
+      data: multiLineCustomerSegmentationData,
+      info: 'Evolução dos principais segmentos de clientes ao longo do tempo.',
+      xAxisAngle: -45,
+      xTicks: buildXTicksEveryNDays(
+        multiLineCustomerSegmentationData[Object.keys(multiLineCustomerSegmentationData)[0]],
+        5,
+      ),
+    }] : [])
   ];
 }
 
@@ -313,6 +362,12 @@ export function salesMakeGraphs(
   monthlyRevenue: MonthlyRevenue[],
   currentYearDailyRevenues: DailyRevenue[],
   lastYearDailyRevenues: DailyRevenue[],
+  averageMonthlyDiscount: AverageMonthlyDiscountItem[],
+  monthlyGrossProfit: MonthlyGrossProfitItem[],
+  monthlyReturnPercentage: MonthlyReturnPercentageItem[],
+  averageMonthlyDiscountLastYear: AverageMonthlyDiscountItem[],
+  monthlyGrossProfitLastYear: MonthlyGrossProfitItem[],
+  monthlyReturnPercentageLastYear: MonthlyReturnPercentageItem[]
 ): Graphs[] {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -326,7 +381,7 @@ export function salesMakeGraphs(
   const lastYearDailyRevenuesFilled = fillMissingDays(
     groupRevenueDailyByDate(lastYearDailyRevenues),
     currentYear,
-    currentMonth - 1,
+    currentMonth,
   );
 
   const annualRevenuesGrouped = groupRevenueAnnualByYear(annualRevenues);
@@ -364,11 +419,11 @@ export function salesMakeGraphs(
   const hasToDismemberSales = !!lastCurrentAnnualRevenue.faturameno_em_servicos;
 
   const currentMonthlyAccumulated = currentYearMonthlyRevenue
-    .filter((mr) => mr.mes < currentMonth)
+    .filter((mr) => mr.mes <= currentMonth)
     .reduce((acc, mr) => acc + mr.total_venda, 0);
 
   const lastYearMonthlyAccumulated = lastYearMonthlyRevenue
-    .filter((mr) => mr.mes < currentMonth)
+    .filter((mr) => mr.mes <= currentMonth)
     .reduce((acc, mr) => acc + mr.total_venda, 0);
 
   const currentYearDailyAccumulated = currentYearDailyRevenuesFilled.reduce(
@@ -406,7 +461,7 @@ export function salesMakeGraphs(
   const currentYearRevenuesData: { name: string; value: number }[] = [];
   const previousYearRevenuesData: { name: string; value: number }[] = [];
 
-  for (let i = 0; i < currentMonth - 1; i++) {
+  for (let i = 0; i < currentMonth; i++) {
     const month = i + 1;
 
     const current =
@@ -541,7 +596,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
-      subtitle: `Comparação até ${(currentMonth - 1).toString().padStart(2, '0')}/${currentYear}`,
+      subtitle: `Comparação até ${(currentMonth).toString().padStart(2, '0')}/${currentYear}`,
       data: currentYearRevenuesData,
       secondData: previousYearRevenuesData,
       gain: growthRateMonthly,
@@ -556,8 +611,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      // title: `Receita Mensal Acumulada ${currentYear - 1} x ${currentYear}`, // TODO: Wait for API to populate last year data
-      title: `Receita Mensal ${monthNamesPt[currentMonth - 2]} x ${monthNamesPt[currentMonth - 1]}`,
+      title: `Receita Mensal ${monthNamesPt[currentMonth - 1]}/${currentYear-2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear-2000}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
@@ -569,9 +623,113 @@ export function salesMakeGraphs(
           return [d, d];
         }),
       ),
-      xAxisAngle: -45,
+      xAxisAngle: -60,
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
+    ...(averageMonthlyDiscount.length > 0
+      ? [{
+        type: GraphType.LINE,
+        title: 'Desconto Médio Mensal',
+        data: averageMonthlyDiscount.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_desconto_medio,
+        })),
+        secondData: averageMonthlyDiscountLastYear.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_desconto_medio,
+        })),
+        value: `${
+          averageMonthlyDiscount[averageMonthlyDiscount.length - 1].percentual_desconto_medio
+        }%`,
+        gain: averageMonthlyDiscount.length > 1 ? Number(
+          (
+            ((averageMonthlyDiscount[averageMonthlyDiscount.length - 1]
+              .percentual_desconto_medio -
+              averageMonthlyDiscount[averageMonthlyDiscount.length - 2]
+                .percentual_desconto_medio) *
+              100) /
+            averageMonthlyDiscount[averageMonthlyDiscount.length - 2]
+              .percentual_desconto_medio
+          ).toFixed(2),
+        ) : 0,
+        xLabelMap: Object.fromEntries(
+          Array.from({ length: currentMonth }, (_, i) => {
+            const m = (i + 1).toString().padStart(2, '0');
+            return [m, m];
+          }),
+        ),
+        xAxisAngle: -45,
+        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+      },]
+      : []),
+    ...(monthlyGrossProfit.length > 0
+      ? [{
+        type: GraphType.LINE,
+        title: 'Lucro Bruto Mensal',
+        data: monthlyGrossProfit.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_lucro_bruto,
+        })),
+        secondData: monthlyGrossProfitLastYear.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_lucro_bruto,
+        })),
+        value: `${monthlyGrossProfit[monthlyGrossProfit.length - 1].percentual_lucro_bruto.toFixed(2)}%`,
+        gain: monthlyGrossProfit.length > 1 ? Number(
+          (
+            ((monthlyGrossProfit[monthlyGrossProfit.length - 1]
+              .percentual_lucro_bruto -
+              monthlyGrossProfit[monthlyGrossProfit.length - 2]
+                .percentual_lucro_bruto) *
+              100) /
+            monthlyGrossProfit[monthlyGrossProfit.length - 2]
+              .percentual_lucro_bruto
+          ).toFixed(2),
+        ) : 0,
+        xLabelMap: Object.fromEntries(
+          Array.from({ length: currentMonth }, (_, i) => {
+            const m = (i + 1).toString().padStart(2, '0');
+            return [m, m];
+          }),
+        ),
+        xAxisAngle: -45,
+        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+      },]
+      : []),
+    ...(monthlyReturnPercentage.length > 0
+      ? [{
+        type: GraphType.LINE,
+        title: 'Percentual de Devoluções Mensal',
+        data: monthlyReturnPercentage.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_devolucao,
+        })),
+        secondData: monthlyReturnPercentageLastYear.map((d) => ({
+          name: monthNamesPt[d.mes - 1],
+          value: d.percentual_devolucao,
+        })),
+        value: `${monthlyReturnPercentage[monthlyReturnPercentage.length - 1].percentual_devolucao.toFixed(2)}%`,
+        gain: monthlyReturnPercentage.length > 1 ? Number(
+          (
+            ((monthlyReturnPercentage[monthlyReturnPercentage.length - 1]
+              .percentual_devolucao -
+              monthlyReturnPercentage[monthlyReturnPercentage.length - 2]
+                .percentual_devolucao) *
+              100) /
+            monthlyReturnPercentage[monthlyReturnPercentage.length - 2]
+              .percentual_devolucao
+          ).toFixed(2),
+        ) : 0,
+        xLabelMap: Object.fromEntries(
+          Array.from({ length: currentMonth }, (_, i) => {
+            const m = (i + 1).toString().padStart(2, '0');
+            return [m, m];
+          }),
+        ),
+        xAxisAngle: -45,
+        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+      },]
+      : []),
     ...(hasToDismemberSales
       ? [
           {
@@ -668,7 +826,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
   }
 
   const currentStock = stock[stock.length - 1];
-
+  let findRupturaInfo = false;
   const rupturaPercentages = stock.map((s) => {
     const totalSemEstoque =
       s.total_sku_grupo_a_sem_estoque +
@@ -688,6 +846,11 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       name: `${dia}/${mes}`,
       value: Number(rupturaPercentage.toFixed(2)),
     };
+  }).filter((s) => {
+    if (!findRupturaInfo && s.value > 0) {
+      findRupturaInfo = true;
+    }
+    return findRupturaInfo;
   });
 
   return [
@@ -751,7 +914,8 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       info: 'Total de SKUs da Curva ABC com estoque zero',
       data: rupturaPercentages,
       value: `${Number(rupturaPercentages.slice(-1)[0].value.toFixed(2))}%`,
-      hideXAxis: true,
+      xAxisAngle: -45,
+      xTicks: buildXTicksEveryNDays(rupturaPercentages, 14),
     },
   ];
 }
