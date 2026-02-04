@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -6,13 +6,14 @@ import {
   DialogActions,
   Button,
   Typography,
-} from "@mui/material";
+} from '@mui/material';
 
 interface DeleteConversationModalProps {
   open: boolean;
   onClose: () => void;
   onDelete: () => void;
   conversationTitle: string;
+  isLoading?: boolean;
 }
 
 const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
@@ -20,6 +21,7 @@ const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
   onClose,
   onDelete,
   conversationTitle,
+  isLoading,
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -32,7 +34,12 @@ const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button color="error" variant="contained" onClick={onDelete}>
+        <Button
+          color="error"
+          variant="contained"
+          onClick={onDelete}
+          loading={isLoading}
+        >
           Excluir
         </Button>
       </DialogActions>
