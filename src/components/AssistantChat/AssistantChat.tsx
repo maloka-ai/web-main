@@ -18,7 +18,6 @@ import {
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import MicIcon from '@mui/icons-material/Mic';
 
 import styles from './assistantChat.module.css';
 import assistantService, {
