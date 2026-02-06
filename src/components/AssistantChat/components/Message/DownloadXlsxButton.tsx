@@ -4,7 +4,7 @@ import assistantService, {
 } from '@/services/AssistantService';
 import * as XLSX from 'xlsx';
 import { useState } from 'react';
-
+import DownloadIcon from '@mui/icons-material/Download';
 ///////////////////////////////////////////////
 // FUNÇÕES PARA FORMATAÇÃO DE DATAS NO XLSX
 //////////////////////////////////////////////
@@ -370,10 +370,13 @@ export function DownloadXlsxButton({ msg }: Props) {
         marginTop: '8px',
         color: '#df8157',
         borderColor: '#df8157',
+        borderRadius: '7.5px',
       }}
       onClick={() => {
         handleClickDownloadMetada(msg);
       }}
+      size={'small'}
+      startIcon={<DownloadIcon />}
     >
       Baixar Planilha
     </Button>

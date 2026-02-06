@@ -9,12 +9,9 @@ import {
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { DialogProps } from '@/components/dialog/DialogDetails';
-import { useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 
 export function ListSchedulingDialog({ open, onClose }: DialogProps) {
-  const theme = useTheme();
-  console.log(theme);
   return (
     <Dialog
       open={open}
@@ -23,6 +20,13 @@ export function ListSchedulingDialog({ open, onClose }: DialogProps) {
       maxWidth={'lg'}
       sx={{
         height: '100%',
+      }}
+      slotProps={{
+        paper: {
+          style: {
+            height: '90%',
+          },
+        },
       }}
     >
       <DialogTitle>

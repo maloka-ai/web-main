@@ -27,8 +27,8 @@ export default function Providers({ children }: AppProps) {
             <CssBaseline />
             {children}
             <ToastContainer
-              position="top-left"
-              autoClose={4000}
+              position="top-center"
+              autoClose={3000}
               hideProgressBar={false}
               closeOnClick
               pauseOnHover

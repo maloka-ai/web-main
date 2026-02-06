@@ -13,12 +13,13 @@ import SqlCodeBox from '@/components/AssistantChat/components/SqlCodeBox/SqlCode
 import * as Recharts from 'recharts';
 import { downloadChartAsImage } from '@/utils/graphics';
 
-import styles from '../assistantChat.module.css';
+import styles from '../../assistantChat.module.css';
 import {
   Assistants,
   AssistantTypeLabels,
 } from '@/components/AssistantChat/AssistenteSelector';
-import { DownloadXlsxButton } from '@/components/AssistantChat/components/DownloadXlsxButton';
+import { DownloadXlsxButton } from '@/components/AssistantChat/components/Message/DownloadXlsxButton';
+import { ScheduleButton } from '@/components/AssistantChat/components/Message/ScheduleButton';
 
 function showInsufficientDataWarning(msg: AssistanteMessage) {
   if (!msg.spreadsheet_metadata) return false;
@@ -287,7 +288,18 @@ export const MsgChat = ({
           </Typography>
         </Box>
       )}
-      {showDownloadSpreadsheetButton(msg) && <DownloadXlsxButton msg={msg} />}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '10px',
+          flexWrap: 'wrap',
+        }}
+      >
+        {showCodeSQLContainer(msg) && <ScheduleButton message_id={msg.id} />}
+
+        {showDownloadSpreadsheetButton(msg) && <DownloadXlsxButton msg={msg} />}
+      </Box>
 
       {showCodeSQLContainer(msg) && (
         <SqlCodeBox

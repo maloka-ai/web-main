@@ -44,8 +44,11 @@ import {
   ExpandedState,
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
-import { MsgChat } from '@/components/AssistantChat/components/MsgChat';
+import { MsgChat } from '@/components/AssistantChat/components/Message/MsgChat';
 import VoiceRecorder from '@/components/AssistantChat/components/VoiceRecorder';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { useControlModal } from '@/hooks/useControlModal';
+import { ListSchedulingDialog } from '@/components/dialog/ListSchedulingDialog';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -92,6 +95,9 @@ function TypingIndicator() {
 
 export default function AssistantChat() {
   const [input, setInput] = useState('');
+  const [openScheduleDialog, onOpenScheduleDialog, onCloseScheduleDialog] =
+    useControlModal();
+
   const { expanded, expandStep, collapseStep } = useAssistantChatStore(
     (s) => s,
   );
@@ -669,62 +675,6 @@ export default function AssistantChat() {
         <MenuItem onClick={handleDelete}>Excluir</MenuItem>
       </Menu>
       {/* Modais */}
-      {selectedConversation && (
-        <>
-          <EditConversationModal
-            open={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
-            currentTitle={selectedConversation.title}
-            onSave={async (newTitle) => {
-              const changeThread = await assistantService.editConversation(
-                selectedConversation.thread_id,
-                newTitle,
-              );
-              if (changeThread.title) {
-                setConversations((prev) =>
-                  prev.map((conv) =>
-                    conv.thread_id === changeThread.thread_id
-                      ? { ...conv, title: changeThread.title }
-                      : conv,
-                  ),
-                );
-              }
-              setEditModalOpen(false);
-            }}
-          />
-
-          <DeleteConversationModal
-            open={deleteModalOpen}
-            onClose={() => setDeleteModalOpen(false)}
-            conversationTitle={selectedConversation.title}
-            onDelete={async () => {
-              const deletedThread = await assistantService.deleteConversation(
-                selectedConversation.thread_id,
-              );
-
-              if (
-                deletedThread.message &&
-                activeConversationId === selectedConversation.thread_id
-              ) {
-                setActiveConversationId(null);
-                setMessages([]);
-              }
-              setConversations((prev) =>
-                prev.filter(
-                  (conv) => conv.thread_id !== selectedConversation.thread_id,
-                ),
-              );
-              setDeleteModalOpen(false);
-            }}
-          />
-        </>
-      )}
-
-      <CreateConversationModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onCreate={handleCreateConversation}
-      />
 
       {/* Chat Box */}
       <Paper
@@ -750,15 +700,28 @@ export default function AssistantChat() {
             },
           }}
         >
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              setDrawerOpen(true);
-            }}
-            color={'primary'}
-          >
-            <MenuOpenIcon />
-          </IconButton>
+          <Box>
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                setDrawerOpen(true);
+              }}
+              color={'primary'}
+            >
+              <MenuOpenIcon />
+            </IconButton>
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenScheduleDialog();
+              }}
+              color={'primary'}
+              title={'Agendamentos'}
+            >
+              <CalendarMonthIcon sx={{ color: '#a36e4f' }} />
+            </IconButton>
+          </Box>
+
           <Stack direction={'column'} alignItems={'center'} spacing={0}>
             <Typography variant="h6" className={styles.headerTitle}>
               Assistente
@@ -961,6 +924,67 @@ export default function AssistantChat() {
           </Typography>
         </Box>
       </Paper>
+
+      <CreateConversationModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreateConversation}
+      />
+      <ListSchedulingDialog
+        open={openScheduleDialog}
+        onClose={onCloseScheduleDialog}
+      />
+
+      {selectedConversation && (
+        <>
+          <EditConversationModal
+            open={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+            currentTitle={selectedConversation.title}
+            onSave={async (newTitle) => {
+              const changeThread = await assistantService.editConversation(
+                selectedConversation.thread_id,
+                newTitle,
+              );
+              if (changeThread.title) {
+                setConversations((prev) =>
+                  prev.map((conv) =>
+                    conv.thread_id === changeThread.thread_id
+                      ? { ...conv, title: changeThread.title }
+                      : conv,
+                  ),
+                );
+              }
+              setEditModalOpen(false);
+            }}
+          />
+
+          <DeleteConversationModal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            conversationTitle={selectedConversation.title}
+            onDelete={async () => {
+              const deletedThread = await assistantService.deleteConversation(
+                selectedConversation.thread_id,
+              );
+
+              if (
+                deletedThread.message &&
+                activeConversationId === selectedConversation.thread_id
+              ) {
+                setActiveConversationId(null);
+                setMessages([]);
+              }
+              setConversations((prev) =>
+                prev.filter(
+                  (conv) => conv.thread_id !== selectedConversation.thread_id,
+                ),
+              );
+              setDeleteModalOpen(false);
+            }}
+          />
+        </>
+      )}
     </Box>
   );
 }

@@ -32,7 +32,6 @@ const theme = createTheme({
       styleOverrides: {
         paper: {
           backgroundColor: '#f4f3ed',
-          height: '90%',
           maxHeight: '900px',
           borderRadius: '7.5px',
         },
