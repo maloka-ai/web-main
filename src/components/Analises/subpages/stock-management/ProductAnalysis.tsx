@@ -121,7 +121,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
         month: 'short',
         year: '2-digit',
       }); // ex: set/25
-      const value = Number(detail[key] ?? 0);
+      const value = Number((detail as any)[key] ?? 0);
       return { label, value, date: d };
     });
 
@@ -142,7 +142,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
           month: 'short',
           year: '2-digit',
         });
-        const value = Number(detail[key] ?? 0);
+        const value = Number((detail as any)[key] ?? 0);
         return { label, value, date: d };
       });
     }
@@ -153,8 +153,8 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
   // Combine sales and forecast for the chart
   const series = useMemo(() => {
     const combinedSeriesMap = new Map<string, Point>();
-    salesSeries.forEach((p) => combinedSeriesMap.set(p.label, p));
-    forecastSeries.forEach((p) => {
+    salesSeries.forEach((p: any) => combinedSeriesMap.set(p.label, p));
+    forecastSeries.forEach((p: any) => {
       // For forecast points, we also want to keep the sales value if it exists for the same month
       const existing = combinedSeriesMap.get(p.label);
       combinedSeriesMap.set(p.label, { ...p, value: existing?.value ?? null });
@@ -168,7 +168,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
   // --- Estatísticas / linhas auxiliares
   const mean = useMemo(() => {
     if (!salesSeries.length) return 0;
-    const sum = salesSeries.reduce((acc, p) => acc + (p.value ?? 0), 0);
+    const sum = salesSeries.reduce((acc: number, p: Point) => acc + p.value, 0);
     return sum / salesSeries.length;
   }, [salesSeries]);
 
