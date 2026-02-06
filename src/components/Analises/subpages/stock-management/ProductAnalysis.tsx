@@ -47,6 +47,7 @@ export const DEFAULT_COLORS = [
   '#E6E29F',
   '#BFE2E6',
   '#C7857F',
+  '#FF8C00', // Dark Orange
 ] as const;
 
 const COLOR_MAP = {
@@ -56,6 +57,7 @@ const COLOR_MAP = {
   max: DEFAULT_COLORS[9], // vermelho terroso
   min: DEFAULT_COLORS[8], // ciano claro
   atual: DEFAULT_COLORS[5], // rosa claro
+  previsao: DEFAULT_COLORS[10], // Dark Orange
 } as const;
 
 export default function ProductAnalysis({ product }: ProductAnalysisProps) {
@@ -94,9 +96,8 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
   const fmtDate = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
 
-  // --- Monta série mensal (12 meses: do mais antigo ao atual)
-  const series = useMemo(() => {
-    if (!detail) return [] as Point[];
+  const { salesSeries, forecastSeries } = useMemo(() => {
+    if (!detail) return { salesSeries: [], forecastSeries: [] };
 
     const now = new Date();
     const months: { key: keyof ProductDetail; offset: number }[] = [
@@ -114,7 +115,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
       { key: 'qtd_vendas_mes_atual', offset: 0 },
     ];
 
-    return months.map(({ key, offset }) => {
+    const currentSalesSeries = months.map(({ key, offset }) => {
       const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
       const label = d.toLocaleDateString('pt-BR', {
         month: 'short',
@@ -123,52 +124,114 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
       const value = Number(detail[key] ?? 0);
       return { label, value, date: d };
     });
+
+    let currentForecastSeries: Point[] = [];
+    if (detail.possui_previsao) {
+      const forecastMonths = [
+        { key: 'total_previsto_1m', offset: 1 },
+        { key: 'total_previsto_2m', offset: 2 },
+        { key: 'total_previsto_3m', offset: 3 },
+        { key: 'total_previsto_4m', offset: 4 },
+        { key: 'total_previsto_5m', offset: 5 },
+        { key: 'total_previsto_6m', offset: 6 },
+      ];
+
+      currentForecastSeries = forecastMonths.map(({ key, offset }) => {
+        const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+        const label = d.toLocaleDateString('pt-BR', {
+          month: 'short',
+          year: '2-digit',
+        });
+        const value = Number(detail[key] ?? 0);
+        return { label, value, date: d };
+      });
+    }
+
+    return { salesSeries: currentSalesSeries, forecastSeries: currentForecastSeries };
   }, [detail]);
+
+  // Combine sales and forecast for the chart
+  const series = useMemo(() => {
+    const combinedSeriesMap = new Map<string, Point>();
+    salesSeries.forEach((p) => combinedSeriesMap.set(p.label, p));
+    forecastSeries.forEach((p) => {
+      // For forecast points, we also want to keep the sales value if it exists for the same month
+      const existing = combinedSeriesMap.get(p.label);
+      combinedSeriesMap.set(p.label, { ...p, value: existing?.value ?? null });
+    });
+
+    return Array.from(combinedSeriesMap.values()).sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    );
+  }, [salesSeries, forecastSeries]);
 
   // --- Estatísticas / linhas auxiliares
   const mean = useMemo(() => {
-    if (!series.length) return 0;
-    const sum = series.reduce((acc, p) => acc + (p.value ?? 0), 0);
-    return sum / series.length;
-  }, [series]);
+    if (!salesSeries.length) return 0;
+    const sum = salesSeries.reduce((acc, p) => acc + (p.value ?? 0), 0);
+    return sum / salesSeries.length;
+  }, [salesSeries]);
 
   // média móvel simples de 3 meses (SMA-3)
   const sma3 = useMemo(() => {
-    if (!series.length) return [] as (number | null)[];
-    const out: (number | null)[] = series.map((_, i) => {
+    if (!salesSeries.length) return [] as (number | null)[];
+    const out: (number | null)[] = salesSeries.map((_, i) => {
       if (i < 2) return null;
       const v =
-        (series[i].value + series[i - 1].value + series[i - 2].value) / 3;
+        (salesSeries[i].value + salesSeries[i - 1].value + salesSeries[i - 2].value) / 3;
       return v;
     });
     return out;
-  }, [series]);
+  }, [salesSeries]);
 
   const extremes = useMemo(() => {
-    if (!series.length)
+    // Extremes should only consider sales data
+    if (!salesSeries.length)
       return {
         max: null as Point | null,
         min: null as Point | null,
         current: null as Point | null,
       };
-    let max = series[0],
-      min = series[0];
-    for (const p of series) {
+    let max = salesSeries[0],
+      min = salesSeries[0];
+    for (const p of salesSeries) {
       if (p.value > max.value) max = p;
       if (p.value < min.value) min = p;
     }
-    const current = series[series.length - 1];
+    const current = salesSeries[salesSeries.length - 1];
     return { max, min, current };
-  }, [series]);
+  }, [salesSeries]);
 
   const chartData = useMemo(() => {
-    return series.map((p, i) => ({
-      label: p.label,
-      vendas: p.value,
-      mediaMovel3m: sma3[i] ?? null,
-      mediaGeral: mean,
-    }));
-  }, [series, sma3, mean]);
+    const combinedMap = new Map<string, any>();
+
+    // Add sales data first
+    salesSeries.forEach((p, i) => {
+      combinedMap.set(p.label, {
+        label: p.label,
+        vendas: p.value,
+        mediaMovel3m: sma3[i] ?? null,
+        mediaGeral: mean,
+        date: p.date, // Keep date for sorting
+      });
+    });
+
+    // Add forecast data, merging with existing sales data if labels overlap
+    forecastSeries.forEach((p) => {
+      const existing = combinedMap.get(p.label);
+      combinedMap.set(p.label, {
+        ...existing, // Keep sales data if exists for this month
+        label: p.label,
+        previsao: p.value,
+        date: p.date, // Keep date for sorting
+      });
+    });
+
+    // Ensure chartData is sorted by date
+    return Array.from(combinedMap.values()).sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    );
+  }, [salesSeries, forecastSeries, sma3, mean]);
 
   return (
     <Box sx={{ p: { xs: 1, md: 2 } }}>
@@ -231,6 +294,9 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                 </Typography>
                 <Typography variant="body2">
                   Sugestão 3m: {detail.sugestao_3m}
+                </Typography>
+                <Typography variant="body2">
+                  Marca: {detail.nome_marca ?? '—'}
                 </Typography>
               </Stack>
             ) : (
@@ -350,7 +416,8 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                       if (
                         name === 'vendas' ||
                         name === 'mediaMovel3m' ||
-                        name === 'mediaGeral'
+                        name === 'mediaGeral' ||
+                        name === 'previsao'
                       ) {
                         return [
                           formatted,
@@ -358,7 +425,9 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                             ? 'Vendas (mês)'
                             : name === 'mediaMovel3m'
                               ? 'Média móvel (3m)'
-                              : 'Média geral',
+                              : name === 'mediaGeral'
+                                ? 'Média geral'
+                                : 'Previsão (6m)',
                         ];
                       }
                       return [formatted, name];
@@ -394,6 +463,18 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                     dot={false}
                     strokeDasharray="6 4" // <<-- deixa tracejada
                   />
+
+                  {/* Linha de Previsão */}
+                  {detail?.possui_previsao && (
+                    <Line
+                      type="monotone"
+                      dataKey="previsao"
+                      name="Previsão (6m)"
+                      stroke={COLOR_MAP.previsao}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  )}
 
                   {/* Pontos: Máximo, Mínimo, Atual — usar ReferenceDot com X categórico */}
                   {extremes.max && (
@@ -484,6 +565,20 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                 />
                 <Typography variant="body2">Média geral</Typography>
               </Stack>
+
+              {detail?.possui_previsao && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: COLOR_MAP.previsao,
+                    }}
+                  />
+                  <Typography variant="body2">Previsão (6m)</Typography>
+                </Stack>
+              )}
 
               <Divider sx={{ my: 1 }} />
 

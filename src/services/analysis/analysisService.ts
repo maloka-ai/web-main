@@ -296,6 +296,14 @@ export interface ProductDetail {
   media_recencia_sumidos: number | null;
   media_frequencia_sumidos: number | null;
   media_antiguidade_sumidos: number | null;
+
+  possui_previsao: boolean;
+  total_previsto_1m: number;
+  total_previsto_2m: number;
+  total_previsto_3m: number;
+  total_previsto_4m: number;
+  total_previsto_5m: number;
+  total_previsto_6m: number;
 }
 
 export enum ABCCurve {
@@ -403,7 +411,7 @@ export const analysisService = {
     return response.data;
   },
 
-  async getProductDetailById(id: number): Promise<any> {
+  async getProductDetailById(id: number): Promise<ProductDetail> {
     const response = await api.get<ProductDetail>(
       `/stock/cobertura/produto_por_id?id_produto=${id}`,
     );
