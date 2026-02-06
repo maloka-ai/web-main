@@ -18,12 +18,14 @@ import {
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import MicIcon from '@mui/icons-material/Mic';
 
 import styles from './assistantChat.module.css';
 import assistantService, {
   AssistanteMessage,
   AssistantThreadResume,
   AssistantType,
+  StreamingCallbacks,
 } from '@/services/AssistantService';
 
 import CreateConversationModal from './CreateConversationModal';
@@ -44,6 +46,7 @@ import {
   useAssistantChatStore,
 } from '@/store/assistantChatStore';
 import { MsgChat } from '@/components/AssistantChat/components/MsgChat';
+import VoiceRecorder from '@/components/AssistantChat/components/VoiceRecorder';
 
 const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   position: 'absolute',
@@ -93,7 +96,6 @@ export default function AssistantChat() {
   const { expanded, expandStep, collapseStep } = useAssistantChatStore(
     (s) => s,
   );
-  console.log(input);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -101,6 +103,7 @@ export default function AssistantChat() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [messages, setMessages] = useState<AssistanteMessage[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
   const [conversations, setConversations] = useState<AssistantThreadResume[]>(
     [],
   );
@@ -247,7 +250,11 @@ export default function AssistantChat() {
       p.question,
       p.analyst as AssistantType,
       (conversationIdPersonalized: string) => {
-        handleSend(p.question, true, conversationIdPersonalized);
+        handleSend({
+          msgPersonalized: p.question,
+          reset: true,
+          conversationIdPersonalized: conversationIdPersonalized,
+        });
       },
     );
   };
@@ -293,13 +300,19 @@ export default function AssistantChat() {
     updateListConversations();
   }, [drawerOpen]);
 
-  const handleSend = async (
-    msgPersonalized?: string,
-    reset?: boolean,
-    conversationIdPersonalized?: string,
-  ) => {
-    const inputMessage = msgPersonalized ? msgPersonalized : input.trim();
-    if (!inputMessage || isGeneratingMessage) return;
+  const handleSend = async (props?: {
+    msgPersonalized?: string;
+    reset?: boolean;
+    conversationIdPersonalized?: string;
+    fileAudio?: File;
+  }) => {
+    const isMessageAudio = !!props?.fileAudio;
+    const inputMessage = props?.msgPersonalized
+      ? props?.msgPersonalized
+      : input.trim();
+
+    if ((!isMessageAudio && !inputMessage) || isGeneratingMessage) return;
+
     setInput('');
     setIsGeneratingMessage(true);
     scrollToUserMessage('smooth');
@@ -308,18 +321,32 @@ export default function AssistantChat() {
     const userMsgId = crypto.randomUUID();
     const assistantPlaceholderId = crypto.randomUUID();
 
+    const messageUser: AssistanteMessage = isMessageAudio
+      ? {
+          content: '',
+          role: 'user',
+          id: userMsgId,
+          spreadsheet_metadata: null,
+          chart_code: null,
+          created_at: new Date(),
+          thread_id: activeConversationId ?? '',
+          user_id: '',
+          file_audio_url: URL.createObjectURL(props!.fileAudio!),
+        }
+      : {
+          content: inputMessage,
+          role: 'user',
+          id: userMsgId,
+          spreadsheet_metadata: null,
+          chart_code: null,
+          created_at: new Date(),
+          thread_id: activeConversationId ?? '',
+          user_id: '',
+        };
+
     const newMessages: AssistanteMessage[] = [
-      ...(reset ? [] : messages),
-      {
-        content: inputMessage,
-        role: 'user',
-        id: userMsgId,
-        spreadsheet_metadata: null,
-        chart_code: null,
-        created_at: new Date(),
-        thread_id: activeConversationId ?? '',
-        user_id: '',
-      },
+      ...(props?.reset ? [] : messages),
+      messageUser,
       {
         content: '',
         role: 'assistant',
@@ -342,13 +369,13 @@ export default function AssistantChat() {
         : inputMessage;
 
     const isNewConversation =
-      !reset &&
+      !props?.reset &&
       (!activeConversationId ||
         conversations.find((c) => c.thread_id === activeConversationId)
           ?.assistant_id !== assistantType);
 
-    let conversationId: string = conversationIdPersonalized
-      ? conversationIdPersonalized
+    let conversationId: string = props?.conversationIdPersonalized
+      ? props?.conversationIdPersonalized
       : activeConversationId || '';
 
     if (isNewConversation) {
@@ -361,160 +388,170 @@ export default function AssistantChat() {
     }
 
     setChunkAutoScroll(true);
+    const callbacks: StreamingCallbacks = {
+      onChunk: (chunk) => {
+        hideEllipsis();
+        scheduleEllipsis();
 
-    await assistantService.sendMessageStreaming(
-      inputMessage,
-      conversationId ?? '',
-      {
-        onChunk: (chunk) => {
-          hideEllipsis();
-          scheduleEllipsis();
+        setMessages((prev) => {
+          const i = prev.length - 1;
+          const last = prev[i];
 
-          setMessages((prev) => {
-            const i = prev.length - 1;
-            const last = prev[i];
+          if (i >= 0 && last?.role === 'assistant') {
+            const updated = {
+              ...last,
+              content: (last.content ?? '') + chunk,
+            };
+            return [...prev.slice(0, i), updated];
+          }
 
-            if (i >= 0 && last?.role === 'assistant') {
-              const updated = {
-                ...last,
-                content: (last.content ?? '') + chunk,
-              };
-              return [...prev.slice(0, i), updated];
-            }
-
-            return [
-              ...prev,
-              { role: 'assistant', content: chunk } as AssistanteMessage,
-            ];
-          });
-
-          // Enquanto estiver em autoscroll, rola para o fim,
-          // mas para quando a msg do usuário encostar no topo.
-          if (!chunkAutoScrollRef.current) return;
-          // aguarda layout antes de verificar/rolar
-          requestAnimationFrame(() => {
-            tryScrollThrottled();
-          });
-        },
-        onMetadata: (meta) => {
-          setMessages((prev) => {
-            const i = prev.length - 1;
-            const last = prev[i];
-
-            if (i >= 0 && last?.role === 'assistant') {
-              const updated = {
-                ...last,
-                ...meta,
-              } as AssistanteMessage;
-              return [...prev.slice(0, i), updated];
-            }
-            return prev;
-          });
-        },
-        onChartCodeLoading: () => {
-          // mostra skeleton para a mensagem placeholder
-          setChartLoading((prev) => ({
+          return [
             ...prev,
-            [assistantPlaceholderId]: true,
-          }));
-          setChartError((prev) => {
-            const copy = { ...prev };
-            delete copy[assistantPlaceholderId];
-            return copy;
-          });
-        },
-        onChartCode: (chartCode) => {
-          // salva código do chart e desliga loading
-          setChartComponents((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: chartCode,
-          }));
-          setChartLoading((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: false,
-          }));
-          setChartError((prev) => {
-            const copy = { ...prev };
-            delete copy[assistantPlaceholderId];
-            return copy;
-          });
-          // também garante que a mensagem do assistant (placeholder) tenha conteúdo se estiver vazia
-          setMessages((prev) => {
-            const i = prev.length - 1;
-            const last = prev[i];
-            if (
-              i >= 0 &&
-              last?.role === 'assistant' &&
-              (!last.content || last.content.trim() === '')
-            ) {
-              const updated = { ...last, content: '' } as AssistanteMessage;
-              return [...prev.slice(0, i), updated];
-            }
-            return prev;
-          });
-        },
-        onChartCodeEnd: () => {
-          setChartLoading((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: false,
-          }));
-        },
-        onChartCodeError: (errorMsg) => {
-          setChartLoading((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: false,
-          }));
-          setChartError((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: errorMsg ?? true,
-          }));
-        },
-        onTransfer: (analyst, question) => {
-          setMessages((prev) => {
-            const i = prev.length - 1;
-            const last = prev[i];
+            { role: 'assistant', content: chunk } as AssistanteMessage,
+          ];
+        });
 
-            if (i >= 0 && last?.role === 'assistant') {
-              const updated = {
-                ...last,
-                transfer_to_agent: { analyst, question },
-              };
-              return [...prev.slice(0, i), updated];
-            }
-
-            return [
-              ...prev,
-              {
-                role: 'assistant',
-                transfer_to_agent: { analyst, question },
-              } as AssistanteMessage,
-            ];
-          });
-
-          setTransferAgentInfo((prev) => ({
-            ...prev,
-            [assistantPlaceholderId]: { analyst, question },
-          }));
-        },
-        onError: (err) => {
-          clearEllipsisTimer();
-
-          //////////// FAZER COMPONENTE PARA ERRO
-          console.error('Invalid response message:', err);
-          setMessages((prevMessages) => [
-            ...prevMessages.slice(0, -1), // remove mensagem
-          ]);
-          setChunkAutoScroll(false);
-          setIsGeneratingMessage(false);
-        },
-        onDone: () => {
-          clearEllipsisTimer();
-
-          setChunkAutoScroll(false);
-          setIsGeneratingMessage(false);
-        },
+        // Enquanto estiver em autoscroll, rola para o fim,
+        // mas para quando a msg do usuário encostar no topo.
+        if (!chunkAutoScrollRef.current) return;
+        // aguarda layout antes de verificar/rolar
+        requestAnimationFrame(() => {
+          tryScrollThrottled();
+        });
       },
-    );
+      onMetadata: (meta) => {
+        setMessages((prev) => {
+          const i = prev.length - 1;
+          const last = prev[i];
+
+          if (i >= 0 && last?.role === 'assistant') {
+            const updated = {
+              ...last,
+              ...meta,
+            } as AssistanteMessage;
+            return [...prev.slice(0, i), updated];
+          }
+          return prev;
+        });
+      },
+      onChartCodeLoading: () => {
+        // mostra skeleton para a mensagem placeholder
+        setChartLoading((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: true,
+        }));
+        setChartError((prev) => {
+          const copy = { ...prev };
+          delete copy[assistantPlaceholderId];
+          return copy;
+        });
+      },
+      onChartCode: (chartCode) => {
+        // salva código do chart e desliga loading
+        setChartComponents((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: chartCode,
+        }));
+        setChartLoading((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: false,
+        }));
+        setChartError((prev) => {
+          const copy = { ...prev };
+          delete copy[assistantPlaceholderId];
+          return copy;
+        });
+        // também garante que a mensagem do assistant (placeholder) tenha conteúdo se estiver vazia
+        setMessages((prev) => {
+          const i = prev.length - 1;
+          const last = prev[i];
+          if (
+            i >= 0 &&
+            last?.role === 'assistant' &&
+            (!last.content || last.content.trim() === '')
+          ) {
+            const updated = { ...last, content: '' } as AssistanteMessage;
+            return [...prev.slice(0, i), updated];
+          }
+          return prev;
+        });
+      },
+      onChartCodeEnd: () => {
+        setChartLoading((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: false,
+        }));
+      },
+      onChartCodeError: (errorMsg) => {
+        setChartLoading((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: false,
+        }));
+        setChartError((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: errorMsg ?? true,
+        }));
+      },
+      onTransfer: (analyst, question) => {
+        setMessages((prev) => {
+          const i = prev.length - 1;
+          const last = prev[i];
+
+          if (i >= 0 && last?.role === 'assistant') {
+            const updated = {
+              ...last,
+              transfer_to_agent: { analyst, question },
+            };
+            return [...prev.slice(0, i), updated];
+          }
+
+          return [
+            ...prev,
+            {
+              role: 'assistant',
+              transfer_to_agent: { analyst, question },
+            } as AssistanteMessage,
+          ];
+        });
+
+        setTransferAgentInfo((prev) => ({
+          ...prev,
+          [assistantPlaceholderId]: { analyst, question },
+        }));
+      },
+      onError: (err) => {
+        clearEllipsisTimer();
+
+        //////////// FAZER COMPONENTE PARA ERRO
+        console.error('Invalid response message:', err);
+        setMessages((prevMessages) => [
+          ...prevMessages.slice(0, -1), // remove mensagem
+        ]);
+        setChunkAutoScroll(false);
+        setIsGeneratingMessage(false);
+      },
+      onDone: () => {
+        clearEllipsisTimer();
+
+        setChunkAutoScroll(false);
+        setIsGeneratingMessage(false);
+      },
+    };
+
+    if (isMessageAudio) {
+      await assistantService.sendMessageStreaming({
+        threadId: conversationId ?? '',
+        callbacks,
+        fileAudio: props.fileAudio,
+        isAudio: true,
+      });
+    } else {
+      await assistantService.sendMessageStreaming({
+        message: inputMessage,
+        threadId: conversationId ?? '',
+        callbacks,
+      });
+    }
   };
 
   const handleCopyMessageToInput = (msg: string) => {
@@ -771,7 +808,7 @@ export default function AssistantChat() {
           </Box>
         ) : (
           <ContentEmpty
-            handleSendMessage={handleSend}
+            handleSendMessage={(msg) => handleSend({ msgPersonalized: msg })}
             handleCopyMessageToInput={handleCopyMessageToInput}
             assistantType={assistantType}
           />
@@ -781,9 +818,16 @@ export default function AssistantChat() {
         <Box className={styles.inputArea}>
           <Box className={styles.inputWrapper}>
             <TextField
+              slotProps={{
+                input: {
+                  readOnly: isRecording,
+                },
+              }}
               fullWidth
-              placeholder="Escreva aqui sua solicitação"
+              placeholder={isRecording ? '' : 'Escreva aqui sua solicitação'}
               multiline
+              minRows={3}
+              maxRows={7}
               key={assistantType}
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -807,39 +851,111 @@ export default function AssistantChat() {
                   opacity: '1',
                 },
                 '& textarea': {
-                  minHeight: '70px',
-                  maxHeight: '200px',
-                  overflowY: 'scroll',
-                  marginBottom: '40px',
+                  marginBottom: isRecording ? '-43px' : '40px',
+                  transition: 'margin 0.5s ease',
                 },
               }}
             />
-            <Stack direction={'row'} justifyContent={'space-between'}>
-              <AssistantSelector
-                assistantType={assistantType}
-                className={styles.inputSelector}
-                onSelectAssistantType={(type) => setAssistantType(type)}
-              />
-              <IconButton
-                sx={{
-                  mt: '-46px',
-                  mr: '8px',
-                  height: '36px',
-                  opacity: input.trim() ? 1 : 0.4,
+            {isRecording ? (
+              <VoiceRecorder
+                onSend={async (blob, meta) => {
+                  // ✅ Baixar o áudio .webm para teste
+                  const fileName = `voice-${Date.now()}.webm`;
+                  const webmBlob = blob.type?.includes('webm')
+                    ? blob
+                    : new Blob([blob], { type: 'audio/webm' });
+
+                  const url = URL.createObjectURL(webmBlob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+
+                  // continua seu fluxo normal (upload / criação da msg)
+                  console.log(blob, meta);
+                  handleSend({
+                    msgPersonalized: 'Áudio',
+                    fileAudio: new File([webmBlob], fileName, {
+                      type: webmBlob.type || 'audio/webm',
+                    }),
+                  });
                 }}
-                size={'small'}
-                className={styles.sendButton}
-                onClick={() => handleSend()}
-                disabled={isGeneratingMessage}
-                color="primary"
-              >
-                {isGeneratingMessage ? (
-                  <TypingIndicator />
-                ) : (
-                  <ArrowUpwardIcon sx={{ color: '#fff' }} fontSize={'small'} />
-                )}{' '}
-              </IconButton>
-            </Stack>
+                maxDurationMs={60_000}
+                onClose={() => setIsRecording(false)}
+              />
+            ) : (
+              <Stack direction={'row'} justifyContent={'space-between'}>
+                <AssistantSelector
+                  assistantType={assistantType}
+                  className={styles.inputSelector}
+                  onSelectAssistantType={(type) => setAssistantType(type)}
+                />
+                <IconButton
+                  sx={{
+                    mt: '-46px',
+                    mr: '8px',
+                    height: '36px',
+                    opacity: input.trim() ? 1 : 0.4,
+                  }}
+                  size={'small'}
+                  className={styles.sendButton}
+                  onClick={() => handleSend()}
+                  disabled={isGeneratingMessage}
+                  color="primary"
+                >
+                  {isGeneratingMessage ? (
+                    <TypingIndicator />
+                  ) : (
+                    <ArrowUpwardIcon
+                      sx={{ color: '#fff' }}
+                      fontSize={'small'}
+                    />
+                  )}{' '}
+                </IconButton>
+                {/*{input.trim() ? (*/}
+                {/*  <IconButton*/}
+                {/*    sx={{*/}
+                {/*      mt: '-46px',*/}
+                {/*      mr: '8px',*/}
+                {/*      height: '36px',*/}
+                {/*      opacity: input.trim() ? 1 : 0.4,*/}
+                {/*    }}*/}
+                {/*    size={'small'}*/}
+                {/*    className={styles.sendButton}*/}
+                {/*    onClick={() => handleSend()}*/}
+                {/*    disabled={isGeneratingMessage}*/}
+                {/*    color="primary"*/}
+                {/*  >*/}
+                {/*    {isGeneratingMessage ? (*/}
+                {/*      <TypingIndicator />*/}
+                {/*    ) : (*/}
+                {/*      <ArrowUpwardIcon*/}
+                {/*        sx={{ color: '#fff' }}*/}
+                {/*        fontSize={'small'}*/}
+                {/*      />*/}
+                {/*    )}{' '}*/}
+                {/*  </IconButton>*/}
+                {/*) : (*/}
+                {/*  <IconButton*/}
+                {/*    sx={{*/}
+                {/*      mt: '-46px',*/}
+                {/*      mr: '8px',*/}
+                {/*      height: '36px',*/}
+                {/*    }}*/}
+                {/*    size={'small'}*/}
+                {/*    className={styles.sendButton}*/}
+                {/*    onClick={() => setIsRecording(true)}*/}
+                {/*    color="primary"*/}
+                {/*    title={'Gravar Audio'}*/}
+                {/*  >*/}
+                {/*    <MicIcon sx={{ color: '#fff' }} fontSize={'small'} />*/}
+                {/*  </IconButton>*/}
+                {/*)}*/}
+              </Stack>
+            )}
           </Box>
           <Typography variant="caption" mt={1} textAlign={'center'}>
             {assistantLegend}

@@ -9,6 +9,8 @@ import theme from '@/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ptBR } from 'date-fns/locale';
+import { ToastContainer } from 'react-toastify';
+import React from 'react';
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,19 @@ export default function Providers({ children }: AppProps) {
           <ThemeProvider theme={theme}>
             <CssBaseline />
             {children}
+            <ToastContainer
+              position="top-left"
+              autoClose={4000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover
+              draggable
+              theme="light"
+              toastStyle={{
+                borderRadius: 12,
+                fontFamily: 'Inter, sans-serif',
+              }}
+            />
           </ThemeProvider>
         </LocalizationProvider>
         <ReactQueryDevtools initialIsOpen={false} />
