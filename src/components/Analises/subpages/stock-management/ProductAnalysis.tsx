@@ -17,6 +17,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceArea,
   ReferenceDot,
   ResponsiveContainer,
   Tooltip as RTooltip,
@@ -404,6 +405,17 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                   margin={{ top: 10, right: 20, bottom: 10, left: 0 }}
                 >
                   <CartesianGrid />
+
+                  {/* Highlight the prediction region */}
+                  {detail?.possui_previsao && forecastSeries.length > 0 && (
+                    <ReferenceArea
+                      x1={forecastSeries[0].label}
+                      x2={forecastSeries[forecastSeries.length - 1].label}
+                      fill="#e0e0e0" // Light gray
+                      fillOpacity={0.3}
+                      key="prediction-area"
+                    />
+                  )}
 
                   <XAxis dataKey="label" />
                   <YAxis />
