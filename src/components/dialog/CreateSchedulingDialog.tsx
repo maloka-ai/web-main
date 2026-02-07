@@ -450,7 +450,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               color={'primary'}
               variant={'contained'}
               onClick={handleSaveTask}
-              disabled={isPending}
+              loading={isPending}
             >
               Salvar agendamento
             </Button>
