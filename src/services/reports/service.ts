@@ -2,7 +2,7 @@ import api from '@/utils/api';
 import { DraftReport, Report } from '@/services/reports/types';
 
 export type PayloadNewTask = {
-  cron: string;
+  cron_expression: string;
   title: string;
   recipient_emails: string[];
 };
