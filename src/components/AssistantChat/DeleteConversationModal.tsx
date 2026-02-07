@@ -27,13 +27,15 @@ const DeleteConversationModal: React.FC<DeleteConversationModalProps> = ({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Excluir Conversa</DialogTitle>
       <DialogContent>
-        <Typography>
+        <Typography pt={2}>
           Tem certeza que deseja excluir <strong>{conversationTitle}</strong>?
           Essa ação não poderá ser desfeita.
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant={'outlined'} onClick={onClose}>
+          Cancelar
+        </Button>
         <Button
           color="error"
           variant="contained"

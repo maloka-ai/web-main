@@ -50,6 +50,14 @@ const theme = createTheme({
         },
       },
     },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#f4f3ed',
+          borderRadius: '7.5px',
+        },
+      },
+    },
     MuiTableContainer: {
       styleOverrides: {
         root: {

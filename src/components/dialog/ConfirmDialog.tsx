@@ -27,6 +27,7 @@ interface Props extends DialogProps {
     | 'info'
     | 'success'
     | 'warning';
+  showBackButton?: boolean;
 }
 export function ConfirmDialog({
   open,
@@ -36,6 +37,7 @@ export function ConfirmDialog({
   title,
   textConfirm = 'Confirmar',
   colorConfirm = 'primary',
+  showBackButton = true,
 }: Props) {
   const isDescriptionString = description instanceof String;
   const isTitleString = isDescriptionString ? isDescriptionString : title;
@@ -62,14 +64,17 @@ export function ConfirmDialog({
         )}
 
         <DialogActions>
-          <Button
-            size={'small'}
-            color={'primary'}
-            variant={'outlined'}
-            onClick={onClose}
-          >
-            Voltar
-          </Button>
+          {showBackButton && (
+            <Button
+              size={'small'}
+              color={'primary'}
+              variant={'outlined'}
+              onClick={onClose}
+            >
+              Voltar
+            </Button>
+          )}
+
           <Button
             size={'small'}
             color={colorConfirm}
