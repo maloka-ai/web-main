@@ -1,17 +1,15 @@
 // app/components/AssistantChat.tsx
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   Button,
-  ButtonGroup,
   IconButton,
   Menu,
   MenuItem,
   Paper,
   Stack,
-  styled,
   TextField,
   Typography,
 } from '@mui/material';
@@ -22,7 +20,6 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import styles from './assistantChat.module.css';
 import assistantService, {
   AssistanteMessage,
-  AssistantThreadResume,
   AssistantType,
   StreamingCallbacks,
 } from '@/services/AssistantService';
@@ -69,7 +66,8 @@ export default function AssistantChat() {
   const { data: threads, isLoading: isLoadingThreads } = useQueryThreads();
   const { mutate: handleEditThread } = useMutationEditThread();
   const { mutate: handleDeleteThread } = useMutationDeleteThread();
-  const { mutate: handleCreateThread } = useMutationCreateThread();
+  const { mutate: handleCreateThread, mutateAsync: handleAsyncCreateThread } =
+    useMutationCreateThread();
 
   const [input, setInput] = useState('');
   const [openScheduleDialog, onOpenScheduleDialog, onCloseScheduleDialog] =
@@ -226,34 +224,40 @@ export default function AssistantChat() {
     );
   };
 
-  // Carrega mensagens quando muda a conversa ativa
-  useEffect(() => {
-    if (!activeConversationId) return;
+  function handleActiveConversationId(
+    conversationId: string | null,
+    refecthMessage: boolean,
+  ) {
+    setActiveConversationId(conversationId);
+    if (!conversationId) return;
+
     setAssistantType(
       threads.find((c) => c.thread_id === activeConversationId)?.assistant_id ||
         assistantType,
     );
 
-    assistantService.listMessages(activeConversationId).then((data) => {
-      if (!data || !Array.isArray(data)) {
-        console.error('Invalid messages data:', data);
-        return;
-      }
+    if (refecthMessage) {
+      assistantService.listMessages(conversationId).then((data) => {
+        if (!data || !Array.isArray(data)) {
+          console.error('Invalid messages data:', data);
+          return;
+        }
 
-      const chartComponents = data.reduce(
-        (acc, msg) => {
-          if (msg.chart_code) {
-            acc[msg.id] = msg.chart_code;
-          }
-          return acc;
-        },
-        {} as Record<string, string>,
-      );
-      setChartComponents(chartComponents);
-      setMessages(data.length ? data : []);
-      setTransferAgentInfo({});
-    });
-  }, [activeConversationId]);
+        const chartComponents = data.reduce(
+          (acc, msg) => {
+            if (msg.chart_code) {
+              acc[msg.id] = msg.chart_code;
+            }
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
+        setChartComponents(chartComponents);
+        setMessages(data.length ? data : []);
+        setTransferAgentInfo({});
+      });
+    }
+  }
 
   const handleSend = async (props?: {
     msgPersonalized?: string;
@@ -334,12 +338,12 @@ export default function AssistantChat() {
       : activeConversationId || '';
 
     if (isNewConversation) {
-      const newConversation = await assistantService.createConversation(
-        assistantType,
-        title,
-      );
+      const newConversation = await handleAsyncCreateThread({
+        assistantId: assistantType,
+        newTitle: title,
+      });
       conversationId = newConversation.thread_id;
-      setActiveConversationId(newConversation.thread_id);
+      handleActiveConversationId(newConversation.thread_id, false);
     }
 
     setChunkAutoScroll(true);
@@ -531,7 +535,7 @@ export default function AssistantChat() {
       },
       {
         onSuccess: (newConversation) => {
-          setActiveConversationId(newConversation.thread_id);
+          handleActiveConversationId(newConversation.thread_id, false);
           if (callback) {
             setTimeout(() => callback(newConversation.thread_id), 2000);
             return;
@@ -624,7 +628,9 @@ export default function AssistantChat() {
         setDrawerOpen={setDrawerOpen}
         conversations={threads}
         activeConversationId={activeConversationId}
-        setActiveConversationId={setActiveConversationId}
+        setActiveConversationId={(conversationId) =>
+          handleActiveConversationId(conversationId, true)
+        }
         handleMenuOpen={handleMenuOpen}
       />
 
