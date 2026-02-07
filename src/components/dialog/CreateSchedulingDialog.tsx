@@ -186,7 +186,9 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
       },
       {
         onSuccess() {
-          handleBack();
+          handleCloseBackDialog();
+          handleCloseDeleteDialog();
+          onClose();
         },
         onError(error) {
           console.error(error);

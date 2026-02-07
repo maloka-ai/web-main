@@ -4,12 +4,23 @@ import { reportsKeys } from '@/services/reports/queryKeys';
 import { Report } from '@/services/reports/types';
 
 export function useMutationCreateTask() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       report_id,
       ...rest
     }: PayloadNewTask & { report_id: string }) =>
       reportsService.createNewTask(rest, report_id),
+    onSuccess(_, { report_id }) {
+      queryClient.setQueryData<Report[]>(reportsKeys.list, (oldData) => {
+        if (Array.isArray(oldData)) {
+          return [...oldData, { id: report_id }] as Report[];
+        }
+        return oldData;
+      });
+      queryClient.invalidateQueries({ queryKey: reportsKeys.list });
+    },
   });
 }
 

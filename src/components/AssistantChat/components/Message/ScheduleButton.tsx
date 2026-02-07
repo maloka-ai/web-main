@@ -3,10 +3,14 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import React from 'react';
 import { reportsService } from '@/services/reports/service';
 import { CreateSchedulingDialog } from '@/components/dialog/CreateSchedulingDialog';
+import { useQueryReports } from '@/services/reports/queries';
+import CheckIcon from '@mui/icons-material/Check';
 type Props = {
   message_id: string;
 };
 export function ScheduleButton({ message_id }: Props) {
+  const { data } = useQueryReports();
+  const isAlredyReported = !!data?.some((elem) => elem.id === message_id);
   const [isLoading, setIsLoading] = React.useState(false);
   const [draft, setDraft] = React.useState<any>(null);
 
@@ -26,6 +30,28 @@ export function ScheduleButton({ message_id }: Props) {
   function handleClose() {
     setIsLoading(false);
     setDraft(null);
+  }
+
+  if (isAlredyReported) {
+    return (
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={handleSchedule}
+        loading={isLoading}
+        sx={{
+          marginTop: '8px',
+          color: '#df8157',
+          borderColor: '#df8157',
+          borderRadius: '7.5px',
+          pointerEvents: 'none',
+        }}
+        size={'small'}
+        startIcon={<CheckIcon />}
+      >
+        Relatório já agendado
+      </Button>
+    );
   }
   return (
     <>

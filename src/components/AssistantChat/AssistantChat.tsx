@@ -724,7 +724,7 @@ export default function AssistantChat() {
               color={'primary'}
               title={'Agendamentos'}
             >
-              <CalendarMonthIcon sx={{ color: '#a36e4f' }} />
+              <CalendarMonthIcon color={'primary'} />
             </IconButton>
           </Box>
 
@@ -732,7 +732,11 @@ export default function AssistantChat() {
             <Typography variant="h6" className={styles.headerTitle}>
               Assistente
             </Typography>
-            <Typography variant="subtitle2" color={'#2970bf'}>
+            <Typography
+              variant="subtitle2"
+              color={'#2970bf'}
+              textAlign={'center'}
+            >
               {selectAssistantLabel}
             </Typography>
           </Stack>
@@ -740,6 +744,7 @@ export default function AssistantChat() {
           <IconButton
             onClick={() => setCreateModalOpen(true)}
             color={'primary'}
+            sx={{ ml: '40px' }}
           >
             <AddBoxOutlinedIcon />
           </IconButton>
