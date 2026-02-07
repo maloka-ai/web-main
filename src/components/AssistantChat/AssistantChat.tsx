@@ -49,41 +49,13 @@ import VoiceRecorder from '@/components/AssistantChat/components/VoiceRecorder';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { useControlModal } from '@/hooks/useControlModal';
 import { ListSchedulingDialog } from '@/components/dialog/ListSchedulingDialog';
-
-const SideButtonGroup = styled(ButtonGroup)(({ theme }) => ({
-  position: 'absolute',
-  top: '50%',
-  right: '-27px',
-  transform: 'translate(-50%, -50%)',
-  backgroundColor: '#bfbba9',
-  boxShadow: theme.shadows[2],
-  borderTopRightRadius: 12,
-  borderBottomRightRadius: 12,
-  borderTopLeftRadius: 0,
-  borderBottomLeftRadius: 0,
-  overflow: 'hidden',
-  // tira borda entre os botões
-  '& .MuiButton-root': {
-    minWidth: 0,
-    padding: 4,
-    border: 'none',
-    color: '#fff',
-    backgroundColor: '#d4d1c5',
-    boxShadow: 'none',
-  },
-  // botão de cima: maior à direita, cortado em diagonal na parte de baixo
-
-  '& .btn-top': {
-    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 73%)',
-    backgroundColor: '#d3d1c6',
-  },
-  // botão de baixo: maior à esquerda, encaixando na diagonal
-  '& .btn-bottom': {
-    clipPath: 'polygon(0 0, 100% 27%, 100% 100%, 0 100%)',
-    backgroundColor: '#c5c2b2',
-    marginTop: '-12px',
-  },
-}));
+import { useQueryThreads } from '@/services/threads/queries';
+import { SideButtonGroup } from '@/components/AssistantChat/styles';
+import {
+  useMutationCreateThread,
+  useMutationDeleteThread,
+  useMutationEditThread,
+} from '@/services/threads/mutations';
 
 function TypingIndicator() {
   return (
@@ -94,6 +66,11 @@ function TypingIndicator() {
 }
 
 export default function AssistantChat() {
+  const { data: threads, isLoading: isLoadingThreads } = useQueryThreads();
+  const { mutate: handleEditThread } = useMutationEditThread();
+  const { mutate: handleDeleteThread } = useMutationDeleteThread();
+  const { mutate: handleCreateThread } = useMutationCreateThread();
+
   const [input, setInput] = useState('');
   const [openScheduleDialog, onOpenScheduleDialog, onCloseScheduleDialog] =
     useControlModal();
@@ -109,9 +86,7 @@ export default function AssistantChat() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [messages, setMessages] = useState<AssistanteMessage[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [conversations, setConversations] = useState<AssistantThreadResume[]>(
-    [],
-  );
+
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
@@ -217,19 +192,6 @@ export default function AssistantChat() {
     return nodeTop <= areaTop + threshold;
   };
 
-  const updateListConversations = async () => {
-    const data = await assistantService.listConversations().catch((error) => {
-      console.error('Error fetching conversations:', error);
-    });
-    if (!data || !Array.isArray(data)) {
-      console.error('Invalid conversations data:', data);
-      return;
-    }
-
-    setConversations(data);
-    return data;
-  };
-
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLButtonElement>,
     conversation: any,
@@ -267,17 +229,10 @@ export default function AssistantChat() {
   // Carrega mensagens quando muda a conversa ativa
   useEffect(() => {
     if (!activeConversationId) return;
-
-    updateListConversations().then((conversations_) => {
-      if (!conversations_ || !Array.isArray(conversations_)) {
-        console.error('Invalid conversations data:', conversations_);
-        return;
-      }
-      setAssistantType(
-        conversations_.find((c) => c.thread_id === activeConversationId)
-          ?.assistant_id || assistantType,
-      );
-    });
+    setAssistantType(
+      threads.find((c) => c.thread_id === activeConversationId)?.assistant_id ||
+        assistantType,
+    );
 
     assistantService.listMessages(activeConversationId).then((data) => {
       if (!data || !Array.isArray(data)) {
@@ -299,11 +254,6 @@ export default function AssistantChat() {
       setTransferAgentInfo({});
     });
   }, [activeConversationId]);
-
-  //Atualiza as ultimas conversas
-  useEffect(() => {
-    updateListConversations();
-  }, [drawerOpen]);
 
   const handleSend = async (props?: {
     msgPersonalized?: string;
@@ -376,7 +326,7 @@ export default function AssistantChat() {
     const isNewConversation =
       !props?.reset &&
       (!activeConversationId ||
-        conversations.find((c) => c.thread_id === activeConversationId)
+        threads.find((c) => c.thread_id === activeConversationId)
           ?.assistant_id !== assistantType);
 
     let conversationId: string = props?.conversationIdPersonalized
@@ -574,16 +524,22 @@ export default function AssistantChat() {
     type: AssistantType,
     callback?: ((conversationIdPersonalized: string) => void) | undefined,
   ) => {
-    const newConversation = await assistantService.createConversation(
-      type,
-      title,
+    handleCreateThread(
+      {
+        assistantId: type,
+        newTitle: title,
+      },
+      {
+        onSuccess: (newConversation) => {
+          setActiveConversationId(newConversation.thread_id);
+          if (callback) {
+            setTimeout(() => callback(newConversation.thread_id), 2000);
+            return;
+          }
+          setMessages([]);
+        },
+      },
     );
-    setActiveConversationId(newConversation.thread_id);
-    if (callback) {
-      setTimeout(() => callback(newConversation.thread_id), 2000);
-      return;
-    }
-    setMessages([]);
   };
 
   const selectAssistantLabel =
@@ -663,9 +619,10 @@ export default function AssistantChat() {
       {/*  )}*/}
       {/*</IconButton>*/}
       <DrawerConversation
+        isLoadingConversations={isLoadingThreads}
         drawerOpen={drawerOpen}
         setDrawerOpen={setDrawerOpen}
-        conversations={conversations}
+        conversations={threads}
         activeConversationId={activeConversationId}
         setActiveConversationId={setActiveConversationId}
         handleMenuOpen={handleMenuOpen}
@@ -952,20 +909,17 @@ export default function AssistantChat() {
             onClose={() => setEditModalOpen(false)}
             currentTitle={selectedConversation.title}
             onSave={async (newTitle) => {
-              const changeThread = await assistantService.editConversation(
-                selectedConversation.thread_id,
-                newTitle,
+              handleEditThread(
+                {
+                  newTitle: newTitle,
+                  threadId: selectedConversation.thread_id,
+                },
+                {
+                  onSettled() {
+                    setEditModalOpen(false);
+                  },
+                },
               );
-              if (changeThread.title) {
-                setConversations((prev) =>
-                  prev.map((conv) =>
-                    conv.thread_id === changeThread.thread_id
-                      ? { ...conv, title: changeThread.title }
-                      : conv,
-                  ),
-                );
-              }
-              setEditModalOpen(false);
             }}
           />
 
@@ -974,23 +928,20 @@ export default function AssistantChat() {
             onClose={() => setDeleteModalOpen(false)}
             conversationTitle={selectedConversation.title}
             onDelete={async () => {
-              const deletedThread = await assistantService.deleteConversation(
-                selectedConversation.thread_id,
-              );
-
-              if (
-                deletedThread.message &&
-                activeConversationId === selectedConversation.thread_id
-              ) {
-                setActiveConversationId(null);
-                setMessages([]);
-              }
-              setConversations((prev) =>
-                prev.filter(
-                  (conv) => conv.thread_id !== selectedConversation.thread_id,
-                ),
-              );
-              setDeleteModalOpen(false);
+              handleDeleteThread(selectedConversation.thread_id, {
+                onSuccess(deletedThread) {
+                  if (
+                    deletedThread.message &&
+                    activeConversationId === selectedConversation.thread_id
+                  ) {
+                    setActiveConversationId(null);
+                    setMessages([]);
+                  }
+                },
+                onSettled() {
+                  setDeleteModalOpen(false);
+                },
+              });
             }}
           />
         </>

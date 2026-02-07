@@ -6,6 +6,7 @@ import {
   ListItem,
   Typography,
   ListSubheader,
+  CircularProgress,
 } from '@mui/material';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
@@ -18,6 +19,7 @@ type Props = {
   conversations: AssistantThreadResume[]; // precisa ter thread_id, title, created_at
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
+  isLoadingConversations: boolean;
   handleMenuOpen: (
     event: React.MouseEvent<HTMLButtonElement>,
     conversation: any,
@@ -115,6 +117,7 @@ export function DrawerConversation({
   drawerOpen,
   setDrawerOpen,
   conversations,
+  isLoadingConversations,
   activeConversationId,
   setActiveConversationId,
   handleMenuOpen,
@@ -145,99 +148,113 @@ export function DrawerConversation({
             <SearchOutlinedIcon color="primary" />
           </IconButton>
         </Box>
+        {isLoadingConversations && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
+            <CircularProgress />{' '}
+          </Box>
+        )}
 
-        <List subheader={<li />}>
-          {sections.map((section) => (
-            <li key={`section-${section.key}`}>
-              <ul style={{ padding: 0, margin: 0 }}>
-                <ListSubheader
-                  disableSticky
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    color: '#4b4b4b',
-                    letterSpacing: 0,
-                  }}
-                >
-                  {section.title}
-                </ListSubheader>
-
-                {section.items.map(({ thread_id: id, title }) => (
-                  <ListItem
-                    key={`${section.key}-${id}`}
-                    className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
-                    onClick={() => {
-                      setActiveConversationId(id);
-                      setDrawerOpen(false);
+        {!isLoadingConversations && (
+          <List subheader={<li />}>
+            {sections.map((section) => (
+              <li key={`section-${section.key}`}>
+                <ul style={{ padding: 0, margin: 0 }}>
+                  <ListSubheader
+                    disableSticky
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      color: '#4b4b4b',
+                      letterSpacing: 0,
                     }}
                   >
-                    <span
-                      className={`${styles.marquee} ${styles.conversationName}`}
-                      onMouseEnter={(e) => {
-                        const container = e.currentTarget as HTMLSpanElement;
-                        const content = container.querySelector(
-                          `.${styles.marqueeContent}`,
-                        ) as HTMLSpanElement | null;
-                        if (!content) return;
+                    {section.title}
+                  </ListSubheader>
 
-                        // calcula quanto precisa mover (conteúdo - container)
-                        const distance =
-                          content.scrollWidth - container.clientWidth;
-                        if (distance > 0) {
-                          content.style.setProperty(
-                            '--scroll-distance',
-                            `${distance}px`,
-                          );
-                          const durationSec = Math.max(3, distance / 40);
-                          content.style.setProperty(
-                            '--scroll-duration',
-                            `${durationSec}s`,
-                          );
-
-                          content.classList.add(styles.marqueeRunning);
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const container = e.currentTarget as HTMLSpanElement;
-                        const content = container.querySelector(
-                          `.${styles.marqueeContent}`,
-                        ) as HTMLSpanElement | null;
-                        if (!content) return;
-
-                        content.classList.remove(styles.marqueeRunning);
-                        content.style.removeProperty('--scroll-distance');
-                        content.style.removeProperty('--scroll-duration');
-                        content.style.transform = 'translateX(0)';
+                  {section.items.map(({ thread_id: id, title }) => (
+                    <ListItem
+                      key={`${section.key}-${id}`}
+                      className={`${styles.conversationItem} ${id === activeConversationId ? styles.activeConversation : ''}`}
+                      onClick={() => {
+                        setActiveConversationId(id);
+                        setDrawerOpen(false);
                       }}
                     >
-                      <span className={styles.marqueeContent}>{title}</span>
-                    </span>
-                    <Box
-                      sx={{
-                        bgcolor: 'inherit',
-                      }}
-                    >
-                      <IconButton
-                        edge="end"
-                        className={styles.menuButton}
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMenuOpen(e, { thread_id: id, title });
+                      <span
+                        className={`${styles.marquee} ${styles.conversationName}`}
+                        onMouseEnter={(e) => {
+                          const container = e.currentTarget as HTMLSpanElement;
+                          const content = container.querySelector(
+                            `.${styles.marqueeContent}`,
+                          ) as HTMLSpanElement | null;
+                          if (!content) return;
+
+                          // calcula quanto precisa mover (conteúdo - container)
+                          const distance =
+                            content.scrollWidth - container.clientWidth;
+                          if (distance > 0) {
+                            content.style.setProperty(
+                              '--scroll-distance',
+                              `${distance}px`,
+                            );
+                            const durationSec = Math.max(3, distance / 40);
+                            content.style.setProperty(
+                              '--scroll-duration',
+                              `${durationSec}s`,
+                            );
+
+                            content.classList.add(styles.marqueeRunning);
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          const container = e.currentTarget as HTMLSpanElement;
+                          const content = container.querySelector(
+                            `.${styles.marqueeContent}`,
+                          ) as HTMLSpanElement | null;
+                          if (!content) return;
+
+                          content.classList.remove(styles.marqueeRunning);
+                          content.style.removeProperty('--scroll-distance');
+                          content.style.removeProperty('--scroll-duration');
+                          content.style.transform = 'translateX(0)';
                         }}
                       >
-                        <MoreHorizOutlinedIcon
-                          fontSize="small"
-                          sx={{ color: '#df8157' }}
-                        />
-                      </IconButton>
-                    </Box>
-                  </ListItem>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </List>
+                        <span className={styles.marqueeContent}>{title}</span>
+                      </span>
+                      <Box
+                        sx={{
+                          bgcolor: 'inherit',
+                        }}
+                      >
+                        <IconButton
+                          edge="end"
+                          className={styles.menuButton}
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMenuOpen(e, { thread_id: id, title });
+                          }}
+                        >
+                          <MoreHorizOutlinedIcon
+                            fontSize="small"
+                            sx={{ color: '#df8157' }}
+                          />
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </List>
+        )}
       </Box>
 
       <Box
