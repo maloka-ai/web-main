@@ -1,7 +1,7 @@
 // services/AssistantService.ts
-import api from "@/utils/api";
-import { authService } from "@/services/authService";
-import { ensureValidAccessToken } from "@/services/authGuard";
+import api from '@/utils/api';
+import { authService } from '@/services/authService';
+import { ensureValidAccessToken } from '@/services/authGuard';
 
 export interface Assistant {
   id: string;
@@ -16,7 +16,7 @@ export interface AssistantThread {
   created_at: Date;
   title: string;
 }
-export type AssistantThreadResume = Omit<AssistantThread, "user_id">;
+export type AssistantThreadResume = Omit<AssistantThread, 'user_id'>;
 
 export interface AssistantThreadDelete {
   message: string;
@@ -36,6 +36,7 @@ export interface AssistanteMessage {
   role?: string;
   content: string;
   chart_code: string | null;
+  file_audio_url?: string | null;
   spreadsheet_metadata: string | SpreadsheetMetadata | null;
   transfer_to_agent?: {
     analyst: string;
@@ -45,12 +46,12 @@ export interface AssistanteMessage {
 }
 
 export enum AssistantType {
-  GENERAL = "1",
-  SHOPPING = "2",
-  DATA = "3",
+  GENERAL = '1',
+  SHOPPING = '2',
+  DATA = '3',
 }
 
-type StreamingCallbacks = {
+export type StreamingCallbacks = {
   onChunk?: (chunk: string) => void;
   onDone?: () => void;
   onError?: (err: string) => void;
@@ -64,21 +65,21 @@ type StreamingCallbacks = {
   onTransfer?: (analyst: string, question: string) => void;
 };
 
-const META_START = "__METADATA_SEND_START__";
-const META_END = "__METADATA_SEND_END__";
+const META_START = '__METADATA_SEND_START__';
+const META_END = '__METADATA_SEND_END__';
 
 // chart markers
-const CHART_LOADING = "__CHART_CODE_LOADING__";
-const CHART_START = "__CHART_CODE_START__";
-const CHART_END = "__CHART_CODE_END__";
-const CHART_ERROR = "__CHART_CODE_ERROR__";
+const CHART_LOADING = '__CHART_CODE_LOADING__';
+const CHART_START = '__CHART_CODE_START__';
+const CHART_END = '__CHART_CODE_END__';
+const CHART_ERROR = '__CHART_CODE_ERROR__';
 
 // Agent transfer markers
 const START_TRANSFER = '__START_TRANSFER__';
 const END_TRANSFER = '__END_TRANSFER__';
 
 function createMetadataParser(callbacks: StreamingCallbacks) {
-  let buffer = "";
+  let buffer = '';
 
   // emite texto normal para o chat
   const emitText = (text: string) => {
@@ -88,15 +89,16 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
 
   // normaliza { spreadsheet_metadata: "<json>" } -> objeto
   const normalizeMeta = (meta: any) => {
-    if (meta && typeof meta.spreadsheet_metadata === "string") {
+    if (meta && typeof meta.spreadsheet_metadata === 'string') {
       try {
         meta.spreadsheet_metadata = JSON.parse(meta.spreadsheet_metadata);
       } catch (e) {
         callbacks.onError?.(
-          "Falha ao parsear spreadsheet_metadata: " + (e as Error).message,
+          'Falha ao parsear spreadsheet_metadata: ' + (e as Error).message,
         );
       }
     }
+
     return meta;
   };
 
@@ -112,21 +114,23 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
 
       // Se não encontramos nenhum marcador especial, emitimos texto "seguro" (evitando dividir marcador em dois chunks)
       if (
-        idxChartLoading === -1
-        && idxChartStart === -1
-        && idxMetaStart === -1
-        && idxChartError === -1
-        && idxTransferStart === -1
+        idxChartLoading === -1 &&
+        idxChartStart === -1 &&
+        idxMetaStart === -1 &&
+        idxChartError === -1 &&
+        idxTransferStart === -1
       ) {
         const safeLen = Math.max(
           0,
-          buffer.length - Math.max(
-            CHART_START.length,
-            META_START.length,
-            CHART_LOADING.length,
-            CHART_ERROR.length,
-            START_TRANSFER.length,
-          ));
+          buffer.length -
+            Math.max(
+              CHART_START.length,
+              META_START.length,
+              CHART_LOADING.length,
+              CHART_ERROR.length,
+              START_TRANSFER.length,
+            ),
+        );
         if (safeLen > 0) {
           emitText(buffer.slice(0, safeLen));
           buffer = buffer.slice(safeLen);
@@ -135,12 +139,25 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
       }
 
       // Determina qual marcador vem primeiro no buffer (menor índice >=0)
-      const candidates: { idx: number; type: "chartLoading" | "chartStart" | "metaStart" | "chartError" | "transferStart" }[] = [];
-      if (idxChartLoading !== -1) candidates.push({ idx: idxChartLoading, type: "chartLoading" });
-      if (idxChartStart !== -1) candidates.push({ idx: idxChartStart, type: "chartStart" });
-      if (idxMetaStart !== -1) candidates.push({ idx: idxMetaStart, type: "metaStart" });
-      if (idxChartError !== -1) candidates.push({ idx: idxChartError, type: "chartError" });
-      if (idxTransferStart !== -1) candidates.push({ idx: idxTransferStart, type: "transferStart" });
+      const candidates: {
+        idx: number;
+        type:
+          | 'chartLoading'
+          | 'chartStart'
+          | 'metaStart'
+          | 'chartError'
+          | 'transferStart';
+      }[] = [];
+      if (idxChartLoading !== -1)
+        candidates.push({ idx: idxChartLoading, type: 'chartLoading' });
+      if (idxChartStart !== -1)
+        candidates.push({ idx: idxChartStart, type: 'chartStart' });
+      if (idxMetaStart !== -1)
+        candidates.push({ idx: idxMetaStart, type: 'metaStart' });
+      if (idxChartError !== -1)
+        candidates.push({ idx: idxChartError, type: 'chartError' });
+      if (idxTransferStart !== -1)
+        candidates.push({ idx: idxTransferStart, type: 'transferStart' });
 
       candidates.sort((a, b) => a.idx - b.idx);
       const next = candidates[0];
@@ -151,7 +168,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         buffer = buffer.slice(next.idx);
       }
 
-      if (next.type === "chartLoading") {
+      if (next.type === 'chartLoading') {
         // consome o marcador e dispara callback de loading
         buffer = buffer.slice(CHART_LOADING.length);
         callbacks.onChartCodeLoading?.();
@@ -159,14 +176,14 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         continue;
       }
 
-      if (next.type === "chartError") {
+      if (next.type === 'chartError') {
         // consome token e dispara callback para indicar erro; pode opcionalmente conter texto após token (não JSON)
         buffer = buffer.slice(CHART_ERROR.length);
         callbacks.onChartCodeError?.();
         continue;
       }
 
-      if (next.type === "chartStart") {
+      if (next.type === 'chartStart') {
         // procura CHART_END após CHART_START
         const s = buffer.indexOf(CHART_START);
         const e = buffer.indexOf(CHART_END, s + CHART_START.length);
@@ -179,14 +196,16 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         try {
           // esperamos receber JSON do tipo: {"chart_code": "...tsx..."}
           const parsed = JSON.parse(jsonStr);
-          if (parsed && typeof parsed.chart_code === "string") {
+          if (parsed && typeof parsed.chart_code === 'string') {
             callbacks.onChartCode?.(parsed.chart_code);
           } else {
-            callbacks.onError?.("chart block invalid or missing chart_code field");
+            callbacks.onError?.(
+              'chart block invalid or missing chart_code field',
+            );
           }
         } catch (err) {
           callbacks.onError?.(
-            "Falha ao parsear chart JSON: " + (err as Error).message,
+            'Falha ao parsear chart JSON: ' + (err as Error).message,
           );
         }
 
@@ -197,7 +216,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         continue;
       }
 
-      if (next.type === "metaStart") {
+      if (next.type === 'metaStart') {
         // comportamente original de metadados
         const s = buffer.indexOf(META_START);
         if (s === -1) break;
@@ -215,7 +234,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
           callbacks.onMetadata?.(meta);
         } catch (err) {
           callbacks.onError?.(
-            "Falha ao parsear metadados: " + (err as Error).message,
+            'Falha ao parsear metadados: ' + (err as Error).message,
           );
         }
 
@@ -224,7 +243,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         continue;
       }
 
-      if (next.type === "transferStart") {
+      if (next.type === 'transferStart') {
         // procura o Start e End Transfer markers
         const s = buffer.indexOf(START_TRANSFER);
         if (s === -1) break;
@@ -238,18 +257,22 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         // esperamos um JSON {"analyst": string, "question": string}
         try {
           const parsed = JSON.parse(transferData);
-          if (parsed
-            && (typeof parsed.analyst === "string" || typeof parsed.analyst === "number")
-            && typeof parsed.question === "string") {
+          if (
+            parsed &&
+            (typeof parsed.analyst === 'string' ||
+              typeof parsed.analyst === 'number') &&
+            typeof parsed.question === 'string'
+          ) {
             callbacks.onTransfer?.(parsed.analyst, parsed.question);
           } else {
             callbacks.onError?.(
-              "Dados de transferência inválidos ou faltando campos obrigatórios",
+              'Dados de transferência inválidos ou faltando campos obrigatórios',
             );
           }
         } catch (err) {
           callbacks.onError?.(
-            "Falha ao parsear dados de transferência: " + (err as Error).message,
+            'Falha ao parsear dados de transferência: ' +
+              (err as Error).message,
           );
         }
 
@@ -272,7 +295,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         if (buffer.trim()) {
           emitText(buffer);
         }
-        buffer = "";
+        buffer = '';
       }
     },
   };
@@ -280,14 +303,14 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
 
 const assistantService = {
   async getAssistants(): Promise<Assistant[]> {
-    const response = await api.get<Assistant[]>("/assistants");
+    const response = await api.get<Assistant[]>('/assistants');
     return response.data;
   },
   async createConversation(
     assistant_id: string,
     title: string,
   ): Promise<AssistantThread> {
-    const response = await api.post<AssistantThread>("/assistants/threads", {
+    const response = await api.post<AssistantThread>('/assistants/threads', {
       assistant_id,
       title,
     });
@@ -295,7 +318,7 @@ const assistantService = {
   },
   async listConversations(): Promise<AssistantThreadResume[]> {
     const response = await api.get<AssistantThreadResume[]>(
-      "/assistants/threads",
+      '/assistants/threads',
     );
     return response.data;
   },
@@ -304,13 +327,13 @@ const assistantService = {
     title: string,
   ): Promise<AssistantThread> {
     const response = await api.put<AssistantThread>(
-      `/assistants/threads/${thread_id}/title?title=${encodeURIComponent(title)}`
+      `/assistants/threads/${thread_id}/title?title=${encodeURIComponent(title)}`,
     );
     return response.data;
   },
   async deleteConversation(thread_id: string): Promise<AssistantThreadDelete> {
     const reaponse = await api.delete<AssistantThreadDelete>(
-      `/assistants/threads/${thread_id}`
+      `/assistants/threads/${thread_id}`,
     );
     return reaponse.data;
   },
@@ -332,56 +355,51 @@ const assistantService = {
     );
     // Ensure if message has spreadsheet metadata, it is parsed correctly
     return response.data.map((message: any) => {
-
       const content = message.content;
 
       // extract graph code if present
       const chartCodeMatch = content.match(
         /__CHART_CODE_START__(.*?)__CHART_CODE_END__/,
       );
-      const errorCodeMatch = content.match(
-        /__CHART_CODE_ERROR__(.*)/,
-      );
+      const errorCodeMatch = content.match(/__CHART_CODE_ERROR__(.*)/);
       const transferMatch = content.match(
         /__START_TRANSFER__(.*?)__END_TRANSFER__/,
       );
       if (chartCodeMatch) {
-        message.content = content.replace(
-          /__CHART_CODE_START__.*?__CHART_CODE_END__/,
-          "",
-        ).replace(
-          "__CHART_CODE_LOADING__", "",
-        ).trim();
+        message.content = content
+          .replace(/__CHART_CODE_START__.*?__CHART_CODE_END__/, '')
+          .replace('__CHART_CODE_LOADING__', '')
+          .trim();
       }
 
       // extract transfer agent info if present
       if (transferMatch) {
-        message.content = content.replace(
-          /__START_TRANSFER__.*?__END_TRANSFER__/,
-          "",
-        ).trim();
+        message.content = content
+          .replace(/__START_TRANSFER__.*?__END_TRANSFER__/, '')
+          .trim();
       }
 
       if (errorCodeMatch) {
-        message.content = content.replace(
-          /__CHART_CODE_ERROR__.*/,
-          "",
-        ).replace(
-          "__CHART_CODE_LOADING__", "",
-        ).trim();
+        message.content = content
+          .replace(/__CHART_CODE_ERROR__.*/, '')
+          .replace('__CHART_CODE_LOADING__', '')
+          .trim();
       }
 
       return {
-      ...message,
-      chart_code: chartCodeMatch ? JSON.parse(chartCodeMatch[1].trim())["chart_code"] : null,
-      spreadsheet_metadata:
-        typeof message.spreadsheet_metadata === "string"
-          ? JSON.parse(message.spreadsheet_metadata)
-          : message.spreadsheet_metadata,
-      transfer_to_agent: transferMatch
-        ? JSON.parse(transferMatch[1].trim())
-        : undefined,
-    }});
+        ...message,
+        chart_code: chartCodeMatch
+          ? JSON.parse(chartCodeMatch[1].trim())['chart_code']
+          : null,
+        spreadsheet_metadata:
+          typeof message.spreadsheet_metadata === 'string'
+            ? JSON.parse(message.spreadsheet_metadata)
+            : message.spreadsheet_metadata,
+        transfer_to_agent: transferMatch
+          ? JSON.parse(transferMatch[1].trim())
+          : undefined,
+      };
+    });
   },
   async downloadSpreadsheet(message_id: string): Promise<string> {
     const response = await api.get<string>(
@@ -390,44 +408,81 @@ const assistantService = {
     return response.data;
   },
 
-  async sendMessageStreaming(
-    message: string,
-    threadId: string,
-    callbacks: StreamingCallbacks,
-    signal?: AbortSignal,
-  ) {
+  async sendMessageStreaming({
+    message,
+    threadId,
+    callbacks,
+    signal,
+    isAudio = false,
+    fileAudio,
+  }: {
+    message?: string;
+    threadId: string;
+    callbacks: StreamingCallbacks;
+    signal?: AbortSignal;
+    isAudio?: boolean;
+    fileAudio?: File;
+  }) {
     const token = await ensureValidAccessToken();
 
+    const url = !isAudio
+      ? `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`
+      : `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_audio_streaming`;
+
     try {
-      let res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
-        {
-          method: "POST",
+      let res: Response;
+      if (isAudio && fileAudio) {
+        const formData = new FormData();
+        isAudio && fileAudio && formData.append('audio_file', fileAudio);
+        res = await fetch(url, {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+          body: formData,
+          signal,
+        });
+      } else {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : '',
           },
           body: JSON.stringify({ message }),
           signal,
-        },
-      );
+        });
+      }
 
       if (res.status === 401) {
         await authService.refreshToken();
 
         const retryToken = authService.getAccessToken();
-        res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
-          {
-            method: "POST",
+        if (isAudio && fileAudio) {
+          const formData = new FormData();
+          isAudio && fileAudio && formData.append('file', fileAudio);
+          res = await fetch(url, {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              Authorization: retryToken ? `Bearer ${retryToken}` : "",
+              Authorization: retryToken ? `Bearer ${retryToken}` : '',
             },
-            body: JSON.stringify({ message }),
+            body: formData,
             signal,
-          },
-        );
+          });
+        } else {
+          res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/assistants/threads/${threadId}/ask_streaming`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: retryToken ? `Bearer ${retryToken}` : '',
+              },
+              body: JSON.stringify({ message }),
+              signal,
+            },
+          );
+        }
       }
 
       if (!res.ok || !res.body) {
@@ -436,7 +491,7 @@ const assistantService = {
 
       const parser = createMetadataParser(callbacks);
 
-      if ("TextDecoderStream" in window) {
+      if ('TextDecoderStream' in window) {
         const reader = res.body
           .pipeThrough(new TextDecoderStream())
           .getReader();
@@ -444,14 +499,14 @@ const assistantService = {
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            parser.push(value ?? "");
+            parser.push(value ?? '');
           }
         } finally {
           reader.releaseLock();
         }
       } else {
         const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
+        const decoder = new TextDecoder('utf-8');
         try {
           while (true) {
             const { value, done } = await reader.read();

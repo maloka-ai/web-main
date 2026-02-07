@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import SessionExpiredSnackbar from '@/components/SessionExpiredSnackbar/SessionExpiredSnackbar';
 import Providers from '@/providers';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import React from 'react';
 
 const poppins = Poppins({
   variable: '--font-poppins',
@@ -24,10 +26,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${poppins.variable}`}>
-        <Providers>
-          {children}
-          <SessionExpiredSnackbar />
-        </Providers>
+        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+          <Providers>
+            {children}
+            <SessionExpiredSnackbar />
+          </Providers>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

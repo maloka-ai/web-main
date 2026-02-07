@@ -27,6 +27,7 @@ import {
 const AssistantChat = lazy(
   () => import('@/components/AssistantChat/AssistantChat'),
 );
+
 const TabItem = styled(Tab)(({ theme }) => ({
   minHeight: 53,
   minWidth: 80,
@@ -89,6 +90,7 @@ function AnalisesColapsed({ handleReset }: { handleReset: () => void }) {
     </Stack>
   );
 }
+
 export default function Home() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'), { noSsr: true });

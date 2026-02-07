@@ -8,6 +8,8 @@ const theme = createTheme({
     primary: { main: '#ba6640', contrastText: '#ffffff' }, // laranja
     secondary: { main: '#BFA27B' }, // areia
     success: { main: '#7a9b53', contrastText: '#fff' },
+    highlight: { main: '#737064', contrastText: '#ffffff' }, // 👈 nova cor
+
     error: { main: '#d13d3d', contrastText: '#fff' },
     warning: { main: '#dcd98d', contrastText: '#fff' },
     background: { default: '#FFFFFF', paper: '#FFFFFF' },
@@ -26,7 +28,52 @@ const theme = createTheme({
         root: { borderRadius: 16, border: '1px solid #E6DCCB' },
       },
     },
-
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#f4f3ed',
+          maxHeight: '900px',
+          borderRadius: '7.5px',
+        },
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid #E6DCCB',
+          margin: '0 1.5rem',
+          padding: '0.5rem 0',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        colorDefault: {
+          backgroundColor: '#f4f3ed',
+          color: '#5c574f',
+        },
+        colorSuccess: {
+          backgroundColor: '#e6f3db',
+          color: '#3e3e3e',
+        },
+        colorError: {
+          backgroundColor: '#f0dcdc',
+          color: '#3e3e3e',
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#f4f3ed',
+          borderRadius: '7.5px',
+        },
+      },
+    },
     MuiTableContainer: {
       styleOverrides: {
         root: {

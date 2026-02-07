@@ -121,8 +121,7 @@ export default function AssistantSelector({
             {selected?.label}
           </Typography>
         </Box>
-        {/* <Typography fontSize="0.85rem" sx={{ fontFamily: 'Poppins'}}>{selected?.label}</Typography> */}
-        {/*<Divider orientation="vertical" flexItem />*/}
+
         <ExpandMoreIcon
           color={'primary'}
           fontSize={'medium'}

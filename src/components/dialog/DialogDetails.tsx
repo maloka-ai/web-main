@@ -2,7 +2,12 @@
 
 import { Box, IconButton, Modal, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import React from 'react';
 
+export type DialogProps = {
+  onClose: () => void;
+  open: boolean;
+};
 export type DetailsDialogProps = {
   title: string;
   description?: string;
