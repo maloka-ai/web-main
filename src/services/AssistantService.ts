@@ -98,6 +98,7 @@ function createMetadataParser(callbacks: StreamingCallbacks) {
         );
       }
     }
+
     return meta;
   };
 

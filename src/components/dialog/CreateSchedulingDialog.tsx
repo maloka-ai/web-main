@@ -175,7 +175,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
 
     const payload = {
       title: title.trim(),
-      emails: parseEmails(emails),
+      recipient_emails: parseEmails(emails),
       cron: cronPreview,
     };
 

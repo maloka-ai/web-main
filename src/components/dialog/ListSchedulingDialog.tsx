@@ -1,7 +1,6 @@
 'use client';
 import {
   Box,
-  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -17,16 +16,26 @@ import React from 'react';
 import { useControlModal } from '@/hooks/useControlModal';
 import { ConfirmDialog } from '@/components/dialog/ConfirmDialog';
 import { ScheduleCard } from '@/components/AssistantChat/components/ScheduleCard';
+import { useQueryReports } from '@/services/reports/queries';
+import { ScheduleCardSkeleton } from '@/components/AssistantChat/components/ScheduleCardSkeleton';
+import { useMutationDeleteReport } from '@/services/reports/mutations';
 
-type Task = {
-  title: string;
-};
 export function ListSchedulingDialog({ open, onClose }: DialogProps) {
-  const [tasks, setTasks] = React.useState<Task[]>([]);
+  const { mutateAsync, isPending } = useMutationDeleteReport();
   const [openHelpDialog, handleOpenHelpDialog, handleCloseHelpDialog] =
     useControlModal();
-  const isEmptyTasks = tasks.length === 0;
+  const { data: reports, isLoading } = useQueryReports();
 
+  const isEmptyTasks = reports?.length === 0 && !isLoading;
+  const numbersReports = reports ? reports.length : 0;
+
+  async function handleDeleteReport(report_id: string) {
+    try {
+      await mutateAsync(report_id);
+    } catch (error) {
+      console.error(error);
+    }
+  }
   return (
     <>
       <Dialog
@@ -61,8 +70,9 @@ export function ListSchedulingDialog({ open, onClose }: DialogProps) {
         >
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography py={2}>
-              Você têm: <b>0 Agendamentos</b>
+              Você têm: <b>{numbersReports} Agendamentos</b>
             </Typography>
+
             {!isEmptyTasks && (
               <Typography
                 onClick={() => handleOpenHelpDialog()}
@@ -77,73 +87,78 @@ export function ListSchedulingDialog({ open, onClose }: DialogProps) {
               </Typography>
             )}
           </Stack>
-          {/*<ScheduleCard*/}
-          {/*  title="Relatório com resultados de vendas das lojas"*/}
-          {/*  status="Processando"*/}
-          {/*  frequency="Semanal • Segunda, Quarta e Sexta • 13:30"*/}
-          {/*  notificationType="Via e-mail"*/}
-          {/*  lastNotification="20/10/2026, 13:30"*/}
-          {/*  nextNotification="23/10/2026, 13:30"*/}
-          {/*  recipients={['james@mail.com', 'sheila@mlk.com', 'rafael@mlk.com']}*/}
-          {/*  steps="Analise os resultados de vendas das lojas considerando o período mais recente disponível..."*/}
-          {/*  onEdit={() => console.log('Editar')}*/}
-          {/*  onDelete={() => console.log('Excluir')}*/}
-          {/*/>*/}
-          <Box
-            sx={{
-              flex: '1',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <CalendarMonthIcon
+          {isLoading && (
+            <>
+              <ScheduleCardSkeleton />
+              <Box mt={2} />
+              <ScheduleCardSkeleton />
+              <Box mt={2} />
+              <ScheduleCardSkeleton />
+            </>
+          )}
+
+          {isEmptyTasks && (
+            <Box
               sx={{
-                color: 'highlight.main',
-                height: '60px',
-                width: '60px',
+                flex: '1',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-            />
-            <Typography
-              sx={{
-                color: 'highlight.main',
-              }}
-              fontSize={'medium'}
-              fontWeight={500}
             >
-              Você não tem agendamentos cadastrado
-            </Typography>
-            <Divider
-              sx={{
-                width: '60%',
-                my: 1,
-              }}
-            />
-            <Typography fontWeight={600} fontSize={'medium'} mb={1}>
-              Como criar um novo agendamento?
-            </Typography>
-            <Typography>
-              Solicite uma análise na área do{' '}
+              <CalendarMonthIcon
+                sx={{
+                  color: 'highlight.main',
+                  height: '60px',
+                  width: '60px',
+                }}
+              />
               <Typography
-                component={'span'}
-                fontWeight={600}
+                sx={{
+                  color: 'highlight.main',
+                }}
                 fontSize={'medium'}
+                fontWeight={500}
               >
-                Assistente
+                Você não tem agendamentos cadastrado
               </Typography>
-              . Se a análise for válida, será exibida
-              <br />o botão{' '}
-              <Typography
-                component={'span'}
-                fontWeight={600}
-                fontSize={'medium'}
-              >
-                "Agendar relatório periódico"
+              <Divider
+                sx={{
+                  width: '60%',
+                  my: 1,
+                }}
+              />
+              <Typography fontWeight={600} fontSize={'medium'} mb={1}>
+                Como criar um novo agendamento?
               </Typography>
-              . Toque nele e defina as demais informações.
-            </Typography>
-          </Box>
+              <Typography>
+                Solicite uma análise na área do{' '}
+                <Typography
+                  component={'span'}
+                  fontWeight={600}
+                  fontSize={'medium'}
+                >
+                  Assistente
+                </Typography>
+                . Se a análise for válida, será exibida
+                <br />o botão{' '}
+                <Typography
+                  component={'span'}
+                  fontWeight={600}
+                  fontSize={'medium'}
+                >
+                  "Agendar relatório periódico"
+                </Typography>
+                . Toque nele e defina as demais informações.
+              </Typography>
+            </Box>
+          )}
+          {!isEmptyTasks &&
+            reports &&
+            reports?.map((report) => (
+              <ScheduleCard report={report} onDelete={handleDeleteReport} />
+            ))}
         </DialogContent>
       </Dialog>
       <ConfirmDialog

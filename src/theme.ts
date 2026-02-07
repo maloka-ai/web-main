@@ -50,6 +50,22 @@ const theme = createTheme({
         },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        colorDefault: {
+          backgroundColor: '#f4f3ed',
+          color: '#5c574f',
+        },
+        colorSuccess: {
+          backgroundColor: '#e6f3db',
+          color: '#3e3e3e',
+        },
+        colorError: {
+          backgroundColor: '#f0dcdc',
+          color: '#3e3e3e',
+        },
+      },
+    },
     MuiMenu: {
       styleOverrides: {
         paper: {

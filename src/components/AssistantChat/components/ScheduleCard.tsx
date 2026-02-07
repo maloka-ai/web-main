@@ -14,34 +14,35 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { Report } from '@/services/reports/types';
+import { formatCronPTBR } from '@/utils/cron';
+
 type Props = {
-  title: string;
-  status?: 'Processando' | 'Enviado' | 'Erro';
-  frequency: string;
-  notificationType: string;
-  lastNotification?: string;
-  nextNotification?: string;
-  recipients: string[];
-  steps: string;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  report: Report;
+  onDelete: (reportId: string) => void;
 };
 
-export function ScheduleCard({
-  title,
-  status = 'Processando',
-  frequency,
-  notificationType,
-  lastNotification,
-  nextNotification,
-  recipients,
-  steps,
-  onEdit,
-  onDelete,
-}: Props) {
+function dateFormat(date: Date): string {
+  return date.toLocaleDateString('pt-BR', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  });
+}
+
+export function ScheduleCard({ report, onDelete }: Props) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [expanded, setExpanded] = React.useState(false);
 
+  const nextNotification = report.next_report_time
+    ? dateFormat(new Date(report.next_report_time))
+    : null;
+
+  const lastNotification = report.last_report_time
+    ? dateFormat(new Date(report.last_report_time))
+    : null;
   const openMenu = Boolean(anchorEl);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -52,12 +53,20 @@ export function ScheduleCard({
     setAnchorEl(null);
   };
 
+  const label =
+    report.status === 'inactive'
+      ? 'Error ao criar agendamento'
+      : 'Agendamento criado';
+  const colorChip = report.status === 'inactive' ? 'error' : 'success';
+
   return (
     <Card
       sx={{
         borderRadius: 3,
         border: '1px solid #E6DCCB',
         boxShadow: 'none',
+        mb: 2,
+        overflow: 'visible',
       }}
     >
       <CardContent>
@@ -70,7 +79,7 @@ export function ScheduleCard({
               }}
             />
             <Typography fontWeight={600} variant={'h6'}>
-              {title}
+              {report.title}
             </Typography>
           </Box>
 
@@ -92,9 +101,10 @@ export function ScheduleCard({
             }}
           >
             <MenuItem
+              disabled
               onClick={() => {
                 handleMenuClose();
-                onEdit?.();
+                // onEdit?.();
               }}
             >
               Editar
@@ -103,7 +113,7 @@ export function ScheduleCard({
             <MenuItem
               onClick={() => {
                 handleMenuClose();
-                onDelete?.();
+                onDelete(report.id);
               }}
             >
               Excluir
@@ -113,21 +123,19 @@ export function ScheduleCard({
 
         {/* Status */}
         <Box mt={1}>
-          <Chip
-            label={status}
-            size="small"
-            color={status === 'Erro' ? 'error' : 'default'}
-          />
+          <Chip label={label} size="small" color={colorChip} />
         </Box>
 
         {/* Info */}
         <Box mt={2} display="flex" flexDirection="column" gap={1}>
-          <Typography>
-            <b>Frequência:</b> {frequency}
-          </Typography>
+          {report.cron_expression && (
+            <Typography>
+              <b>Frequência:</b> {formatCronPTBR(report.cron_expression)}
+            </Typography>
+          )}
 
           <Typography>
-            <b>Tipo de notificação:</b> {notificationType}
+            <b>Tipo de notificação:</b> Via e-mail
           </Typography>
 
           {lastNotification && (
@@ -143,7 +151,7 @@ export function ScheduleCard({
           )}
 
           <Typography>
-            <b>Destinatários:</b> {recipients.join(', ')}
+            <b>Destinatários:</b> {report.recipient_emails.join(', ')}
           </Typography>
 
           {/* Steps */}
@@ -151,11 +159,17 @@ export function ScheduleCard({
             <Box
               display="flex"
               alignItems="center"
-              sx={{ cursor: 'pointer' }}
+              sx={{ cursor: 'pointer', overflow: 'hidden' }}
               onClick={() => setExpanded((v) => !v)}
             >
-              <Typography>
-                <b>Passos:</b> {steps.slice(0, 60)}...
+              <Typography
+                sx={{
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                }}
+              >
+                <b>Passos:</b> {report.template_reasoning}
               </Typography>
 
               <ExpandMoreIcon
@@ -167,7 +181,12 @@ export function ScheduleCard({
             </Box>
 
             <Collapse in={expanded}>
-              <Typography mt={1}>{steps}</Typography>
+              <Typography mt={1}> {report.template_reasoning}</Typography>
+              {report.steps.map((step, i) => (
+                <Typography key={i}>
+                  {i + 1}: {step}
+                </Typography>
+              ))}
             </Collapse>
           </Box>
         </Box>

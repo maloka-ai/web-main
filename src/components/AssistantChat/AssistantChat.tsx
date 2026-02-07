@@ -397,17 +397,17 @@ export default function AssistantChat() {
       onChunk: (chunk) => {
         hideEllipsis();
         scheduleEllipsis();
-
         setMessages((prev) => {
-          const i = prev.length - 1;
-          const last = prev[i];
+          const lastIndex = prev.length - 1;
+          const last = prev[lastIndex];
 
-          if (i >= 0 && last?.role === 'assistant') {
-            const updated = {
+          if (last && last.role === 'assistant') {
+            const next = prev.slice(); // copia uma vez
+            next[lastIndex] = {
               ...last,
               content: (last.content ?? '') + chunk,
             };
-            return [...prev.slice(0, i), updated];
+            return next;
           }
 
           return [
@@ -433,6 +433,12 @@ export default function AssistantChat() {
             const updated = {
               ...last,
               ...meta,
+              ...('spreadsheet_metadata' in meta &&
+              typeof meta.spreadsheet_metadata === 'object' &&
+              meta.spreadsheet_metadata !== null &&
+              'message_id' in meta.spreadsheet_metadata
+                ? { id: meta.spreadsheet_metadata.message_id }
+                : {}),
             } as AssistanteMessage;
             return [...prev.slice(0, i), updated];
           }
@@ -837,7 +843,6 @@ export default function AssistantChat() {
                   URL.revokeObjectURL(url);
 
                   // continua seu fluxo normal (upload / criação da msg)
-                  console.log(blob, meta);
                   handleSend({
                     msgPersonalized: 'Áudio',
                     fileAudio: new File([webmBlob], fileName, {
