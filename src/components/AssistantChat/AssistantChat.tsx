@@ -565,8 +565,10 @@ export default function AssistantChat() {
 
   return (
     <Box
-      className={styles.wrapper}
       sx={{
+        position: 'relative',
+        height: '100%',
+        transition: 'ease-in-out all 0.8s',
         pt: {
           md: '40px',
         },
@@ -648,9 +650,19 @@ export default function AssistantChat() {
       {/* Chat Box */}
       <Paper
         elevation={3}
-        className={styles.chatContainer}
         sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: '260px',
+          height: '100%',
+          backgroundColor: '#f4f3ed',
+          /*border-radius: 12px 12px 0 0;*/
+          border: 'solid 1px #c8c4b4',
+          padding: '0 1rem 1rem 1rem',
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
+          overflow: 'auto',
           position: 'relative',
+
           borderRadius: {
             md: '12px 12px 0 0',
           },
@@ -660,9 +672,17 @@ export default function AssistantChat() {
         }}
       >
         <Box
-          className={styles.header}
           sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            position: 'sticky',
+            top: '0',
             background: 'inherit',
+            zIndex: '9',
+            paddingTop: '1rem',
             xs: {
               position: 'sticky',
               top: 0,
@@ -940,7 +960,7 @@ export default function AssistantChat() {
                     deletedThread.message &&
                     activeConversationId === selectedConversation.thread_id
                   ) {
-                    setActiveConversationId(null);
+                    handleActiveConversationId(null, false);
                     setMessages([]);
                   }
                 },

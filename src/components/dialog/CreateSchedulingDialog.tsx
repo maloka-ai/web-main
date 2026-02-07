@@ -116,6 +116,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
   }
 
   function handleClose() {
+    if (isPending) return;
     handleOpenBackDialog();
   }
 
@@ -424,7 +425,12 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
             </Grid>
           </Grid>
 
-          <DialogActions>
+          <DialogActions
+            sx={{
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
             <Button
               size={'small'}
               color={'primary'}

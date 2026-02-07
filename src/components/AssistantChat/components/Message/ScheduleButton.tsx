@@ -32,45 +32,44 @@ export function ScheduleButton({ message_id }: Props) {
     setDraft(null);
   }
 
-  if (isAlredyReported) {
-    return (
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={handleSchedule}
-        loading={isLoading}
-        sx={{
-          marginTop: '8px',
-          color: '#df8157',
-          borderColor: '#df8157',
-          borderRadius: '7.5px',
-          pointerEvents: 'none',
-        }}
-        size={'small'}
-        startIcon={<CheckIcon />}
-      >
-        Relatório já agendado
-      </Button>
-    );
-  }
   return (
     <>
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={handleSchedule}
-        loading={isLoading}
-        sx={{
-          marginTop: '8px',
-          color: '#df8157',
-          borderColor: '#df8157',
-          borderRadius: '7.5px',
-        }}
-        size={'small'}
-        startIcon={<CalendarMonthIcon />}
-      >
-        Agendar relatório periódico
-      </Button>
+      {isAlredyReported ? (
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleSchedule}
+          loading={isLoading}
+          sx={{
+            marginTop: '8px',
+            color: '#df8157',
+            borderColor: '#df8157',
+            borderRadius: '7.5px',
+            pointerEvents: 'none',
+          }}
+          size={'small'}
+          startIcon={<CheckIcon />}
+        >
+          Relatório já agendado
+        </Button>
+      ) : (
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleSchedule}
+          loading={isLoading}
+          sx={{
+            marginTop: '8px',
+            color: '#df8157',
+            borderColor: '#df8157',
+            borderRadius: '7.5px',
+          }}
+          size={'small'}
+          startIcon={<CalendarMonthIcon />}
+        >
+          Agendar relatório periódico
+        </Button>
+      )}
       {draft && (
         <CreateSchedulingDialog
           open={openDialog}
