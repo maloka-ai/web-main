@@ -34,6 +34,7 @@ function showDownloadSpreadsheetButton(msg: AssistanteMessage) {
   if (typeof msg.spreadsheet_metadata === 'object') {
     return (
       !!msg.spreadsheet_metadata.message_id &&
+      !!msg.spreadsheet_metadata.thread_id &&
       !msg.spreadsheet_metadata.insufficient_data_
     );
   }
