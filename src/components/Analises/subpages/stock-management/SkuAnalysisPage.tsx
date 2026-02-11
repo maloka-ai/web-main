@@ -22,6 +22,7 @@ import {
   MaterialReactTable,
   type MRT_ColumnDef,
   useMaterialReactTable,
+  type MRT_SortingState,
 } from 'material-react-table';
 
 import {
@@ -33,6 +34,7 @@ import {
 import DialogDetails from '@/components/dialog/DialogDetails';
 import ProductAnalysis from '@/components/Analises/subpages/stock-management/ProductAnalysis';
 import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
+import { tokenMatchFilterFn, tokenMatchSortingFn } from '@/utils/mrtFiltering';
 
 type CurvaFilter = '' | ABCCurve;
 type SituacaoFilter = '' | ProductStatus;
@@ -53,6 +55,10 @@ export default function SkuAnalysisPage() {
 
   const [toastOpen, setToastOpen] = useState(false);
 
+  // State for global filter and sorting
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [sorting, setSorting] = useState<MRT_SortingState>([]);
+
   function handleSelectProduct(row: ProductByABC) {
     setProductSelected(row);
   }
@@ -65,53 +71,57 @@ export default function SkuAnalysisPage() {
   const columns = useMemo<MRT_ColumnDef<ProductByABC>[]>(
     () => [
       {
-        accessorKey: 'id_produto',
-        header: 'ID SKU',
-        size: 110,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'nome_produto',
-        header: 'Produto',
-        size: 280,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'nome_categoria',
-        header: 'Categoria',
-        size: 180,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'qt_estoque_disponivel',
-        header: 'Estoque Atual',
-        size: 120,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'curva_abc',
-        header: 'Curva ABC',
-        size: 100,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'situacao_do_produto',
-        header: 'Situação',
-        size: 200,
-        filterFn: 'contains',
-      },
-      {
-        accessorKey: 'data_ultima_venda',
-        header: 'Última Venda',
-        size: 160,
-        filterFn: 'contains',
-      },
-    ],
+                  accessorKey: 'id_produto',
+                  header: 'ID SKU',
+                  size: 110,
+                },
+                {
+                  accessorKey: 'nome_produto',
+                  header: 'Produto',
+                  size: 280,
+                },
+                {
+                  accessorKey: 'nome_categoria',
+                  header: 'Categoria',
+                  size: 180,
+                },
+                {
+                  accessorKey: 'qt_estoque_disponivel',
+                  header: 'Estoque Atual',
+                  size: 120,
+                },
+                {
+                  accessorKey: 'curva_abc',
+                  header: 'Curva ABC',
+                  size: 100,
+                },
+                {
+                  accessorKey: 'situacao_do_produto',
+                  header: 'Situação',
+                  size: 200,
+                },
+                {
+                  accessorKey: 'data_ultima_venda',
+                  header: 'Última Venda',
+                  size: 160,
+                },    ],
     [],
-  );
-
-  const table = useMaterialReactTable<ProductByABC>({
-    columns,
+        );
+  
+        // Effect to manage sorting based on global filter
+        useEffect(() => {
+          if (globalFilter) {
+            // When global filter is active, sort by our custom score
+            // We use '_mrt_filterMatchScore' as the ID to reference our custom sorting function
+            setSorting([{ id: '_mrt_filterMatchScore', desc: true }]);
+          } else {
+            // When global filter is not active, clear or set default sorting
+            setSorting([]); // Clear sorting
+          }
+        }, [globalFilter]);
+  
+  
+        const table = useMaterialReactTable<ProductByABC>({    columns,
     data: rows,
     localization: MRT_Localization_PT_BR,
     muiPaginationProps: {
@@ -120,9 +130,14 @@ export default function SkuAnalysisPage() {
       shape: 'circular',
       variant: 'outlined',
     },
-    state: { isLoading: loading },
+    state: { isLoading: loading, globalFilter, sorting }, // Pass globalFilter and sorting state
+    onGlobalFilterChange: setGlobalFilter, // Handle global filter changes
+    onSortingChange: setSorting, // Handle sorting changes
     enableColumnActions: false,
-    globalFilterFn: 'contains',
+    globalFilterFn: tokenMatchFilterFn, // Use our custom global filter function
+    sortingFns: { // Define custom sorting functions
+      _mrt_filterMatchScore: tokenMatchSortingFn,
+    },
 
     initialState: { showColumnFilters: true },
     muiTableBodyRowProps: ({ row }) => ({

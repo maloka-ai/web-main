@@ -20,9 +20,11 @@ import { ProductByCriticity } from '@/services/analysis/analysisService';
 import {
   MaterialReactTable,
   useMaterialReactTable,
+  type MRT_SortingState,
 } from 'material-react-table';
 import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
 import { buildDynamicColumns } from '@/components/table/buildColumns';
+import { tokenMatchFilterFn, tokenMatchSortingFn } from '@/utils/mrtFiltering';
 
 export type DetailsDialogTableProps = {
   title: string;
@@ -47,6 +49,10 @@ export default function CardDetailsReplenishment({
   const [productSelect, setProductSelect] = useState<any>();
   const [keysStable, setKeysStable] = useState<string[]>();
   const [toastOpen, setToastOpen] = useState(false);
+
+  // State for global filter and sorting
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [sorting, setSorting] = useState<MRT_SortingState>([]);
 
   const { data: listProducts, isLoading } = useQuery<ProductByCriticity[]>({
     queryKey: [linkDataTable],
@@ -77,6 +83,17 @@ export default function CardDetailsReplenishment({
         title: 'Análise detalhada do produto',
       }
     : null;
+
+  // Effect to manage sorting based on global filter
+  useEffect(() => {
+    if (globalFilter) {
+      // When global filter is active, sort by our custom score
+      setSorting([{ id: '_mrt_filterMatchScore', desc: true }]);
+    } else {
+      // When global filter is not active, clear or set default sorting
+      setSorting([]); // Clear sorting
+    }
+  }, [globalFilter]);
   const table = useMaterialReactTable<ProductByCriticity>({
     columns: columnsKeys as any,
     data: listProducts || [],
@@ -87,9 +104,14 @@ export default function CardDetailsReplenishment({
       shape: 'circular',
       variant: 'outlined',
     },
-    state: { isLoading },
+    state: { isLoading, globalFilter, sorting }, // Pass globalFilter and sorting state
+    onGlobalFilterChange: setGlobalFilter, // Handle global filter changes
+    onSortingChange: setSorting, // Handle sorting changes
     enableColumnActions: false,
-    globalFilterFn: 'contains',
+    globalFilterFn: tokenMatchFilterFn, // Use our custom global filter function
+    sortingFns: { // Define custom sorting functions
+      _mrt_filterMatchScore: tokenMatchSortingFn,
+    },
 
     initialState: { showColumnFilters: true },
     muiTableBodyRowProps: ({ row }) => ({
