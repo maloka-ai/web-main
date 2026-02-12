@@ -134,7 +134,10 @@ export default function SkuAnalysisPage() {
     onGlobalFilterChange: setGlobalFilter, // Handle global filter changes
     onSortingChange: setSorting, // Handle sorting changes
     enableColumnActions: false,
-    globalFilterFn: tokenMatchFilterFn, // Use our custom global filter function
+    globalFilterFn: 'tokenMatch', // Use our custom global filter function
+    filterFns: {
+      tokenMatch: tokenMatchFilterFn,
+    },
     sortingFns: { // Define custom sorting functions
       _mrt_filterMatchScore: tokenMatchSortingFn,
     },
