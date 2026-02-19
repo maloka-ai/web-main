@@ -120,6 +120,8 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             xAxisAngle,
             tooltipFormatter,
             xTicks,
+            hideLegend: true,
+            hideYAxis: true,
           }}
         />
       </Box>

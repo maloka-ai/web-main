@@ -31,11 +31,12 @@ export interface GraphData {
   tooltipFormatter?: (value: number, name?: string) => string;
   xTicks?: string[];
   secondValueFormatter?: (value: number) => string;
-  onBarSelected?: (name: string) => void;
-  dataKey?: string;
-  colors?: Record<string, string>;
-}
-
+    onBarSelected?: (name: string) => void;
+    dataKey?: string;
+    colors?: Record<string, string>;
+      hideLegend?: boolean;
+      hideYAxis?: boolean;
+    }
 export function getStrokeColor(data: DataPoint[] | Record<string, DataPoint[]>, secondData?: DataPoint[]) {
   if (!data || (Array.isArray(data) && data.length === 0)) return '#75aad0';
 

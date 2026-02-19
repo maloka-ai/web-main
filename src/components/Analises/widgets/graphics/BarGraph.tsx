@@ -32,6 +32,8 @@ export interface BarGraphProps {
   height?: number;
   legendTitle?: string;
   dataKey?: string;
+  hideLegend?: boolean;
+  hideYAxis?: boolean;
 }
 
 const DEFAULT_COLORS = [
@@ -151,9 +153,11 @@ export default function BarGraph({
   secondValueFormatter,
   onBarSelected,
   barColors = DEFAULT_COLORS,
-  height = 280,
+  height,
   legendTitle = "Título da legenda",
   dataKey = "value",
+  hideLegend,
+  hideYAxis,
 }: BarGraphProps) {
   const total = useMemo(
     () => data.reduce((acc, d) => acc + (
@@ -179,7 +183,7 @@ export default function BarGraph({
   );
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height || '100%'}>
       <BarChart
         data={data}
         margin={{ top: 20, bottom: 30, left: 10, right: 10 }}
@@ -205,6 +209,7 @@ export default function BarGraph({
           textAnchor={xAxisAngle ? "end" : "middle"}
         />
         <YAxis
+          hide={hideYAxis}
           axisLine={{ stroke: "#ded9c6" }}
           domain={[0, Math.floor((max_value*1.1)/10)*10]}
         />
@@ -222,14 +227,16 @@ export default function BarGraph({
           }
         />
 
-        <Legend
-          layout="vertical"
-          align="right"
-          verticalAlign="top"
-          payload={legendPayload}
-          content={<RightLegend title={legendTitle} />}
-          wrapperStyle={{ right: 10 }} // aproxima da borda direita
-        />
+        {!hideLegend && (
+          <Legend
+            layout="vertical"
+            align="right"
+            verticalAlign="top"
+            payload={legendPayload}
+            content={<RightLegend title={legendTitle} />}
+            wrapperStyle={{ right: 10 }} // aproxima da borda direita
+          />
+        )}
 
         <Bar
           dataKey="value"

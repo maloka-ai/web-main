@@ -110,6 +110,7 @@ export default function DetailGraph({
                 hideXAxis,
                 xAxisAngle,
                 tooltipFormatter,
+                hideLegend: true,
               }}
             />
           </Box>

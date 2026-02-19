@@ -1,5 +1,4 @@
 import {
-  analysisService,
   AnnualRevenue,
   CustomerAnnualRecurrence,
   CustomerQuarterlyRecurrence,
@@ -272,13 +271,6 @@ export function clientsMakeGraphs(
       {} as { [key: string]: string },
     );
 
-  const last3QuarterlyRecurrenceMean =
-    customerQuarterlyRecurrence.slice(-3).length > 0
-      ? customerQuarterlyRecurrence
-          .slice(-3)
-          .reduce((acc, curr) => acc + curr.taxa_recorrencia, 0) /
-        customerQuarterlyRecurrence.slice(-3).length
-      : 0;
   const currentQuarterlyRecurrence =
     customerQuarterlyRecurrence[customerQuarterlyRecurrence.length - 1]
       .taxa_recorrencia;
@@ -292,13 +284,6 @@ export function clientsMakeGraphs(
     ).toFixed(2),
   );
 
-  const last5AnnualRecurrenceMean =
-    customerAnnualRecurrence.slice(-5).length > 0
-      ? customerAnnualRecurrence
-          .slice(-5)
-          .reduce((acc, curr) => acc + curr.taxa_retencao, 0) /
-        last3AnnualRecurrence.length
-      : 0;
   const currentAnnualRevenue =
     customerAnnualRecurrence[customerAnnualRecurrence.length - 1].taxa_retencao;
   const lastAnnualRevenue =
@@ -317,11 +302,6 @@ export function clientsMakeGraphs(
       type: GraphType.KPI,
       title: 'Clientes Ativos',
       data: clients.filter((c) => c.segmento !== 'Inativos').length.toString(),
-    },
-    {
-      type: GraphType.KPI,
-      title: 'Novos Clientes',
-      data: clients.filter((c) => c.segmento === 'Novos').length.toString(),
     },
     {
       type: GraphType.LINE,
@@ -344,15 +324,22 @@ export function clientsMakeGraphs(
       xLabelMap: xLabelMapLast3AnnualRecurrence,
     },
     ...(totalCustomerSegmentationMetric.length > 0 ? [{
-      type: GraphType.MULTI_LINE,
-      title: 'Evolução dos Clientes',
-      data: multiLineCustomerSegmentationData,
+      type: GraphType.BAR,
+      title: 'Segmentação de Clientes',
+      data: Object.keys(multiLineCustomerSegmentationData).reduce((acc, key) => {
+        const lastDataPoint = multiLineCustomerSegmentationData[key][multiLineCustomerSegmentationData[key].length - 1];
+        if (lastDataPoint) {
+            const formattedName = key
+              .replace(/_/g, ' ')
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            acc.push({ name: formattedName, value: lastDataPoint.value });
+        }
+        return acc;
+      }, [] as DataPoint[]),
       info: 'Evolução dos principais segmentos de clientes ao longo do tempo.',
       xAxisAngle: -45,
-      xTicks: buildXTicksEveryNDays(
-        multiLineCustomerSegmentationData[Object.keys(multiLineCustomerSegmentationData)[0]],
-        5,
-      ),
     }] : [])
   ];
 }
@@ -456,8 +443,7 @@ export function salesMakeGraphs(
           ).toFixed(2),
         );
 
-  let accumulatedCurrent = 0;
-  let accumulatedPrevious = 0;
+
   const currentYearRevenuesData: { name: string; value: number }[] = [];
   const previousYearRevenuesData: { name: string; value: number }[] = [];
 
@@ -470,17 +456,12 @@ export function salesMakeGraphs(
     const previous =
       lastYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ?? 0;
 
-    // accumulatedCurrent += current;
-    // accumulatedPrevious += previous;
 
     const name = monthNamesPt[i];
 
     currentYearRevenuesData.push({ name, value: current });
     previousYearRevenuesData.push({ name, value: previous });
   }
-
-  accumulatedCurrent = 0;
-  accumulatedPrevious = 0;
 
   const currentYearDailyRevenuesData: { name: string; value: number }[] = [];
   const lastYearDailyRevenuesData: { name: string; value: number }[] = [];
@@ -503,27 +484,6 @@ export function salesMakeGraphs(
     lastYearDailyRevenuesData.push({ name, value: previous });
   }
 
-  const dailyRevenueComparison = Array.from(
-    { length: currentYearDailyRevenuesFilled.length },
-    (_, i) => {
-      const current = currentYearDailyRevenuesFilled[i]?.total_venda ?? 0;
-      const previous = lastYearDailyRevenuesFilled[i]?.total_venda ?? 0;
-
-      accumulatedCurrent += current;
-      accumulatedPrevious += previous;
-
-      return {
-        name: `${currentYearDailyRevenuesFilled[i].dia}`,
-        value: accumulatedCurrent - accumulatedPrevious,
-      };
-    },
-  );
-
-  // Ordenar por ano e mês
-  const sortedMonthlyRevenue = monthlyRevenueGrouped.sort((a, b) =>
-    a.ano !== b.ano ? a.ano - b.ano : a.mes - b.mes,
-  );
-
   const graphs = [
     {
       type: GraphType.LINE,
@@ -545,28 +505,6 @@ export function salesMakeGraphs(
         ).toFixed(2),
       ),
       value: formatCurrency(lastCurrentAnnualRevenue.total_de_faturamento),
-      xLabelMap: xLabelMapLast5Years,
-      tooltipFormatter: (value: number) => formatCurrency(value),
-    },
-    {
-      type: GraphType.LINE,
-      title: 'Receita Mensal',
-      subtitle: 'vs Último mês',
-      data: sortedMonthlyRevenue.slice(-5).map((mr) => ({
-        name: monthNamesPt[mr.mes - 1],
-        value: mr.total_venda,
-      })),
-      value: formatCurrency(
-        sortedMonthlyRevenue[sortedMonthlyRevenue.length - 1].total_venda,
-      ),
-      gain: Number(
-        (
-          ((sortedMonthlyRevenue[sortedMonthlyRevenue.length - 1].total_venda -
-            sortedMonthlyRevenue[sortedMonthlyRevenue.length - 2].total_venda) *
-            100) /
-          sortedMonthlyRevenue[sortedMonthlyRevenue.length - 2].total_venda
-        ).toFixed(2),
-      ),
       xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
@@ -611,7 +549,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      title: `Receita Mensal ${monthNamesPt[currentMonth - 1]}/${currentYear-2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear-2000}`,
+      title: `Receita Diária ${monthNamesPt[currentMonth - 1]}/${currentYear-2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear-2000}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
@@ -665,7 +603,7 @@ export function salesMakeGraphs(
     ...(monthlyGrossProfit.length > 0
       ? [{
         type: GraphType.LINE,
-        title: 'Lucro Bruto Mensal',
+        title: 'Margem Bruta Mensal',
         data: monthlyGrossProfit.map((d) => ({
           name: monthNamesPt[d.mes - 1],
           value: d.percentual_lucro_bruto,

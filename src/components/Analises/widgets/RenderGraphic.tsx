@@ -57,6 +57,8 @@ export default function RenderGraphic({ graph }: RenderGraphicProps) {
           height={graph.height}
           onBarSelected={graph.onBarSelected}
           dataKey={graph.dataKey}
+          hideLegend={graph.hideLegend}
+          hideYAxis={graph.hideYAxis}
         />
       );
     default:
