@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { authService } from '@/services/authService';
 import { triggerSessionExpiredSnackbar } from '@/components/SessionExpiredSnackbar/SessionExpiredSnackbar';
+import { useGlobalFiltersStore } from '@/store/globalFiltersStore';
 
 let isRefreshing = false;
 let hasShownSessionExpired = false;
@@ -15,6 +16,10 @@ api.interceptors.request.use(config => {
     const token = authService.getAccessToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
+
+  const globalFilters = useGlobalFiltersStore.getState().filters;
+  config.headers['GLOBAL_FILTERS'] = JSON.stringify(globalFilters);
+
   return config;
 });
 

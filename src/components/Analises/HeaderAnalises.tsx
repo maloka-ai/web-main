@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { AnalysisSubPages } from '@/utils/enums';
 import { AnalysisMenuConfig, AnalysisSubpagesConfig } from './Analises';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import GlobalFilter from './widgets/GlobalFilter';
 
 interface Props {
   current: AnalysisSubPages;
@@ -77,6 +78,10 @@ export default function HeaderAnalises({ current, menu, onNavigate }: Props) {
             <strong>{AnalysisSubpagesConfig[current].title}</strong>
           </Typography>
         )}
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {!isMobile && <GlobalFilter />}
       </Box>
 
       <Menu

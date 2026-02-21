@@ -14,7 +14,8 @@ ARG ENV_FILE=.env.production
 COPY $ENV_FILE .env
 
 # Instalar dependências do gerenciador correto
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .yarnrc.yml* ./
+COPY .yarn ./.yarn
 RUN echo 'nodeLinker: "node-modules"' > ./.yarnrc.yml
 RUN \
   if [ -f yarn.lock ]; then yarn install --immutable; \
