@@ -699,7 +699,7 @@ export default function AssistantChat() {
             >
               <MenuOpenIcon />
             </IconButton>
-            <IconButton
+            {/* <IconButton
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenScheduleDialog();
@@ -708,7 +708,7 @@ export default function AssistantChat() {
               title={'Agendamentos'}
             >
               <CalendarMonthIcon color={'primary'} />
-            </IconButton>
+            </IconButton> */}
           </Box>
 
           <Stack direction={'column'} alignItems={'center'} spacing={0}>
