@@ -137,34 +137,28 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
         { key: 'total_previsto_6m', offset: 6 },
       ];
 
-      currentForecastSeries = forecastMonths.map(({ key, offset }) => {
+      currentForecastSeries = forecastMonths.map(({ key, offset }, index) => {
         const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
         const label = d.toLocaleDateString('pt-BR', {
           month: 'short',
           year: '2-digit',
         });
-        const value = Number((detail as any)[key] ?? 0);
+
+        const currentValue = Number((detail as any)[key] ?? 0);
+        let value = currentValue;
+
+        if (index > 0) {
+          const prevKey = forecastMonths[index - 1].key;
+          const prevValue = Number((detail as any)[prevKey] ?? 0);
+          value = currentValue - prevValue;
+        }
+
         return { label, value, date: d };
       });
     }
 
     return { salesSeries: currentSalesSeries, forecastSeries: currentForecastSeries };
   }, [detail]);
-
-  // Combine sales and forecast for the chart
-  const series = useMemo(() => {
-    const combinedSeriesMap = new Map<string, Point>();
-    salesSeries.forEach((p: any) => combinedSeriesMap.set(p.label, p));
-    forecastSeries.forEach((p: any) => {
-      // For forecast points, we also want to keep the sales value if it exists for the same month
-      const existing = combinedSeriesMap.get(p.label);
-      combinedSeriesMap.set(p.label, { ...p, value: existing?.value ?? null });
-    });
-
-    return Array.from(combinedSeriesMap.values()).sort(
-      (a, b) => a.date.getTime() - b.date.getTime(),
-    );
-  }, [salesSeries, forecastSeries]);
 
   // --- Estatísticas / linhas auxiliares
   const mean = useMemo(() => {
@@ -439,7 +433,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                               ? 'Média móvel (3m)'
                               : name === 'mediaGeral'
                                 ? 'Média geral'
-                                : 'Previsão (6m)',
+                                : 'Previsão (mês)',
                         ];
                       }
                       return [formatted, name];
@@ -481,7 +475,7 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                     <Line
                       type="monotone"
                       dataKey="previsao"
-                      name="Previsão (6m)"
+                      name="Previsão (mês)"
                       stroke={COLOR_MAP.previsao}
                       strokeWidth={2}
                       dot={false}
@@ -585,13 +579,12 @@ export default function ProductAnalysis({ product }: ProductAnalysisProps) {
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      bgcolor: COLOR_MAP.previsao,
-                    }}
-                  />
-                  <Typography variant="body2">Previsão (6m)</Typography>
-                </Stack>
-              )}
-
+                                          bgcolor: COLOR_MAP.previsao,
+                                        }}
+                                      />
+                                      <Typography variant="body2">Previsão (mês)</Typography>
+                                    </Stack>
+                                  )}
               <Divider sx={{ my: 1 }} />
 
               <Stack direction="row" spacing={1} alignItems="center">
