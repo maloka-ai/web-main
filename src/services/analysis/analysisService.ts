@@ -114,6 +114,11 @@ export interface StockMetrics {
   total_venda_grupo_a: number;
   total_venda_grupo_b: number;
   total_venda_grupo_c: number;
+
+  valor_custo_estoque_avaria: number | null;
+  valor_custo_estoque_bloqueado: number | null;
+  valor_custo_estoque_geral: number | null;
+  valor_custo_estoque_reservado: number | null;
 }
 
 export interface CustomerQuarterlyRecurrence {

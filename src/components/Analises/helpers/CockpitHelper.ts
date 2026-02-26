@@ -10,7 +10,11 @@ import {
 import { GraphType } from '@/utils/enums';
 import { formatCurrency } from '@/utils/format';
 import { buildXTicksEveryNDays } from '@/utils/date';
-import { AverageMonthlyDiscountItem, MonthlyGrossProfitItem, MonthlyReturnPercentageItem } from '@/services/salesService';
+import {
+  AverageMonthlyDiscountItem,
+  MonthlyGrossProfitItem,
+  MonthlyReturnPercentageItem,
+} from '@/services/salesService';
 import { DataPoint } from '@/utils/graphics';
 import { CustomerSegmentationMetric } from '@/services/customer/types';
 
@@ -179,7 +183,6 @@ function groupRevenueAnnualByYear(data: AnnualRevenue[]) {
   return grouped.sort((a, b) => a.ano - b.ano);
 }
 
-
 const monthNamesPt = [
   'Jan',
   'Fev',
@@ -200,8 +203,8 @@ function buildSegmentationMultiLineData(
 ): Record<string, DataPoint[]> {
   if (!metrics.length) return {};
 
-  const totalKeys = Object.keys(metrics[0]).filter(
-    (key) => key.startsWith('total_')
+  const totalKeys = Object.keys(metrics[0]).filter((key) =>
+    key.startsWith('total_'),
   ) as (keyof CustomerSegmentationMetric)[];
 
   const result: Record<string, DataPoint[]> = {};
@@ -295,7 +298,9 @@ export function clientsMakeGraphs(
     ).toFixed(2),
   );
 
-  const multiLineCustomerSegmentationData = buildSegmentationMultiLineData(totalCustomerSegmentationMetric);
+  const multiLineCustomerSegmentationData = buildSegmentationMultiLineData(
+    totalCustomerSegmentationMetric,
+  );
 
   return [
     {
@@ -318,29 +323,39 @@ export function clientsMakeGraphs(
       title: 'Taxa de Retenção Anual',
       subtitle: 'vs Último ano',
       gain: lastAnnualRecurrenceGain,
-      info:'Clientes que continuam a comprar com o passar dos anos',
+      info: 'Clientes que continuam a comprar com o passar dos anos',
       data: last3AnnualRecurrence,
       value: `${currentAnnualRevenue.toFixed(2)}%`,
       xLabelMap: xLabelMapLast3AnnualRecurrence,
     },
-    ...(totalCustomerSegmentationMetric.length > 0 ? [{
-      type: GraphType.BAR,
-      title: 'Segmentação de Clientes',
-      data: Object.keys(multiLineCustomerSegmentationData).reduce((acc, key) => {
-        const lastDataPoint = multiLineCustomerSegmentationData[key][multiLineCustomerSegmentationData[key].length - 1];
-        if (lastDataPoint) {
-            const formattedName = key
-              .replace(/_/g, ' ')
-              .split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ');
-            acc.push({ name: formattedName, value: lastDataPoint.value });
-        }
-        return acc;
-      }, [] as DataPoint[]),
-      info: 'Evolução dos principais segmentos de clientes ao longo do tempo.',
-      xAxisAngle: -45,
-    }] : [])
+    ...(totalCustomerSegmentationMetric.length > 0
+      ? [
+          {
+            type: GraphType.BAR,
+            title: 'Segmentação de Clientes',
+            data: Object.keys(multiLineCustomerSegmentationData).reduce(
+              (acc, key) => {
+                const lastDataPoint =
+                  multiLineCustomerSegmentationData[key][
+                    multiLineCustomerSegmentationData[key].length - 1
+                  ];
+                if (lastDataPoint) {
+                  const formattedName = key
+                    .replace(/_/g, ' ')
+                    .split(' ')
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+                  acc.push({ name: formattedName, value: lastDataPoint.value });
+                }
+                return acc;
+              },
+              [] as DataPoint[],
+            ),
+            info: 'Evolução dos principais segmentos de clientes ao longo do tempo.',
+            xAxisAngle: -45,
+          },
+        ]
+      : []),
   ];
 }
 
@@ -354,7 +369,7 @@ export function salesMakeGraphs(
   monthlyReturnPercentage: MonthlyReturnPercentageItem[],
   averageMonthlyDiscountLastYear: AverageMonthlyDiscountItem[],
   monthlyGrossProfitLastYear: MonthlyGrossProfitItem[],
-  monthlyReturnPercentageLastYear: MonthlyReturnPercentageItem[]
+  monthlyReturnPercentageLastYear: MonthlyReturnPercentageItem[],
 ): Graphs[] {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -443,7 +458,6 @@ export function salesMakeGraphs(
           ).toFixed(2),
         );
 
-
   const currentYearRevenuesData: { name: string; value: number }[] = [];
   const previousYearRevenuesData: { name: string; value: number }[] = [];
 
@@ -455,7 +469,6 @@ export function salesMakeGraphs(
       0;
     const previous =
       lastYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ?? 0;
-
 
     const name = monthNamesPt[i];
 
@@ -534,7 +547,7 @@ export function salesMakeGraphs(
     {
       type: GraphType.LINE,
       title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
-      subtitle: `Comparação até ${(currentMonth).toString().padStart(2, '0')}/${currentYear}`,
+      subtitle: `Comparação até ${currentMonth.toString().padStart(2, '0')}/${currentYear}`,
       data: currentYearRevenuesData,
       secondData: previousYearRevenuesData,
       gain: growthRateMonthly,
@@ -549,7 +562,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      title: `Receita Diária ${monthNamesPt[currentMonth - 1]}/${currentYear-2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear-2000}`,
+      title: `Receita Diária ${monthNamesPt[currentMonth - 1]}/${currentYear - 2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear - 2000}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
@@ -565,108 +578,129 @@ export function salesMakeGraphs(
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
     ...(averageMonthlyDiscount.length > 0
-      ? [{
-        type: GraphType.LINE,
-        title: 'Desconto Médio Mensal',
-        data: averageMonthlyDiscount.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_desconto_medio,
-        })),
-        secondData: averageMonthlyDiscountLastYear.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_desconto_medio,
-        })),
-        value: `${
-          averageMonthlyDiscount[averageMonthlyDiscount.length - 1].percentual_desconto_medio
-        }%`,
-        gain: averageMonthlyDiscount.length > 1 ? Number(
-          (
-            ((averageMonthlyDiscount[averageMonthlyDiscount.length - 1]
-              .percentual_desconto_medio -
-              averageMonthlyDiscount[averageMonthlyDiscount.length - 2]
-                .percentual_desconto_medio) *
-              100) /
-            averageMonthlyDiscount[averageMonthlyDiscount.length - 2]
-              .percentual_desconto_medio
-          ).toFixed(2),
-        ) : 0,
-        xLabelMap: Object.fromEntries(
-          Array.from({ length: currentMonth }, (_, i) => {
-            const m = (i + 1).toString().padStart(2, '0');
-            return [m, m];
-          }),
-        ),
-        xAxisAngle: -45,
-        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
-      },]
+      ? [
+          {
+            type: GraphType.LINE,
+            title: 'Desconto Médio Mensal',
+            data: averageMonthlyDiscount.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_desconto_medio,
+            })),
+            secondData: averageMonthlyDiscountLastYear.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_desconto_medio,
+            })),
+            value: `${
+              averageMonthlyDiscount[averageMonthlyDiscount.length - 1]
+                .percentual_desconto_medio
+            }%`,
+            gain:
+              averageMonthlyDiscount.length > 1
+                ? Number(
+                    (
+                      ((averageMonthlyDiscount[
+                        averageMonthlyDiscount.length - 1
+                      ].percentual_desconto_medio -
+                        averageMonthlyDiscount[
+                          averageMonthlyDiscount.length - 2
+                        ].percentual_desconto_medio) *
+                        100) /
+                      averageMonthlyDiscount[averageMonthlyDiscount.length - 2]
+                        .percentual_desconto_medio
+                    ).toFixed(2),
+                  )
+                : 0,
+            xLabelMap: Object.fromEntries(
+              Array.from({ length: currentMonth }, (_, i) => {
+                const m = (i + 1).toString().padStart(2, '0');
+                return [m, m];
+              }),
+            ),
+            xAxisAngle: -45,
+            tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+          },
+        ]
       : []),
     ...(monthlyGrossProfit.length > 0
-      ? [{
-        type: GraphType.LINE,
-        title: 'Margem Bruta Mensal',
-        data: monthlyGrossProfit.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_lucro_bruto,
-        })),
-        secondData: monthlyGrossProfitLastYear.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_lucro_bruto,
-        })),
-        value: `${monthlyGrossProfit[monthlyGrossProfit.length - 1].percentual_lucro_bruto.toFixed(2)}%`,
-        gain: monthlyGrossProfit.length > 1 ? Number(
-          (
-            ((monthlyGrossProfit[monthlyGrossProfit.length - 1]
-              .percentual_lucro_bruto -
-              monthlyGrossProfit[monthlyGrossProfit.length - 2]
-                .percentual_lucro_bruto) *
-              100) /
-            monthlyGrossProfit[monthlyGrossProfit.length - 2]
-              .percentual_lucro_bruto
-          ).toFixed(2),
-        ) : 0,
-        xLabelMap: Object.fromEntries(
-          Array.from({ length: currentMonth }, (_, i) => {
-            const m = (i + 1).toString().padStart(2, '0');
-            return [m, m];
-          }),
-        ),
-        xAxisAngle: -45,
-        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
-      },]
+      ? [
+          {
+            type: GraphType.LINE,
+            title: 'Margem Bruta Mensal',
+            data: monthlyGrossProfit.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_lucro_bruto,
+            })),
+            secondData: monthlyGrossProfitLastYear.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_lucro_bruto,
+            })),
+            value: `${monthlyGrossProfit[monthlyGrossProfit.length - 1].percentual_lucro_bruto.toFixed(2)}%`,
+            gain:
+              monthlyGrossProfit.length > 1
+                ? Number(
+                    (
+                      ((monthlyGrossProfit[monthlyGrossProfit.length - 1]
+                        .percentual_lucro_bruto -
+                        monthlyGrossProfit[monthlyGrossProfit.length - 2]
+                          .percentual_lucro_bruto) *
+                        100) /
+                      monthlyGrossProfit[monthlyGrossProfit.length - 2]
+                        .percentual_lucro_bruto
+                    ).toFixed(2),
+                  )
+                : 0,
+            xLabelMap: Object.fromEntries(
+              Array.from({ length: currentMonth }, (_, i) => {
+                const m = (i + 1).toString().padStart(2, '0');
+                return [m, m];
+              }),
+            ),
+            xAxisAngle: -45,
+            tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+          },
+        ]
       : []),
     ...(monthlyReturnPercentage.length > 0
-      ? [{
-        type: GraphType.LINE,
-        title: 'Percentual de Devoluções Mensal',
-        data: monthlyReturnPercentage.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_devolucao,
-        })),
-        secondData: monthlyReturnPercentageLastYear.map((d) => ({
-          name: monthNamesPt[d.mes - 1],
-          value: d.percentual_devolucao,
-        })),
-        value: `${monthlyReturnPercentage[monthlyReturnPercentage.length - 1].percentual_devolucao.toFixed(2)}%`,
-        gain: monthlyReturnPercentage.length > 1 ? Number(
-          (
-            ((monthlyReturnPercentage[monthlyReturnPercentage.length - 1]
-              .percentual_devolucao -
-              monthlyReturnPercentage[monthlyReturnPercentage.length - 2]
-                .percentual_devolucao) *
-              100) /
-            monthlyReturnPercentage[monthlyReturnPercentage.length - 2]
-              .percentual_devolucao
-          ).toFixed(2),
-        ) : 0,
-        xLabelMap: Object.fromEntries(
-          Array.from({ length: currentMonth }, (_, i) => {
-            const m = (i + 1).toString().padStart(2, '0');
-            return [m, m];
-          }),
-        ),
-        xAxisAngle: -45,
-        tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
-      },]
+      ? [
+          {
+            type: GraphType.LINE,
+            title: 'Percentual de Devoluções Mensal',
+            data: monthlyReturnPercentage.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_devolucao,
+            })),
+            secondData: monthlyReturnPercentageLastYear.map((d) => ({
+              name: monthNamesPt[d.mes - 1],
+              value: d.percentual_devolucao,
+            })),
+            value: `${monthlyReturnPercentage[monthlyReturnPercentage.length - 1].percentual_devolucao.toFixed(2)}%`,
+            gain:
+              monthlyReturnPercentage.length > 1
+                ? Number(
+                    (
+                      ((monthlyReturnPercentage[
+                        monthlyReturnPercentage.length - 1
+                      ].percentual_devolucao -
+                        monthlyReturnPercentage[
+                          monthlyReturnPercentage.length - 2
+                        ].percentual_devolucao) *
+                        100) /
+                      monthlyReturnPercentage[
+                        monthlyReturnPercentage.length - 2
+                      ].percentual_devolucao
+                    ).toFixed(2),
+                  )
+                : 0,
+            xLabelMap: Object.fromEntries(
+              Array.from({ length: currentMonth }, (_, i) => {
+                const m = (i + 1).toString().padStart(2, '0');
+                return [m, m];
+              }),
+            ),
+            xAxisAngle: -45,
+            tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+          },
+        ]
       : []),
     ...(hasToDismemberSales
       ? [
@@ -765,39 +799,87 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
 
   const currentStock = stock[stock.length - 1];
   let findRupturaInfo = false;
-  const rupturaPercentages = stock.map((s) => {
-    const totalSemEstoque =
-      s.total_sku_grupo_a_sem_estoque +
-      s.total_sku_grupo_b_sem_estoque +
-      s.total_sku_grupo_c_sem_estoque;
-    const totalAtivo =
-      s.total_sku_grupo_a + s.total_sku_grupo_b + s.total_sku_grupo_c;
-    const rupturaPercentage =
-      totalAtivo > 0
-        ? (totalSemEstoque / totalAtivo) * 100
-        : 0;
-    // Obtem dia/mes da data_hora_analise
-    const date = new Date(s.data_hora_analise);
-    const dia = date.getDate().toString().padStart(2, '0');
-    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
-    return {
-      name: `${dia}/${mes}`,
-      value: Number(rupturaPercentage.toFixed(2)),
-    };
-  }).filter((s) => {
-    if (!findRupturaInfo && s.value > 0) {
-      findRupturaInfo = true;
-    }
-    return findRupturaInfo;
-  });
-
+  const rupturaPercentages = stock
+    .map((s) => {
+      const totalSemEstoque =
+        s.total_sku_grupo_a_sem_estoque +
+        s.total_sku_grupo_b_sem_estoque +
+        s.total_sku_grupo_c_sem_estoque;
+      const totalAtivo =
+        s.total_sku_grupo_a + s.total_sku_grupo_b + s.total_sku_grupo_c;
+      const rupturaPercentage =
+        totalAtivo > 0 ? (totalSemEstoque / totalAtivo) * 100 : 0;
+      // Obtem dia/mes da data_hora_analise
+      const date = new Date(s.data_hora_analise);
+      const dia = date.getDate().toString().padStart(2, '0');
+      const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+      return {
+        name: `${dia}/${mes}`,
+        value: Number(rupturaPercentage.toFixed(2)),
+      };
+    })
+    .filter((s) => {
+      if (!findRupturaInfo && s.value > 0) {
+        findRupturaInfo = true;
+      }
+      return findRupturaInfo;
+    });
+  const showOldStock =
+    !currentStock.valor_custo_estoque_avaria &&
+    !currentStock.valor_custo_estoque_bloqueado &&
+    !currentStock.valor_custo_estoque_geral &&
+    !currentStock.valor_custo_estoque_reservado;
   return [
-    {
-      type: GraphType.KPI,
-      title: 'Valor Total Em Estoque',
-      data: formatCurrency(currentStock.custo_total_estoque_positivo),
-      info: 'Estoque Disponível em Preço de Custo',
-    },
+    ...(showOldStock
+      ? [
+          {
+            type: GraphType.KPI,
+            title: 'Valor Total Em Estoque',
+            data: formatCurrency(currentStock.custo_total_estoque_positivo),
+            info: 'Estoque Disponível em Preço de Custo',
+          },
+        ]
+      : []),
+    ...(currentStock.valor_custo_estoque_geral
+      ? [
+          {
+            type: GraphType.KPI,
+            title: 'Valor Total Em Estoque Geral',
+            data: formatCurrency(currentStock.valor_custo_estoque_geral),
+            info: 'Estoque Disponível em Preço de Custo',
+          },
+        ]
+      : []),
+    ...(currentStock.valor_custo_estoque_bloqueado
+      ? [
+          {
+            type: GraphType.KPI,
+            title: 'Valor Total Em Estoque Bloqueado',
+            data: formatCurrency(currentStock.valor_custo_estoque_bloqueado),
+            info: 'Estoque Bloqueado em Preço de Custo',
+          },
+        ]
+      : []),
+    ...(currentStock.valor_custo_estoque_reservado
+      ? [
+          {
+            type: GraphType.KPI,
+            title: 'Valor Total Em Estoque Reservado',
+            data: formatCurrency(currentStock.valor_custo_estoque_reservado),
+            info: 'Estoque Reservado em Preço de Custo',
+          },
+        ]
+      : []),
+    ...(currentStock.valor_custo_estoque_avaria
+      ? [
+          {
+            type: GraphType.KPI,
+            title: 'Valor Total Em Estoque Avariado',
+            data: formatCurrency(currentStock.valor_custo_estoque_avaria),
+            info: 'Estoque Avariado em Preço de Custo',
+          },
+        ]
+      : []),
     {
       type: GraphType.KPI,
       title: 'Total de SKUs Ativas',

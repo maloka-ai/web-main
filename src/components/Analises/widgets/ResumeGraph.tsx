@@ -144,7 +144,6 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
           )}
         </Typography>
       )}
-
       {info && (
         <>
           <Divider sx={{ my: 1 }} />
