@@ -61,7 +61,10 @@ export default function CardDetailsCustomersSegmentation({
       return response.data;
     },
     enabled: !!linkDataTable,
-    gcTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const columnsKeys = useMemo(() => {
