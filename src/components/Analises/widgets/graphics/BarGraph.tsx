@@ -72,7 +72,13 @@ function CustomTooltip({
   const dp = payload[0]?.payload as BarDatum;
   const value = dp?.value ?? 0;
   const secondValue = dp?.secondValue;
-  const percent = total > 0 ? (value / total) * 100 : 0;
+  
+  let percent = 0;
+  if (label === GRAPH_ALL_LABEL) {
+    percent = 100;
+  } else {
+    percent = total > 0 ? (value / total) * 100 : 0;
+  }
 
   return (
     <div

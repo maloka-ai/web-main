@@ -5,7 +5,7 @@ import { default as Pie } from './PieGraph';
 import { default as Bar } from './BarGraph';
 
 
-export const GRAPH_ALL_LABEL = "TODOS"
+export const GRAPH_ALL_LABEL = "Todos"
 
 const Graphics = { Line, MultiLine, KPI, Pie, Bar };
 
