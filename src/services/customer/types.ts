@@ -58,3 +58,18 @@ export type CustomerSegmentationMetric = {
   total_recentes_baixo_valor: number;
   total_sumidos: number;
 };
+
+export type CustomerSegmentationResumeMetric = {
+  data: string;
+  total_campeoes: number;
+  total_fieis_alto_valor: number;
+  total_fieis_baixo_valor: number;
+  total_inativos: number;
+  total_novos: number;
+  total_recentes_alto_valor: number;
+  total_recentes_baixo_valor: number;
+  total_sumidos: number;
+  total_pf: number;
+  total_pj: number;
+  total_geral: number;
+};

@@ -3,6 +3,13 @@ import { customerKeys } from './queryKeys';
 import { customerService } from '@/services/customer/service';
 import { useMemo } from 'react';
 
+export const useCustomerResumeSegmentations = () =>
+  useQuery({
+    queryKey: customerKeys.resumeSegmentations,
+    queryFn: () => customerService.getResumeSegmentationAllMetric(),
+    staleTime: 30_000,
+  });
+
 export const useCustomerDetails = (id_cliente: number) =>
   useQuery({
     queryKey: customerKeys.detail(id_cliente),
