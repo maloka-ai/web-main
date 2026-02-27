@@ -196,13 +196,14 @@ export default function BarGraph({
         />
 
         <XAxis
-          hide
+          hide={hideXAxis}
           dataKey="name"
           interval={0}
           tickLine={false}
           axisLine={false}
           fontSize={12}
           tick={{ fill: "#6b7280" }}
+          tickMargin={10}
           padding={{ left: 16, right: 16 }}
           tickFormatter={(name) => xLabelMap?.[name] ?? name}
           angle={xAxisAngle ?? 0}
@@ -216,6 +217,7 @@ export default function BarGraph({
 
         <Tooltip
           cursor={{ fill: "rgba(0,0,0,0.04)" }}
+          allowEscapeViewBox={{ x: true, y: true }}
           content={
             <CustomTooltip
               total={total}

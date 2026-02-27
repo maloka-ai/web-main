@@ -70,6 +70,7 @@ export default function MultiLineGraph({
           hide={hideXAxis}
           fontSize={12}
           tick={{ fill: '#666' }}
+          tickMargin={10}
           tickFormatter={(name) => xLabelMap?.[name] || name}
           angle={xAxisAngle ?? 0}
         />
@@ -80,6 +81,7 @@ export default function MultiLineGraph({
           contentStyle={{ fontSize: '0.8rem' }}
           wrapperStyle={{ zIndex: 1000 }}
           labelStyle={{ display: 'none' }}
+          allowEscapeViewBox={{ x: true, y: true }}
           cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
           formatter={(value: number, name: string) =>
             tooltipFormatter ? tooltipFormatter(value, name) : value

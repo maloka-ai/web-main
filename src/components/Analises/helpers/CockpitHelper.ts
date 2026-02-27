@@ -792,6 +792,44 @@ export function salesMakeGraphs(
   return graphs;
 }
 
+function buildStockMultiLineData(
+  stock: StockMetrics[],
+): Record<string, DataPoint[]> {
+  const result: Record<string, DataPoint[]> = {
+    'Disponível': [],
+    'Bloqueado': [],
+    'Reservado': [],
+    'Avariado': [],
+  };
+
+  stock.forEach((s) => {
+    const date = new Date(s.data_hora_analise);
+    const label = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    result['Disponível'].push({
+      name: label,
+      value:
+        s.valor_custo_estoque_geral !== null
+          ? s.valor_custo_estoque_geral
+          : s.custo_total_estoque_positivo || 0,
+    });
+    result['Bloqueado'].push({
+      name: label,
+      value: s.valor_custo_estoque_bloqueado || 0,
+    });
+    result['Reservado'].push({
+      name: label,
+      value: s.valor_custo_estoque_reservado || 0,
+    });
+    result['Avariado'].push({
+      name: label,
+      value: s.valor_custo_estoque_avaria || 0,
+    });
+  });
+
+  return result;
+}
+
 export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
   if (stock.length === 0) {
     return [];
@@ -824,62 +862,24 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       }
       return findRupturaInfo;
     });
-  const showOldStock =
-    !currentStock.valor_custo_estoque_avaria &&
-    !currentStock.valor_custo_estoque_bloqueado &&
-    !currentStock.valor_custo_estoque_geral &&
-    !currentStock.valor_custo_estoque_reservado;
+
+  const stockMultiLineData = buildStockMultiLineData(stock);
+
   return [
-    ...(showOldStock
-      ? [
-          {
-            type: GraphType.KPI,
-            title: 'Valor Total Em Estoque',
-            data: formatCurrency(currentStock.custo_total_estoque_positivo),
-            info: 'Estoque Disponível em Preço de Custo',
-          },
-        ]
-      : []),
-    ...(currentStock.valor_custo_estoque_geral
-      ? [
-          {
-            type: GraphType.KPI,
-            title: 'Valor Total Em Estoque Geral',
-            data: formatCurrency(currentStock.valor_custo_estoque_geral),
-            info: 'Estoque Disponível em Preço de Custo',
-          },
-        ]
-      : []),
-    ...(currentStock.valor_custo_estoque_bloqueado
-      ? [
-          {
-            type: GraphType.KPI,
-            title: 'Valor Total Em Estoque Bloqueado',
-            data: formatCurrency(currentStock.valor_custo_estoque_bloqueado),
-            info: 'Estoque Bloqueado em Preço de Custo',
-          },
-        ]
-      : []),
-    ...(currentStock.valor_custo_estoque_reservado
-      ? [
-          {
-            type: GraphType.KPI,
-            title: 'Valor Total Em Estoque Reservado',
-            data: formatCurrency(currentStock.valor_custo_estoque_reservado),
-            info: 'Estoque Reservado em Preço de Custo',
-          },
-        ]
-      : []),
-    ...(currentStock.valor_custo_estoque_avaria
-      ? [
-          {
-            type: GraphType.KPI,
-            title: 'Valor Total Em Estoque Avariado',
-            data: formatCurrency(currentStock.valor_custo_estoque_avaria),
-            info: 'Estoque Avariado em Preço de Custo',
-          },
-        ]
-      : []),
+    {
+      type: GraphType.MULTI_LINE,
+      title: 'Evolução do Valor em Estoque',
+      data: stockMultiLineData,
+      value: formatCurrency(
+        currentStock.valor_custo_estoque_geral ||
+          currentStock.custo_total_estoque_positivo ||
+          0,
+      ),
+      info: 'Progressão temporal dos valores de estoque (Disponível, Bloqueado, Reservado e Avariado)',
+      tooltipFormatter: (value: number) => formatCurrency(value),
+      xTicks: buildXTicksEveryNDays(stockMultiLineData['Disponível'], 30),
+      xAxisAngle: -45,
+    },
     {
       type: GraphType.KPI,
       title: 'Total de SKUs Ativas',

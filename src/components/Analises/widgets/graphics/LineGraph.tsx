@@ -45,6 +45,7 @@ export default function LineGraph({
           hide={hideXAxis}
           fontSize={12}
           tick={{ fill: '#666' }}
+          tickMargin={10}
           padding={{ left: 24, right: 24 }}
           tickFormatter={(name) => xLabelMap?.[name] || name}
           angle={xAxisAngle ?? 0}
@@ -54,6 +55,7 @@ export default function LineGraph({
           contentStyle={{ fontSize: '0.8rem' }}
           wrapperStyle={{ zIndex: 1000 }}
           labelStyle={{ display: 'none' }}
+          allowEscapeViewBox={{ x: true, y: true }}
           cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
           formatter={(value: number, name: string) =>
             tooltipFormatter ? tooltipFormatter(value, name) : value
