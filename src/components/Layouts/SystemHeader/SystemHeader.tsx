@@ -38,7 +38,7 @@ export default function HeaderSistema() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-        {/* {isMobile ? (
+        {isMobile ? (
           <IconButton title={'Agendamentos'} onClick={onOpen}>
             <CalendarMonthIcon sx={{ fontSize: 20, color: '#a36e4f' }} />
           </IconButton>
@@ -57,7 +57,7 @@ export default function HeaderSistema() {
               Agendamentos
             </Typography>
           </Button>
-        )} */}
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <UserAccount email={userEmail} />

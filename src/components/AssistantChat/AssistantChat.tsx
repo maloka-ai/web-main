@@ -699,7 +699,7 @@ export default function AssistantChat() {
             >
               <MenuOpenIcon />
             </IconButton>
-            {/* <IconButton
+            <IconButton
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenScheduleDialog();
@@ -708,7 +708,7 @@ export default function AssistantChat() {
               title={'Agendamentos'}
             >
               <CalendarMonthIcon color={'primary'} />
-            </IconButton> */}
+            </IconButton>
           </Box>
 
           <Stack direction={'column'} alignItems={'center'} spacing={0}>
@@ -747,6 +747,7 @@ export default function AssistantChat() {
           >
             {messages.map((msg, index) => (
               <MsgChat
+                key={`msg-${msg.id}`}
                 msg={msg}
                 isLast={index === messages.length - 1}
                 chartComponents={chartComponents}
@@ -814,8 +815,8 @@ export default function AssistantChat() {
             />
             {isRecording ? (
               <VoiceRecorder
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 onSend={async (blob, meta) => {
-                  // ✅ Baixar o áudio .webm para teste
                   const fileName = `voice-${Date.now()}.webm`;
                   const webmBlob = blob.type?.includes('webm')
                     ? blob
