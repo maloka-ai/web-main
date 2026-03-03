@@ -302,11 +302,27 @@ export function clientsMakeGraphs(
     totalCustomerSegmentationMetric,
   );
 
+  const lastSegmentationMetric =
+    totalCustomerSegmentationMetric[totalCustomerSegmentationMetric.length - 1];
+
+  const activeClientsCount = lastSegmentationMetric
+    ? Object.keys(lastSegmentationMetric)
+        .filter((key) => key.startsWith('total_') && key !== 'total_inativos')
+        .reduce(
+          (acc, key) =>
+            acc +
+            (lastSegmentationMetric[
+              key as keyof CustomerSegmentationMetric
+            ] as number),
+          0,
+        )
+    : clients.filter((c) => c.segmento !== 'Inativos').length;
+
   return [
     {
       type: GraphType.KPI,
       title: 'Clientes Ativos',
-      data: clients.filter((c) => c.segmento !== 'Inativos').length.toString(),
+      data: activeClientsCount.toString(),
     },
     {
       type: GraphType.LINE,

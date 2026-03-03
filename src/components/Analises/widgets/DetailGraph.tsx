@@ -45,6 +45,7 @@ export default function DetailGraph({
     xLabelMap,
     hideXAxis,
     xAxisAngle,
+    xTicks,
     tooltipFormatter,
     info,
   } = graph;
@@ -58,24 +59,31 @@ export default function DetailGraph({
   // const categorias: string[] = ['Marketing', 'Vendas', 'Suporte'];
 
   return (
-    <Modal open={open} onClose={() => {}}>
+    <Modal
+      open={open}
+      onClose={onClose}
+      sx={{
+        overflowY: 'auto',
+        outline: 'none',
+        display: 'block',
+      }}
+    >
       <Box
         onClick={(e) => e.stopPropagation()}
         sx={{
           backgroundColor: '#fdfcf7',
           width: {
-            xs: '100%',
+            xs: '90%',
             md: '700px',
           },
           maxWidth: '700px',
-          maxHeight: '95vh',
-          overflowY: 'auto',
           margin: '4vh auto',
           padding: '2rem',
           borderRadius: '12px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           outline: 'none',
           position: 'relative',
+          overflow: 'visible',
         }}
       >
         <IconButton
@@ -111,6 +119,7 @@ export default function DetailGraph({
                 xAxisAngle,
                 tooltipFormatter,
                 hideLegend: true,
+                xTicks,
               }}
             />
           </Box>
