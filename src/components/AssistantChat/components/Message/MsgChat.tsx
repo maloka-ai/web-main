@@ -297,7 +297,7 @@ export const MsgChat = ({
           flexWrap: 'wrap',
         }}
       >
-        {/* {showCodeSQLContainer(msg) && <ScheduleButton message_id={msg.id} />} */}
+        {showCodeSQLContainer(msg) && <ScheduleButton message_id={msg.id} />}
 
         {showDownloadSpreadsheetButton(msg) && <DownloadXlsxButton msg={msg} />}
       </Box>
