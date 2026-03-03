@@ -867,17 +867,35 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
 
   return [
     {
-      type: GraphType.MULTI_LINE,
-      title: 'Evolução do Valor em Estoque',
-      data: stockMultiLineData,
+      type: GraphType.LINE,
+      title: 'Evolução do Estoque Disponível',
+      data: stockMultiLineData['Disponível'],
       value: formatCurrency(
         currentStock.valor_custo_estoque_geral ||
           currentStock.custo_total_estoque_positivo ||
           0,
       ),
-      info: 'Progressão temporal dos valores de estoque (Disponível, Bloqueado, Reservado e Avariado)',
+      info: 'Progressão temporal do valor de estoque disponível',
       tooltipFormatter: (value: number) => formatCurrency(value),
       xTicks: buildXTicksEveryNDays(stockMultiLineData['Disponível'], 30),
+      xAxisAngle: -45,
+    },
+    {
+      type: GraphType.MULTI_LINE,
+      title: 'Evolução do Estoque Indisponível',
+      data: {
+        Bloqueado: stockMultiLineData['Bloqueado'],
+        Reservado: stockMultiLineData['Reservado'],
+        Avariado: stockMultiLineData['Avariado'],
+      },
+      value: formatCurrency(
+        (currentStock.valor_custo_estoque_bloqueado || 0) +
+          (currentStock.valor_custo_estoque_reservado || 0) +
+          (currentStock.valor_custo_estoque_avaria || 0),
+      ),
+      info: 'Progressão temporal dos valores de estoque indisponível (Bloqueado, Reservado e Avariado)',
+      tooltipFormatter: (value: number) => formatCurrency(value),
+      xTicks: buildXTicksEveryNDays(stockMultiLineData['Bloqueado'], 30),
       xAxisAngle: -45,
     },
     {
