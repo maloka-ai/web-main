@@ -18,6 +18,12 @@ interface LineGraphProps {
   secondData?: DataPoint[];
   tooltipFormatter?: (value: number, name?: string) => string;
   xTicks?: string[];
+  labels?: {
+    showLabelStyle?: boolean;
+    showAbsoluteLabelStyle?: boolean;
+    primary: string;
+    secondary?: string;
+  };
 }
 
 export default function LineGraph({
@@ -28,6 +34,12 @@ export default function LineGraph({
   secondData,
   tooltipFormatter,
   xTicks,
+  labels = {
+    showLabelStyle: false,
+    showAbsoluteLabelStyle: false,
+    primary: 'value',
+    secondary: 'value',
+  },
 }: LineGraphProps) {
   const getStrokeColor = useGetStrokeColor();
   return (
@@ -50,12 +62,24 @@ export default function LineGraph({
           tickFormatter={(name) => xLabelMap?.[name] || name}
           angle={xAxisAngle ?? 0}
         />
+
         <YAxis hide />
         <Tooltip
           contentStyle={{ fontSize: '0.8rem' }}
           wrapperStyle={{ zIndex: 1000 }}
-          labelStyle={{ display: 'none' }}
+          labelStyle={{
+            display: labels?.showLabelStyle ? 'block' : 'none',
+            ...(labels?.showAbsoluteLabelStyle
+              ? {
+                  position: 'absolute',
+                  top: '15px',
+                  background: 'white',
+                  color: getStrokeColor(data, secondData),
+                }
+              : {}),
+          }}
           allowEscapeViewBox={{ x: true, y: true }}
+          label={'asdf'}
           cursor={{ stroke: '#df8157', strokeWidth: 0.5 }}
           formatter={(value: number, name: string) =>
             tooltipFormatter ? tooltipFormatter(value, name) : value
@@ -68,6 +92,7 @@ export default function LineGraph({
           strokeWidth={2}
           dot={false}
           isAnimationActive={false}
+          name={labels?.primary}
           connectNulls
         />
         {secondData && (
@@ -78,6 +103,7 @@ export default function LineGraph({
             stroke="#ccc"
             strokeWidth={1}
             dot={false}
+            name={labels?.secondary ?? 'value'}
             isAnimationActive={false}
           />
         )}

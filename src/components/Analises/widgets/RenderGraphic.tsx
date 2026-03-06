@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { BarDatum, DataPoint, GraphData } from "@/utils/graphics";
-import Graphics from "./graphics";
-import { GraphType } from "@/utils/enums";
+import { BarDatum, DataPoint, GraphData } from '@/utils/graphics';
+import Graphics from './graphics';
+import { GraphType } from '@/utils/enums';
 
 interface RenderGraphicProps {
   graph: GraphData;
@@ -15,6 +15,7 @@ export default function RenderGraphic({ graph }: RenderGraphicProps) {
     case GraphType.LINE:
       return (
         <Graphics.Line
+          labels={graph.labels}
           data={graph.data as DataPoint[]}
           xLabelMap={graph.xLabelMap}
           hideXAxis={graph.hideXAxis}

@@ -24,9 +24,11 @@ function getFallbackKeys(n: number): string[] {
 export function DynamicTable({
   data,
   pageSize = 10,
+  onClickRow,
 }: {
   data: DynamicDataTable;
   pageSize?: number;
+  onClickRow?: (object: any) => void;
 }) {
   type RowAny = Record<string, any>;
 
@@ -128,6 +130,15 @@ export function DynamicTable({
     enableStickyFooter: true,
     enableStickyHeader: true,
     // positionPagination: "none",
+    muiTableBodyRowProps: ({ row }) => ({
+      onClick: () => {
+        if (onClickRow) {
+          onClickRow(row.original);
+        }
+      },
+      sx: { cursor: !!onClickRow ? 'pointer' : 'inherit' },
+      hover: true,
+    }),
     state: {
       isLoading, // mantém o linear/overlay do MRT, se habilitado no tema
       // pagination: { pageIndex, pageSize: ps },
@@ -163,7 +174,6 @@ export function DynamicTable({
     muiTableHeadCellProps: {
       sx: { fontWeight: 700, color: 'text.secondary', position: 'relative' },
     },
-    muiTableBodyRowProps: { hover: true },
     muiTableBodyCellProps: {
       sx: { borderBottom: '1px solid #E6DCCB', py: '10px' },
     },
