@@ -48,6 +48,7 @@ export default function DetailGraph({
     xTicks,
     tooltipFormatter,
     info,
+    labels,
   } = graph;
 
   // const sugestoes: string[] = [
@@ -120,6 +121,7 @@ export default function DetailGraph({
                 tooltipFormatter,
                 hideLegend: true,
                 xTicks,
+                labels,
               }}
             />
           </Box>

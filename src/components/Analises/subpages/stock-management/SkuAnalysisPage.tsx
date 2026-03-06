@@ -71,57 +71,58 @@ export default function SkuAnalysisPage() {
   const columns = useMemo<MRT_ColumnDef<ProductByABC>[]>(
     () => [
       {
-                  accessorKey: 'id_produto',
-                  header: 'ID SKU',
-                  size: 110,
-                },
-                {
-                  accessorKey: 'nome_produto',
-                  header: 'Produto',
-                  size: 280,
-                },
-                {
-                  accessorKey: 'nome_categoria',
-                  header: 'Categoria',
-                  size: 180,
-                },
-                {
-                  accessorKey: 'qt_estoque_disponivel',
-                  header: 'Estoque Atual',
-                  size: 120,
-                },
-                {
-                  accessorKey: 'curva_abc',
-                  header: 'Curva ABC',
-                  size: 100,
-                },
-                {
-                  accessorKey: 'situacao_do_produto',
-                  header: 'Situação',
-                  size: 200,
-                },
-                {
-                  accessorKey: 'data_ultima_venda',
-                  header: 'Última Venda',
-                  size: 160,
-                },    ],
+        accessorKey: 'id_produto',
+        header: 'ID SKU',
+        size: 110,
+      },
+      {
+        accessorKey: 'nome_produto',
+        header: 'Produto',
+        size: 280,
+      },
+      {
+        accessorKey: 'nome_categoria',
+        header: 'Categoria',
+        size: 180,
+      },
+      {
+        accessorKey: 'qt_estoque_disponivel',
+        header: 'Estoque Atual',
+        size: 120,
+      },
+      {
+        accessorKey: 'curva_abc',
+        header: 'Curva ABC',
+        size: 100,
+      },
+      {
+        accessorKey: 'situacao_do_produto',
+        header: 'Situação',
+        size: 200,
+      },
+      {
+        accessorKey: 'data_ultima_venda',
+        header: 'Última Venda',
+        size: 160,
+      },
+    ],
     [],
-        );
-  
-        // Effect to manage sorting based on global filter
-        useEffect(() => {
-          if (globalFilter) {
-            // When global filter is active, sort by our custom score
-            // We use '_mrt_filterMatchScore' as the ID to reference our custom sorting function
-            setSorting([{ id: '_mrt_filterMatchScore', desc: true }]);
-          } else {
-            // When global filter is not active, clear or set default sorting
-            setSorting([]); // Clear sorting
-          }
-        }, [globalFilter]);
-  
-  
-        const table = useMaterialReactTable<ProductByABC>({    columns,
+  );
+
+  // Effect to manage sorting based on global filter
+  useEffect(() => {
+    if (globalFilter) {
+      // When global filter is active, sort by our custom score
+      // We use '_mrt_filterMatchScore' as the ID to reference our custom sorting function
+      setSorting([{ id: '_mrt_filterMatchScore', desc: true }]);
+    } else {
+      // When global filter is not active, clear or set default sorting
+      setSorting([]); // Clear sorting
+    }
+  }, [globalFilter]);
+
+  const table = useMaterialReactTable<ProductByABC>({
+    columns,
     data: rows,
     localization: MRT_Localization_PT_BR,
     muiPaginationProps: {
@@ -138,7 +139,8 @@ export default function SkuAnalysisPage() {
     filterFns: {
       tokenMatch: tokenMatchFilterFn,
     },
-    sortingFns: { // Define custom sorting functions
+    sortingFns: {
+      // Define custom sorting functions
       _mrt_filterMatchScore: tokenMatchSortingFn,
     },
 
@@ -298,35 +300,24 @@ export default function SkuAnalysisPage() {
       {/*  <CardContent sx={{ overflowX: 'auto' }}>*/}
       {/*  </CardContent>*/}
       {/*</Card>*/}
-      <Box
-        sx={{
-          maxWidth: {
-            xs: '100%',
-            md: '70vw',
-            lg: '70vw',
-            xl: '70vw',
-          },
-          overflow: 'auto',
-        }}
-      >
-        <MaterialReactTable table={table} />
 
-        <Snackbar
-          open={toastOpen}
-          autoHideDuration={2000}
+      <MaterialReactTable table={table} />
+
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={2000}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
           onClose={() => setToastOpen(false)}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
         >
-          <Alert
-            onClose={() => setToastOpen(false)}
-            severity="success"
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
-            ID SKU copiado!
-          </Alert>
-        </Snackbar>
-      </Box>
+          ID SKU copiado!
+        </Alert>
+      </Snackbar>
 
       <DialogDetails
         data={dataDialog}

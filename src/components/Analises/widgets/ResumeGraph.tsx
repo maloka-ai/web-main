@@ -34,12 +34,14 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
     xAxisAngle,
     tooltipFormatter,
     xTicks,
+    labels,
   } = graph;
 
   const theme = useTheme();
   const getStrokeColor = useGetStrokeColor();
   const colorSuccess = theme.palette.success.main;
   const colorError = theme.palette.error.main;
+
   return (
     <Box
       sx={{
@@ -91,6 +93,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             xAxisAngle,
             tooltipFormatter,
             xTicks,
+            labels,
           }}
         />
       </Box>
@@ -120,6 +123,7 @@ export default function ResumeGraph({ graph }: ResumeGraphProps) {
             xAxisAngle,
             tooltipFormatter,
             xTicks,
+            labels,
             hideLegend: true,
             hideYAxis: true,
           }}

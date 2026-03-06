@@ -216,7 +216,7 @@ export interface ProductDetail {
   nome_produto: string;
   id_categoria: number | null;
   nome_categoria: string | null;
-  qt_estoque_disponivel: number;
+  estoque_atual: number;
   curva_abc: ABCCurve;
   situacao_do_produto: string;
   data_ultima_venda: string | null;

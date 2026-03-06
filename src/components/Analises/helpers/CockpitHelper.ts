@@ -32,6 +32,12 @@ type Graphs = {
   secondData?: any[];
   tooltipFormatter?: (value: number, name?: string) => string;
   xTicks?: string[];
+  labels?: {
+    showLabelStyle?: boolean;
+    showAbsoluteLabelStyle?: boolean;
+    primary: string;
+    secondary?: string;
+  };
 };
 
 export function fillMissingDays(
@@ -323,11 +329,17 @@ export function clientsMakeGraphs(
       type: GraphType.KPI,
       title: 'Clientes Ativos',
       data: activeClientsCount.toString(),
+      info: 'Clientes que fizeram compras nos últimos 12 meses',
     },
     {
       type: GraphType.LINE,
       title: 'Taxa de Recorrência Trimestral',
       subtitle: 'vs Últimos trimestre',
+      labels: {
+        primary: 'Valores',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       data: last3QuarterlyRecurrence,
       value: `${last3QuarterlyRecurrence[2].value}%`,
       gain: last3QuarterlyRecurrenceGain,
@@ -338,6 +350,11 @@ export function clientsMakeGraphs(
       type: GraphType.LINE,
       title: 'Taxa de Retenção Anual',
       subtitle: 'vs Último ano',
+      labels: {
+        primary: 'Valo',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       gain: lastAnnualRecurrenceGain,
       info: 'Clientes que continuam a comprar com o passar dos anos',
       data: last3AnnualRecurrence,
@@ -513,11 +530,18 @@ export function salesMakeGraphs(
     lastYearDailyRevenuesData.push({ name, value: previous });
   }
 
+  const actualYear = new Date().getFullYear();
+
   const graphs = [
     {
       type: GraphType.LINE,
       title: 'Receita Anual',
       subtitle: 'vs Último ano',
+      labels: {
+        primary: 'Valo',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       data: annualRevenuesGrouped.slice(-5).map((ar) => ({
         name: ar.ano.toString(),
         value: ar.total_de_faturamento,
@@ -541,6 +565,11 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: 'Ticket Médio',
       subtitle: 'vs Último ano',
+      labels: {
+        primary: 'Valo',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       data: annualRevenuesGrouped.slice(-5).map((ar) => ({
         name: ar.ano.toString(),
         value: ar.ticket_medio_anual,
@@ -564,6 +593,11 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
       subtitle: `Comparação até ${currentMonth.toString().padStart(2, '0')}/${currentYear}`,
+      labels: {
+        primary: `${currentYear}`,
+        secondary: `${currentYear - 1}`,
+        showLabelStyle: true,
+      },
       data: currentYearRevenuesData,
       secondData: previousYearRevenuesData,
       gain: growthRateMonthly,
@@ -580,6 +614,11 @@ export function salesMakeGraphs(
       type: GraphType.LINE,
       title: `Receita Diária ${monthNamesPt[currentMonth - 1]}/${currentYear - 2001} x ${monthNamesPt[currentMonth - 1]}/${currentYear - 2000}`,
       subtitle: `Comparação até o dia ${currentYearDailyRevenuesFilled.length}`,
+      labels: {
+        primary: `${monthNamesPt[currentMonth - 1]}/${currentYear - 2000}`,
+        secondary: `${monthNamesPt[currentMonth - 1]}/${currentYear - 2001}`,
+        showLabelStyle: true,
+      },
       data: currentYearDailyRevenuesData,
       secondData: lastYearDailyRevenuesData,
       gain: growthRateDaily,
@@ -598,6 +637,11 @@ export function salesMakeGraphs(
           {
             type: GraphType.LINE,
             title: 'Desconto Médio Mensal',
+            labels: {
+              primary: `${actualYear}`,
+              secondary: `${actualYear - 1}`,
+              showLabelStyle: true,
+            },
             data: averageMonthlyDiscount.map((d) => ({
               name: monthNamesPt[d.mes - 1],
               value: d.percentual_desconto_medio,
@@ -641,6 +685,11 @@ export function salesMakeGraphs(
       ? [
           {
             type: GraphType.LINE,
+            labels: {
+              primary: `${actualYear}`,
+              secondary: `${actualYear - 1}`,
+              showLabelStyle: true,
+            },
             title: 'Margem Bruta Mensal',
             data: monthlyGrossProfit.map((d) => ({
               name: monthNamesPt[d.mes - 1],
@@ -681,10 +730,16 @@ export function salesMakeGraphs(
           {
             type: GraphType.LINE,
             title: 'Percentual de Devoluções Mensal',
+            labels: {
+              primary: `${actualYear}`,
+              secondary: `${actualYear - 1}`,
+              showLabelStyle: true,
+            },
             data: monthlyReturnPercentage.map((d) => ({
               name: monthNamesPt[d.mes - 1],
               value: d.percentual_devolucao,
             })),
+
             secondData: monthlyReturnPercentageLastYear.map((d) => ({
               name: monthNamesPt[d.mes - 1],
               value: d.percentual_devolucao,
@@ -812,10 +867,10 @@ function buildStockMultiLineData(
   stock: StockMetrics[],
 ): Record<string, DataPoint[]> {
   const result: Record<string, DataPoint[]> = {
-    'Disponível': [],
-    'Bloqueado': [],
-    'Reservado': [],
-    'Avariado': [],
+    Disponível: [],
+    Bloqueado: [],
+    Reservado: [],
+    Avariado: [],
   };
 
   stock.forEach((s) => {
@@ -886,6 +941,11 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       type: GraphType.LINE,
       title: 'Evolução do Estoque Disponível',
       data: stockMultiLineData['Disponível'],
+      labels: {
+        primary: 'Val\u00A0\u00A0\u00A0',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       value: formatCurrency(
         currentStock.valor_custo_estoque_geral ||
           currentStock.custo_total_estoque_positivo ||
@@ -965,6 +1025,11 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     {
       type: GraphType.LINE,
       title: '% Ruptura (Estoque ativo)',
+      labels: {
+        primary: 'Valo\u00A0',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
       info: 'Total de SKUs da Curva ABC com estoque zero',
       data: rupturaPercentages,
       value: `${Number(rupturaPercentages.slice(-1)[0].value.toFixed(2))}%`,
