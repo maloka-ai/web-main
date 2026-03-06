@@ -314,21 +314,21 @@ export default function AlertasEAcoes({
                   >
                     {item.acao}
                     <Stack direction="row" spacing={0}>
-                      <IconButton>
+                      <IconButton
+                        onClick={() =>
+                          handleDownloadAlertDetail(
+                            item.link_detalhamento,
+                            `alerta_${item.descricao.toLowerCase().replace(/\s+/g, '_')}.xlsx`,
+                          )
+                        }
+                      >
                         <FileDownloadOutlined
-                          onClick={() =>
-                            handleDownloadAlertDetail(
-                              item.link_detalhamento,
-                              `alerta_${item.descricao.toLowerCase().replace(/\s+/g, '_')}.xlsx`,
-                            )
-                          }
                           fontSize={'small'}
                           sx={{ color: '#df8157' }}
                         />
                       </IconButton>
-                      <IconButton>
+                      <IconButton onClick={() => handleAlertDetail(item)}>
                         <RemoveRedEyeIcon
-                          onClick={() => handleAlertDetail(item)}
                           sx={{ color: '#df8157' }}
                           fontSize={'small'}
                         />

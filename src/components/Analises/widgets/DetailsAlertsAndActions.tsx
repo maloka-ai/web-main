@@ -31,13 +31,15 @@ export default function DetailsAlertsAndActions({
           backgroundColor: '#fdfcf7',
           maxWidth: '80%',
           maxHeight: '95vh',
-          overflowY: 'auto',
           margin: '4vh auto',
           padding: '2rem',
           borderRadius: '12px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           outline: 'none',
           position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'hidden', // importante
         }}
       >
         <IconButton
@@ -63,19 +65,23 @@ export default function DetailsAlertsAndActions({
         >
           {alert?.descricao}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<FileDownloadOutlined />}
-          color={alert?.tipo === 'alerta' ? 'error' : 'primary'}
-          sx={{
-            textTransform: 'none',
-            borderRadius: '16px',
-            mb: 2,
-          }}
-          onClick={onDownload}
-        >
-          Baixar tabela completa
-        </Button>
+        <div>
+          <Button
+            variant="contained"
+            startIcon={<FileDownloadOutlined />}
+            color={alert?.tipo === 'alerta' ? 'error' : 'primary'}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '16px',
+              mb: 2,
+            }}
+            fullWidth={false}
+            onClick={onDownload}
+          >
+            Baixar tabela completa
+          </Button>
+        </div>
+
         <DynamicTable
           data={{
             linkData: alert.link_detalhamento,
