@@ -125,6 +125,8 @@ export function DynamicTable({
     rowCount,
     enableColumnActions: false,
     enableTopToolbar: false,
+    enableStickyFooter: true,
+    enableStickyHeader: true,
     // positionPagination: "none",
     state: {
       isLoading, // mantém o linear/overlay do MRT, se habilitado no tema
@@ -134,15 +136,29 @@ export function DynamicTable({
       showLoadingOverlay: isLoading,
     },
     // onPaginationChange: setPagination,
+    muiTableContainerProps: {
+      sx: {
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+      },
+    },
     muiPaginationProps: {
       color: 'secondary',
       rowsPerPageOptions: [10, 20, 30],
       shape: 'circular',
       variant: 'outlined',
     },
+    // layoutMode: 'grid',
     muiTablePaperProps: {
       elevation: 0,
-      sx: { borderRadius: 0, background: 'none' },
+      sx: {
+        borderRadius: 0,
+        overflow: 'hidden',
+        display: 'grid',
+        flexDirection: 'column',
+        height: '100%',
+      },
     },
     muiTableHeadCellProps: {
       sx: { fontWeight: 700, color: 'text.secondary', position: 'relative' },
@@ -166,7 +182,14 @@ export function DynamicTable({
   });
 
   return (
-    <Box>
+    <Box
+      sx={{
+        height: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <MaterialReactTable table={table} />
     </Box>
   );
