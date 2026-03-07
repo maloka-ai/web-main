@@ -494,19 +494,22 @@ export function salesMakeGraphs(
   const currentYearRevenuesData: { name: string; value: number }[] = [];
   const previousYearRevenuesData: { name: string; value: number }[] = [];
 
-  for (let i = 0; i < currentMonth; i++) {
+  for (let i = 0; i < 12; i++) {
     const month = i + 1;
-
-    const current =
-      currentYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ??
-      0;
-    const previous =
-      lastYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ?? 0;
-
     const name = monthNamesPt[i];
 
-    currentYearRevenuesData.push({ name, value: current });
+    const previous =
+      lastYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ?? 0;
     previousYearRevenuesData.push({ name, value: previous });
+
+    if (month <= currentMonth) {
+      const current =
+        currentYearMonthlyRevenue.find((mr) => mr.mes === month)?.total_venda ??
+        0;
+      currentYearRevenuesData.push({ name, value: current });
+    } else {
+      currentYearRevenuesData.push({ name, value: null as any });
+    }
   }
 
   const currentYearDailyRevenuesData: { name: string; value: number }[] = [];
@@ -563,35 +566,7 @@ export function salesMakeGraphs(
     },
     {
       type: GraphType.LINE,
-      title: 'Ticket Médio',
-      subtitle: 'vs Último ano',
-      labels: {
-        primary: 'Valo',
-        showLabelStyle: true,
-        showAbsoluteLabelStyle: true,
-      },
-      data: annualRevenuesGrouped.slice(-5).map((ar) => ({
-        name: ar.ano.toString(),
-        value: ar.ticket_medio_anual,
-      })),
-      gain: Number(
-        (
-          ((annualRevenuesGrouped[annualRevenuesGrouped.length - 1]
-            .ticket_medio_anual -
-            annualRevenuesGrouped[annualRevenuesGrouped.length - 2]
-              .ticket_medio_anual) *
-            100) /
-          annualRevenuesGrouped[annualRevenuesGrouped.length - 2]
-            .ticket_medio_anual
-        ).toFixed(2),
-      ),
-      value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
-      xLabelMap: xLabelMapLast5Years,
-      tooltipFormatter: (value: number) => formatCurrency(value),
-    },
-    {
-      type: GraphType.LINE,
-      title: `Receita Anual ${currentYear - 1} x ${currentYear}`,
+      title: `Receita Mensal ${currentYear - 1} x ${currentYear}`,
       subtitle: `Comparação até ${currentMonth.toString().padStart(2, '0')}/${currentYear}`,
       labels: {
         primary: `${currentYear}`,
@@ -603,7 +578,7 @@ export function salesMakeGraphs(
       gain: growthRateMonthly,
       value: formatCurrency(currentMonthlyAccumulated),
       xLabelMap: Object.fromEntries(
-        Array.from({ length: currentMonth }, (_, i) => {
+        Array.from({ length: 12 }, (_, i) => {
           const m = (i + 1).toString().padStart(2, '0');
           return [m, m];
         }),
@@ -630,6 +605,34 @@ export function salesMakeGraphs(
         }),
       ),
       xAxisAngle: -60,
+      tooltipFormatter: (value: number) => formatCurrency(value),
+    },
+    {
+      type: GraphType.LINE,
+      title: 'Ticket Médio',
+      subtitle: 'vs Último ano',
+      labels: {
+        primary: 'Valo',
+        showLabelStyle: true,
+        showAbsoluteLabelStyle: true,
+      },
+      data: annualRevenuesGrouped.slice(-5).map((ar) => ({
+        name: ar.ano.toString(),
+        value: ar.ticket_medio_anual,
+      })),
+      gain: Number(
+        (
+          ((annualRevenuesGrouped[annualRevenuesGrouped.length - 1]
+            .ticket_medio_anual -
+            annualRevenuesGrouped[annualRevenuesGrouped.length - 2]
+              .ticket_medio_anual) *
+            100) /
+          annualRevenuesGrouped[annualRevenuesGrouped.length - 2]
+            .ticket_medio_anual
+        ).toFixed(2),
+      ),
+      value: formatCurrency(lastCurrentAnnualRevenue.ticket_medio_anual),
+      xLabelMap: xLabelMapLast5Years,
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
     ...(averageMonthlyDiscount.length > 0
@@ -681,6 +684,67 @@ export function salesMakeGraphs(
           },
         ]
       : []),
+    ...(monthlyReturnPercentage.length > 0
+      ? [
+          {
+            type: GraphType.LINE,
+            title: 'Percentual de Devoluções Mensal',
+            labels: {
+              primary: `${actualYear}`,
+              secondary: `${actualYear - 1}`,
+              showLabelStyle: true,
+            },
+            data: Array.from({ length: 12 }, (_, i) => {
+              const month = i + 1;
+              const d = monthlyReturnPercentage.find(
+                (item) => item.mes === month,
+              );
+              return {
+                name: monthNamesPt[i],
+                value:
+                  month <= currentMonth ? (d?.percentual_devolucao ?? 0) : null,
+              };
+            }),
+
+            secondData: Array.from({ length: 12 }, (_, i) => {
+              const month = i + 1;
+              const d = monthlyReturnPercentageLastYear.find(
+                (item) => item.mes === month,
+              );
+              return {
+                name: monthNamesPt[i],
+                value: d?.percentual_devolucao ?? 0,
+              };
+            }),
+            value: `${monthlyReturnPercentage[monthlyReturnPercentage.length - 1].percentual_devolucao.toFixed(2)}%`,
+            gain:
+              monthlyReturnPercentage.length > 1
+                ? Number(
+                    (
+                      ((monthlyReturnPercentage[
+                        monthlyReturnPercentage.length - 1
+                      ].percentual_devolucao -
+                        monthlyReturnPercentage[
+                          monthlyReturnPercentage.length - 2
+                        ].percentual_devolucao) *
+                        100) /
+                      monthlyReturnPercentage[
+                        monthlyReturnPercentage.length - 2
+                      ].percentual_devolucao
+                    ).toFixed(2),
+                  )
+                : 0,
+            xLabelMap: Object.fromEntries(
+              Array.from({ length: 12 }, (_, i) => {
+                const m = (i + 1).toString().padStart(2, '0');
+                return [m, m];
+              }),
+            ),
+            xAxisAngle: -45,
+            tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
+          },
+        ]
+      : []),
     ...(monthlyGrossProfit.length > 0
       ? [
           {
@@ -711,54 +775,6 @@ export function salesMakeGraphs(
                         100) /
                       monthlyGrossProfit[monthlyGrossProfit.length - 2]
                         .percentual_lucro_bruto
-                    ).toFixed(2),
-                  )
-                : 0,
-            xLabelMap: Object.fromEntries(
-              Array.from({ length: currentMonth }, (_, i) => {
-                const m = (i + 1).toString().padStart(2, '0');
-                return [m, m];
-              }),
-            ),
-            xAxisAngle: -45,
-            tooltipFormatter: (value: number) => `${value.toFixed(2)}%`,
-          },
-        ]
-      : []),
-    ...(monthlyReturnPercentage.length > 0
-      ? [
-          {
-            type: GraphType.LINE,
-            title: 'Percentual de Devoluções Mensal',
-            labels: {
-              primary: `${actualYear}`,
-              secondary: `${actualYear - 1}`,
-              showLabelStyle: true,
-            },
-            data: monthlyReturnPercentage.map((d) => ({
-              name: monthNamesPt[d.mes - 1],
-              value: d.percentual_devolucao,
-            })),
-
-            secondData: monthlyReturnPercentageLastYear.map((d) => ({
-              name: monthNamesPt[d.mes - 1],
-              value: d.percentual_devolucao,
-            })),
-            value: `${monthlyReturnPercentage[monthlyReturnPercentage.length - 1].percentual_devolucao.toFixed(2)}%`,
-            gain:
-              monthlyReturnPercentage.length > 1
-                ? Number(
-                    (
-                      ((monthlyReturnPercentage[
-                        monthlyReturnPercentage.length - 1
-                      ].percentual_devolucao -
-                        monthlyReturnPercentage[
-                          monthlyReturnPercentage.length - 2
-                        ].percentual_devolucao) *
-                        100) /
-                      monthlyReturnPercentage[
-                        monthlyReturnPercentage.length - 2
-                      ].percentual_devolucao
                     ).toFixed(2),
                   )
                 : 0,
@@ -936,6 +952,28 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
 
   const stockMultiLineData = buildStockMultiLineData(stock);
 
+  const firstIndisponivelIndex = stock.findIndex(
+    (s) =>
+      (s.valor_custo_estoque_bloqueado || 0) > 0 ||
+      (s.valor_custo_estoque_reservado || 0) > 0 ||
+      (s.valor_custo_estoque_avaria || 0) > 0,
+  );
+
+  const trimmedIndisponivelData = {
+    Bloqueado:
+      firstIndisponivelIndex !== -1
+        ? stockMultiLineData['Bloqueado'].slice(firstIndisponivelIndex)
+        : [],
+    Reservado:
+      firstIndisponivelIndex !== -1
+        ? stockMultiLineData['Reservado'].slice(firstIndisponivelIndex)
+        : [],
+    Avariado:
+      firstIndisponivelIndex !== -1
+        ? stockMultiLineData['Avariado'].slice(firstIndisponivelIndex)
+        : [],
+  };
+
   return [
     {
       type: GraphType.LINE,
@@ -959,11 +997,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     {
       type: GraphType.MULTI_LINE,
       title: 'Evolução do Estoque Indisponível',
-      data: {
-        Bloqueado: stockMultiLineData['Bloqueado'],
-        Reservado: stockMultiLineData['Reservado'],
-        Avariado: stockMultiLineData['Avariado'],
-      },
+      data: trimmedIndisponivelData,
       value: formatCurrency(
         (currentStock.valor_custo_estoque_bloqueado || 0) +
           (currentStock.valor_custo_estoque_reservado || 0) +
@@ -971,7 +1005,7 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       ),
       info: 'Progressão temporal dos valores de estoque indisponível (Bloqueado, Reservado e Avariado)',
       tooltipFormatter: (value: number) => formatCurrency(value),
-      xTicks: buildXTicksEveryNDays(stockMultiLineData['Bloqueado'], 30),
+      xTicks: buildXTicksEveryNDays(trimmedIndisponivelData['Bloqueado'], 30),
       xAxisAngle: -45,
     },
     {
