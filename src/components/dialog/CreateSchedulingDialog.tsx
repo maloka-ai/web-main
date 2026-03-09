@@ -92,7 +92,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
     useControlModal();
 
   const [title, setTitle] = React.useState(draft.suggested_title);
-  const [emails, setEmails] = React.useState(draft.email_list.join(','));
+  const [emails, setEmails] = React.useState(draft.email_list?.join(',') || '');
   const [typeNotification, setTypeNotification] = React.useState('email');
   const [frequency, setFrequency] = React.useState<Frequency>('mensal');
   const [timeHHMM, setTimeHHMM] = React.useState('09:00');
@@ -414,9 +414,9 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
 
             <Grid size={12} mb={2}>
               <Typography fontWeight={600}>Passos</Typography>
-              <Typography>{draft.templates.reasoning}</Typography>
+              <Typography>{draft.templates?.reasoning || 'Nenhum passo fornecido'}</Typography>
               <Box component={'ol'} mt={1}>
-                {draft.generic_steps.map((reason) => (
+                {draft.generic_steps?.map((reason) => (
                   <li style={{ marginLeft: '1rem' }} key={reason}>
                     {reason}
                   </li>
