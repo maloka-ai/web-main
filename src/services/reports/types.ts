@@ -11,6 +11,9 @@ export interface DraftReport {
   };
   id: string;
   suggested_title: string;
+  title: string;
+  steps: string[];
+  assistant_id: number;
   templates: {
     data_template: string;
     nodata_template: string;
