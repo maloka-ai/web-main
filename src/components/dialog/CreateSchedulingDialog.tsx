@@ -109,7 +109,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
   }, [frequency, timeHHMM, weekDays, monthlyDay]);
 
   function handleBack() {
-    reportsService.deleteById(draft.report_id);
+    reportsService.deleteById(draft.id);
     handleCloseBackDialog();
     handleCloseDeleteDialog();
     onClose();
