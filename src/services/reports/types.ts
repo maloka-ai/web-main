@@ -9,7 +9,7 @@ export interface DraftReport {
     original_sql: string;
     original_steps: Array<string>;
   };
-  report_id: string;
+  id: string;
   suggested_title: string;
   templates: {
     data_template: string;

@@ -183,7 +183,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
     mutate(
       {
         ...payload,
-        report_id: draft.report_id,
+        report_id: draft.id,
       },
       {
         onSuccess() {
