@@ -1,5 +1,5 @@
 import {
-  Alert,
+  alpha,
   Box,
   Button,
   Checkbox,
@@ -16,7 +16,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,7 +28,8 @@ import { ConfirmDialog } from '@/components/dialog/ConfirmDialog';
 import { reportsService } from '@/services/reports/service';
 import { BootstrapInput } from '@/components/inputs/style';
 import { useMutationCreateTask } from '@/services/reports/mutations';
-import { toast } from 'react-toastify';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { LoadingBorderButton } from '@/components/dialog/LoadingButtonBorder';
 
 interface Props extends DialogProps {
   draft: DraftReport;
@@ -85,7 +85,8 @@ function isValidEmail(email: string): boolean {
 }
 
 export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
-  const { mutate, isPending } = useMutationCreateTask();
+  const { mutate, isPending, isSuccess } = useMutationCreateTask();
+  const isMobile = useIsMobile();
   const [openBackDialog, handleOpenBackDialog, handleCloseBackDialog] =
     useControlModal();
   const [openDeleteDialog, handleOpenDeleteDialog, handleCloseDeleteDialog] =
@@ -187,9 +188,11 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
       },
       {
         onSuccess() {
-          handleCloseBackDialog();
-          handleCloseDeleteDialog();
-          onClose();
+          setTimeout(() => {
+            handleCloseBackDialog();
+            handleCloseDeleteDialog();
+            onClose();
+          }, 1000);
         },
         onError(error) {
           console.error(error);
@@ -212,6 +215,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
         onClose={handleClose}
         fullWidth
         maxWidth={'lg'}
+        fullScreen={isMobile}
         sx={{ height: '100%' }}
       >
         <DialogTitle>
@@ -223,7 +227,13 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+          }}
+        >
           <Grid container gap={2}>
             <Grid
               size={{
@@ -429,6 +439,26 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
             sx={{
               flexWrap: 'wrap',
               gap: '8px',
+              position: isMobile ? 'sticky' : 'static',
+              bottom: isMobile ? '-1rem' : 'auto',
+              zIndex: isMobile ? 2 : 'auto',
+              px: 2,
+              py: 2,
+              minHeight: '70px',
+              backgroundColor: isMobile ? '#f4f3ed' : 'transparent',
+              ...(isMobile && {
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: '-24px',
+                  height: '24px',
+                  pointerEvents: 'none',
+                  background: () =>
+                    `linear-gradient(to top, #f4f3ed 0%, ${alpha('#f4f3ed', 0)} 100%)`,
+                },
+              }),
             }}
           >
             <Button
@@ -451,15 +481,20 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               Excluir
             </Button>
 
-            <Button
+            <LoadingBorderButton
               size={'small'}
               color={'primary'}
+              duration={45000}
               variant={'contained'}
+              progressColor="#ba6640"
+              trackColor="#E6DCCB"
+              loadingLabel={'Salvando ...'}
               onClick={handleSaveTask}
               loading={isPending}
+              isComplete={isSuccess}
             >
               Salvar agendamento
-            </Button>
+            </LoadingBorderButton>
           </DialogActions>
         </DialogContent>
       </Dialog>
