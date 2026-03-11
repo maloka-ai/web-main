@@ -1,21 +1,24 @@
 export interface DraftReport {
-  dynamic_sql: string;
-  email_list: Array<string>;
-  generic_steps: Array<string>;
+  assistant_id: string;
+  created_at: string;
+  cron_expression: string | null;
+  data_template_id: string;
+  description: string;
   has_chart: boolean;
-  original_context: {
-    created_at: string;
-    original_message: string;
-    original_sql: string;
-    original_steps: Array<string>;
-  };
-  report_id: string;
-  suggested_title: string;
-  templates: {
-    data_template: string;
-    nodata_template: string;
-    reasoning: string;
-  };
+  id: string;
+  last_report_status: string;
+  last_report_time: string;
+  message_id: string;
+  next_report_time: string;
+  nodata_template_id: string;
+  recipient_emails: string[];
+  sql_query: string;
+  status: string;
+  steps: string[];
+  template_reasoning: string;
+  title: string;
+  updated_at: string;
+  user_id: string;
 }
 
 export interface Report {
