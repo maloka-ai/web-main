@@ -6,6 +6,5 @@ export const useQueryThreads = () => {
   return useQuery({
     queryKey: threadsKeys.all,
     queryFn: AssistantService.listConversations,
-    initialData: [],
   });
 };

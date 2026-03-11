@@ -3,13 +3,6 @@
 import { Box, Divider, Typography } from '@mui/material';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import AlertasEAcoes from '../widgets/AlertasEAcoes';
-import { useEffect, useState } from 'react';
-import {
-  analysisService,
-  CustomerAnnualRecurrence,
-  CustomerQuarterlyRecurrence,
-  CustomerSegmentation,
-} from '@/services/analysis/analysisService';
 import {
   clientsMakeGraphs,
   salesMakeGraphs,
@@ -17,10 +10,22 @@ import {
 } from '../helpers/CockpitHelper';
 import ResumeGraph from '../widgets/ResumeGraph';
 import { GraphData } from '@/utils/graphics';
-import { useListAlertsCockipt } from '@/services/analysis/queries';
-import { AverageMonthlyDiscountItem, MonthlyGrossProfitItem, MonthlyReturnPercentageItem, salesService } from '@/services/salesService';
-import { CustomerSegmentationMetric } from '@/services/customer/types';
-import { customerService } from '@/services/customer/service';
+import {
+  useListAlertsCockipt,
+  useQueryAnnualRevenues,
+  useQueryCustomerAnnualRecurrence,
+  useQueryCustomerQuarterlyRecurrence,
+  useQueryDailyRevenues,
+  useQueryMonthlyRevenues,
+  useQuerySegmentationClients,
+  useQueryStockMetrics,
+} from '@/services/analysis/queries';
+import { useQueryTotalCustomerSegmentationMetric } from '@/services/customer/queries';
+import {
+  useQueryAverageMonthlyDiscount,
+  useQueryMonthlyGrossProfit,
+  useQueryMonthlyReturnPercentage,
+} from '@/services/sales/queries';
 
 function WrapperGrid({ children }: { children: React.ReactNode }) {
   return (
@@ -39,117 +44,75 @@ function WrapperGrid({ children }: { children: React.ReactNode }) {
   );
 }
 export default function CockpitPage() {
-  const [customer, setCustomer] = useState<CustomerSegmentation[]>([]);
-  const [customerQuarterlyRecurrence, setCustomerQuarterlyRecurrence] =
-    useState<CustomerQuarterlyRecurrence[]>([]);
-  const [customerAnnualRecurrence, setCustomerAnnualRecurrence] = useState<
-    CustomerAnnualRecurrence[]
-  >([]);
-  const [totalCustomerSegmentationMetric, setTotalCustomerSegmentationMetric] =
-    useState<CustomerSegmentationMetric[]>([]);
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
 
-  const [annualRevenues, setAnnualRevenues] = useState<any[]>([]);
-  const [monthlyRevenues, setMonthlyRevenues] = useState<any[]>([]);
-  const [currentYearDailyRevenues, setCurrentYearDailyRevenues] = useState<
-    any[]
-  >([]);
-  const [lastYearDailyRevenues, setLastYearDailyRevenues] = useState<any[]>([]);
-  const [stock, setStock] = useState<any[]>([]);
+  const { data: customer } = useQuerySegmentationClients();
+  const { data: customerQuarterlyRecurrence } =
+    useQueryCustomerQuarterlyRecurrence(currentYear - 1);
+  const { data: customerAnnualRecurrence } = useQueryCustomerAnnualRecurrence(
+    currentYear - 2,
+  );
+  const { data: annualRevenues } = useQueryAnnualRevenues();
+  const { data: monthlyRevenues } = useQueryMonthlyRevenues();
+  const { data: currentYearDailyRevenues } = useQueryDailyRevenues(
+    currentYear,
+    currentMonth,
+  );
+  const { data: lastYearDailyRevenues } = useQueryDailyRevenues(
+    currentYear - 1,
+    currentMonth,
+  );
+  const { data: stock } = useQueryStockMetrics();
   const { data: alertsCockpit, isLoading: isLoadingAlertsCockpit } =
     useListAlertsCockipt();
 
-  const [averageMonthlyDiscount, setAverageMonthlyDiscount] = useState<
-    AverageMonthlyDiscountItem[]
-  >([]);
-  const [monthlyGrossProfit, setMonthlyGrossProfit] = useState<
-    MonthlyGrossProfitItem[]
-  >([]);
-  const [monthlyReturnPercentage, setMonthlyReturnPercentage] = useState<
-  MonthlyReturnPercentageItem[]>([]);
+  const { data: totalCustomerSegmentationMetric } =
+    useQueryTotalCustomerSegmentationMetric(currentYear);
 
-  const [averageMonthlyDiscountLastYear, setAverageMonthlyDiscountLastYear] = useState<
-    AverageMonthlyDiscountItem[]
-  >([]);
-  const [monthlyGrossProfitLastYear, setMonthlyGrossProfitLastYear] = useState<
-    MonthlyGrossProfitItem[]
-  >([]);
-  const [monthlyReturnPercentageLastYear, setMonthlyReturnPercentageLastYear] = useState<
-  MonthlyReturnPercentageItem[]>([]);
+  const { data: averageMonthlyDiscount } = useQueryAverageMonthlyDiscount(
+    undefined,
+    currentYear,
+  );
+  const { data: monthlyGrossProfit } = useQueryMonthlyGrossProfit(
+    undefined,
+    currentYear,
+  );
+  const { data: monthlyReturnPercentage } = useQueryMonthlyReturnPercentage(
+    undefined,
+    currentYear,
+  );
+  const { data: averageMonthlyDiscountLastYear } =
+    useQueryAverageMonthlyDiscount(undefined, currentYear - 1);
+  const { data: monthlyGrossProfitLastYear } = useQueryMonthlyGrossProfit(
+    undefined,
+    currentYear - 1,
+  );
+  const { data: monthlyReturnPercentageLastYear } =
+    useQueryMonthlyReturnPercentage(undefined, currentYear - 1);
 
-  useEffect(() => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    analysisService
-      .getSegmentacaoClientes()
-      .then(setCustomer)
-      .catch(console.error);
-    customerService
-      .getTotalCustomerSegmentationMetric(currentYear)
-      .then(setTotalCustomerSegmentationMetric)
-      .catch(console.error);
+  const showSales = !!(
+    annualRevenues &&
+    monthlyRevenues &&
+    averageMonthlyDiscount &&
+    monthlyGrossProfit &&
+    monthlyReturnPercentage &&
+    currentYearDailyRevenues &&
+    lastYearDailyRevenues &&
+    averageMonthlyDiscountLastYear &&
+    monthlyGrossProfitLastYear &&
+    monthlyReturnPercentageLastYear
+  );
 
-    analysisService
-      .getCustomerQuarterlyRecurrence(currentYear - 1)
-      .then(setCustomerQuarterlyRecurrence)
-      .catch(console.error);
-    analysisService
-      .getCustomerAnnualRecurrence(currentYear - 2)
-      .then(setCustomerAnnualRecurrence)
-      .catch(console.error);
+  const showStock = !!stock;
 
-    analysisService
-      .getAnnualRevenues()
-      .then(setAnnualRevenues)
-      .catch(console.error);
-
-    analysisService
-      .getMonthlyRevenues()
-      .then(setMonthlyRevenues)
-      .catch(console.error);
-
-    analysisService
-      .getDailyRevenues(currentYear, currentMonth)
-      .then(setCurrentYearDailyRevenues)
-      .catch(console.error);
-    analysisService
-      .getDailyRevenues(currentYear - 1, currentMonth)
-      .then(setLastYearDailyRevenues)
-      .catch(console.error);
-
-    analysisService.getStockMetrics().then(setStock).catch(console.error);
-
-    salesService
-      .getAverageMonthlyDiscount(undefined, currentYear)
-      .then(setAverageMonthlyDiscount)
-      .catch(console.error);
-
-    salesService
-      .getMonthlyGrossProfit(undefined, currentYear)
-      .then(setMonthlyGrossProfit)
-      .catch(console.error);
-
-    salesService
-      .getMonthlyReturnPercentage(undefined, currentYear)
-      .then(setMonthlyReturnPercentage)
-      .catch(console.error);
-
-    salesService
-      .getAverageMonthlyDiscount(undefined, currentYear - 1)
-      .then(setAverageMonthlyDiscountLastYear)
-      .catch(console.error);
-
-    salesService
-      .getMonthlyGrossProfit(undefined, currentYear - 1)
-      .then(setMonthlyGrossProfitLastYear)
-      .catch(console.error);
-
-    salesService
-      .getMonthlyReturnPercentage(undefined, currentYear - 1)
-      .then(setMonthlyReturnPercentageLastYear)
-      .catch(console.error);
-  }, []);
-
+  const showCustomers = !!(
+    customer &&
+    customerQuarterlyRecurrence &&
+    customerAnnualRecurrence &&
+    totalCustomerSegmentationMetric
+  );
   return (
     <Box
       sx={{
@@ -232,10 +195,7 @@ export default function CockpitPage() {
             Vendas
           </Typography>
 
-          {!annualRevenues &&
-          !monthlyRevenues &&
-          !currentYearDailyRevenues &&
-          !lastYearDailyRevenues ? (
+          {!showSales ? (
             <Box
               sx={{
                 width: '100%',
@@ -257,28 +217,23 @@ export default function CockpitPage() {
             </Box>
           ) : (
             <WrapperGrid>
-              {annualRevenues &&
-                monthlyRevenues &&
-                averageMonthlyDiscount &&
-                monthlyGrossProfit &&
-                monthlyReturnPercentage &&
-                salesMakeGraphs(
-                  annualRevenues,
-                  monthlyRevenues,
-                  currentYearDailyRevenues,
-                  lastYearDailyRevenues,
-                  averageMonthlyDiscount,
-                  monthlyGrossProfit,
-                  monthlyReturnPercentage,
-                  averageMonthlyDiscountLastYear,
-                  monthlyGrossProfitLastYear,
-                  monthlyReturnPercentageLastYear
-                ).map((graph, index) => (
-                  <ResumeGraph
-                    key={`sales-resume-graph-${index}`}
-                    graph={{ ...graph, index } as GraphData}
-                  />
-                ))}
+              {salesMakeGraphs(
+                annualRevenues,
+                monthlyRevenues,
+                currentYearDailyRevenues,
+                lastYearDailyRevenues,
+                averageMonthlyDiscount,
+                monthlyGrossProfit,
+                monthlyReturnPercentage,
+                averageMonthlyDiscountLastYear,
+                monthlyGrossProfitLastYear,
+                monthlyReturnPercentageLastYear,
+              ).map((graph, index) => (
+                <ResumeGraph
+                  key={`sales-resume-graph-${index}`}
+                  graph={{ ...graph, index } as GraphData}
+                />
+              ))}
             </WrapperGrid>
           )}
 
@@ -294,7 +249,7 @@ export default function CockpitPage() {
             </Box>
             Estoque
           </Typography>
-          {!stock ? (
+          {!showStock ? (
             <Box
               sx={{
                 width: '100%',
@@ -316,13 +271,12 @@ export default function CockpitPage() {
             </Box>
           ) : (
             <WrapperGrid>
-              {stock &&
-                stockMakeGraphs(stock).map((graph, index) => (
-                  <ResumeGraph
-                    key={`stock-resume-graph-${index}`}
-                    graph={{ ...graph, index } as GraphData}
-                  />
-                ))}
+              {stockMakeGraphs(stock).map((graph, index) => (
+                <ResumeGraph
+                  key={`stock-resume-graph-${index}`}
+                  graph={{ ...graph, index } as GraphData}
+                />
+              ))}
             </WrapperGrid>
           )}
 
@@ -338,7 +292,7 @@ export default function CockpitPage() {
             </Box>
             Cliente
           </Typography>
-          {!customer ? (
+          {!showCustomers ? (
             <Box
               sx={{
                 width: '100%',
@@ -360,20 +314,17 @@ export default function CockpitPage() {
             </Box>
           ) : (
             <WrapperGrid>
-              {customer &&
-                customerQuarterlyRecurrence &&
-                customerAnnualRecurrence &&
-                clientsMakeGraphs(
-                  customer,
-                  customerQuarterlyRecurrence,
-                  customerAnnualRecurrence,
-                  totalCustomerSegmentationMetric,
-                ).map((graph, index) => (
-                  <ResumeGraph
-                    key={`clients-resume-graph-${index}`}
-                    graph={{ ...graph, index } as GraphData}
-                  />
-                ))}
+              {clientsMakeGraphs(
+                customer,
+                customerQuarterlyRecurrence,
+                customerAnnualRecurrence,
+                totalCustomerSegmentationMetric,
+              ).map((graph, index) => (
+                <ResumeGraph
+                  key={`clients-resume-graph-${index}`}
+                  graph={{ ...graph, index } as GraphData}
+                />
+              ))}
             </WrapperGrid>
           )}
         </Box>

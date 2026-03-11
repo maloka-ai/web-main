@@ -92,8 +92,8 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
   const [openDeleteDialog, handleOpenDeleteDialog, handleCloseDeleteDialog] =
     useControlModal();
 
-  const [title, setTitle] = React.useState(draft.suggested_title);
-  const [emails, setEmails] = React.useState(draft.email_list.join(','));
+  const [title, setTitle] = React.useState(draft.title);
+  const [emails, setEmails] = React.useState(draft.recipient_emails.join(','));
   const [typeNotification, setTypeNotification] = React.useState('email');
   const [frequency, setFrequency] = React.useState<Frequency>('mensal');
   const [timeHHMM, setTimeHHMM] = React.useState('09:00');
@@ -110,7 +110,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
   }, [frequency, timeHHMM, weekDays, monthlyDay]);
 
   function handleBack() {
-    reportsService.deleteById(draft.report_id);
+    reportsService.deleteById(draft.id);
     handleCloseBackDialog();
     handleCloseDeleteDialog();
     onClose();
@@ -184,7 +184,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
     mutate(
       {
         ...payload,
-        report_id: draft.report_id,
+        report_id: draft.id,
       },
       {
         onSuccess() {
@@ -424,9 +424,9 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
 
             <Grid size={12} mb={2}>
               <Typography fontWeight={600}>Passos</Typography>
-              <Typography>{draft.templates.reasoning}</Typography>
+              <Typography>{draft.template_reasoning}</Typography>
               <Box component={'ol'} mt={1}>
-                {draft.generic_steps.map((reason) => (
+                {draft.steps.map((reason) => (
                   <li style={{ marginLeft: '1rem' }} key={reason}>
                     {reason}
                   </li>
@@ -465,7 +465,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               size={'small'}
               color={'primary'}
               variant={'outlined'}
-              disabled={isPending}
+              disabled={isPending || isSuccess}
               onClick={handleOpenBackDialog}
             >
               Voltar
@@ -475,7 +475,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               size={'small'}
               color={'error'}
               variant={'contained'}
-              disabled={isPending}
+              disabled={isPending || isSuccess}
               onClick={handleOpenDeleteDialog}
             >
               Excluir
@@ -520,7 +520,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
           <span>
             Você deseja realmente excluir de forma definitiva este agendamento:{' '}
             <Typography component={'span'} fontWeight={600}>
-              {draft.suggested_title}
+              {draft.title}
             </Typography>
           </span>
         }

@@ -7,24 +7,36 @@ export const useCustomerResumeSegmentations = () =>
   useQuery({
     queryKey: customerKeys.resumeSegmentations,
     queryFn: () => customerService.getResumeSegmentationAllMetric(),
-    staleTime: 30_000,
+    gcTime: 1000 * 60,
   });
 
 export const useCustomerDetails = (id_cliente: number) =>
   useQuery({
     queryKey: customerKeys.detail(id_cliente),
     queryFn: () => customerService.getDetailsCustomer(id_cliente),
-    staleTime: 30_000,
+    gcTime: 1000 * 60,
   });
 export const useCustomerSales = (id_cliente: number) =>
   useQuery({
     queryKey: customerKeys.sales(id_cliente),
     queryFn: () => customerService.getSalesCustomer(id_cliente),
+    gcTime: 1000 * 60,
   });
 export const useCustomers = () =>
   useQuery({
     queryKey: customerKeys.all,
     queryFn: () => customerService.getAllCustomers(),
+    gcTime: 1000 * 60,
+  });
+
+export const useQueryTotalCustomerSegmentationMetric = (
+  year: number,
+  month?: number,
+) =>
+  useQuery({
+    queryKey: customerKeys.totalCustomerSegmentationMetrics(year, month),
+    queryFn: () =>
+      customerService.getTotalCustomerSegmentationMetric(year, month),
   });
 
 type UseTotalSalesOptions = {
