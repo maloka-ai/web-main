@@ -1,0 +1,156 @@
+import api from '@/utils/api';
+import { DailyRevenue } from '@/services/analysis/analysisService';
+import { toQS } from '@/services/helpers/toQS';
+import { AtypicalTopProduct } from '@/services/sales/types';
+
+export interface AnnualRevenue {
+  ano: number;
+  total_de_faturamento: number;
+  percent_evolução_total_de_faturamento: number | null;
+  qtd_vendas_ano: number;
+  ticket_medio_anual: number;
+  faturamento_cliente_cadastrado: number;
+  faturamento_cliente_sem_cadastro: number;
+  percentual_faturamento_cliente_cadastrado: number;
+  percentual_faturamento_cliente_sem_cadastro: number;
+  faturameno_em_servicos: number;
+  faturamento_em_produtos: number;
+  percentual_faturameno_em_servicos: number;
+  percentual_faturamento_em_produtos: number;
+  percentual_de_evolução_ticket_medio: number | null;
+  percentual_de_evolução_faturameno_em_servicos: number | null;
+  percentual_evolução_faturamento_em_produtos: number | null;
+  qtd_vendas_produtos: number;
+  qtd_vendas_servicos: number;
+  total_venda_itens: number;
+  total_faturamento_clientes: number;
+}
+
+export interface MonthlyRevenue {
+  ano: number;
+  cliente: string;
+  id: number;
+  id_loja: number;
+  mes: number;
+  nome_loja: string;
+  total_venda: number;
+}
+
+export type SaleItem = {
+  acrescimo: number;
+  desconto: number;
+  descricao_servico: string | null;
+  id_produto: number | null;
+  id_servico: number | null;
+  id_venda: number;
+  id_venda_item: number;
+  nome_produto: string | null;
+  preco_bruto: number;
+  quantidade: number;
+  tipo: 'P' | 'S';
+  total_item: number;
+};
+
+export type MonthlyItem = {
+  mes: number;
+  ano: number;
+  total_venda: number;
+}
+
+export type AverageMonthlyDiscountItem = {
+  total_desconto: number;
+  percentual_desconto_medio: number;
+} & MonthlyItem;
+
+export type MonthlyGrossProfitItem = {
+  lucro_bruto: number;
+  percentual_lucro_bruto: number;
+} & MonthlyItem;
+
+export type MonthlyReturnPercentageItem = {
+  total_devolvido: number;
+  percentual_devolucao: number;
+} & MonthlyItem;
+
+export const salesService = {
+  async getAnnualRevenue(ano?: number): Promise<AnnualRevenue[]> {
+    const qs = toQS({ ano });
+    const { data } = await api.get<AnnualRevenue[]>(
+      `/sales/faturamento/anual${qs}`,
+    );
+    return data;
+  },
+
+  async getMonthlyRevenue(params?: {
+    mes?: number;
+    ano?: number;
+    loja?: string;
+  }): Promise<MonthlyRevenue[]> {
+    const qs = toQS({ mes: params?.mes, ano: params?.ano, loja: params?.loja });
+    const { data } = await api.get<MonthlyRevenue[]>(
+      `/sales/faturamento/mensal${qs}`,
+    );
+    return data;
+  },
+
+  async getDailyRevenue(params: { mes: number; ano: number }): Promise<any[]> {
+    const qs = toQS({ mes: params.mes, ano: params.ano });
+    const { data } = await api.get<any[]>(`/sales/faturamento/diario${qs}`);
+    return data;
+  },
+
+  async getDailyRevenueByPeriod(params: {
+    mes: number;
+    ano: number;
+  }): Promise<any[]> {
+    const qs = toQS({ mes: params.mes, ano: params.ano });
+    const { data } = await api.get<DailyRevenue[]>(
+      `/sales/faturamento/diario_por_periodo${qs}`,
+    );
+    return data;
+  },
+
+  async getAtypicalTop10Products() {
+    const { data } = await api.get<AtypicalTopProduct[]>(
+      `/sales/vendas_atipicas/top10_produtos`,
+    );
+    return data;
+  },
+
+  async getAtypicalSalesDetail(): Promise<any[]> {
+    const { data } = await api.get<any[]>(
+      `/sales/vendas_atipicas/detalhamento`,
+    );
+    return data;
+  },
+
+  async getSalesByClient(id_cliente: number): Promise<any[]> {
+    const qs = toQS({ id_cliente });
+    const { data } = await api.get<any[]>(`/sales/vendas/cliente${qs}`);
+    return data;
+  },
+
+  async getSaleItems(id_venda: number) {
+    const qs = toQS({ id_venda });
+    const { data } = await api.get<SaleItem[]>(`/sales/vendas/itens${qs}`);
+    return data;
+  },
+
+  async getAverageMonthlyDiscount(mes?: number, ano?: number): Promise<AverageMonthlyDiscountItem[]> {
+    const qs = toQS({ mes, ano });
+    const { data } = await api.get<AverageMonthlyDiscountItem[]>(`/sales/faturamento/desconto_medio_mensal${qs}`);
+    return data;
+  },
+
+  async getMonthlyGrossProfit(mes?: number, ano?: number): Promise<MonthlyGrossProfitItem[]> {
+    const qs = toQS({ mes, ano });
+    const { data } = await api.get<MonthlyGrossProfitItem[]>(`/sales/faturamento/lucro_bruto_mensal${qs}`);
+    return data;
+  },
+
+  async getMonthlyReturnPercentage(mes?: number, ano?: number): Promise<MonthlyReturnPercentageItem[]> {
+    const qs = toQS({ mes, ano });
+    const { data } = await api.get<MonthlyReturnPercentageItem[]>(`/sales/faturamento/devolucao_mensal${qs}`);
+    return data;
+  },
+};

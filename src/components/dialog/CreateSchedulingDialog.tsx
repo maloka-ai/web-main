@@ -93,7 +93,9 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
     useControlModal();
 
   const [title, setTitle] = React.useState(draft.title);
-  const [emails, setEmails] = React.useState(draft.email_list?.join(',') || '');
+  const [emails, setEmails] = React.useState(
+    draft.recipient_emails?.join(',') || '',
+  );
   const [typeNotification, setTypeNotification] = React.useState('email');
   const [frequency, setFrequency] = React.useState<Frequency>('mensal');
   const [timeHHMM, setTimeHHMM] = React.useState('09:00');
@@ -464,7 +466,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               size={'small'}
               color={'primary'}
               variant={'outlined'}
-              disabled={isPending}
+              disabled={isPending || isSuccess}
               onClick={handleOpenBackDialog}
             >
               Voltar
@@ -474,7 +476,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
               size={'small'}
               color={'error'}
               variant={'contained'}
-              disabled={isPending}
+              disabled={isPending || isSuccess}
               onClick={handleOpenDeleteDialog}
             >
               Excluir
@@ -519,7 +521,7 @@ export function CreateSchedulingDialog({ open, onClose, draft }: Props) {
           <span>
             Você deseja realmente excluir de forma definitiva este agendamento:{' '}
             <Typography component={'span'} fontWeight={600}>
-              {draft.suggested_title}
+              {draft.title}
             </Typography>
           </span>
         }

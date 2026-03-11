@@ -11,7 +11,14 @@ import { ptBR } from 'date-fns/locale';
 import { ToastContainer } from 'react-toastify';
 import React from 'react';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    },
+  },
+});
 
 interface AppProps {
   children: React.ReactNode;

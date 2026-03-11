@@ -229,7 +229,7 @@ export default function AssistantChat() {
     refecthMessage: boolean,
   ) {
     setActiveConversationId(conversationId);
-    if (!conversationId) return;
+    if (!conversationId || !threads) return;
 
     setAssistantType(
       threads.find((c) => c.thread_id === activeConversationId)?.assistant_id ||
@@ -330,7 +330,7 @@ export default function AssistantChat() {
     const isNewConversation =
       !props?.reset &&
       (!activeConversationId ||
-        threads.find((c) => c.thread_id === activeConversationId)
+        threads?.find((c) => c.thread_id === activeConversationId)
           ?.assistant_id !== assistantType);
 
     let conversationId: string = props?.conversationIdPersonalized
@@ -628,7 +628,7 @@ export default function AssistantChat() {
         isLoadingConversations={isLoadingThreads}
         drawerOpen={drawerOpen}
         setDrawerOpen={setDrawerOpen}
-        conversations={threads}
+        conversations={threads || []}
         activeConversationId={activeConversationId}
         setActiveConversationId={(conversationId) =>
           handleActiveConversationId(conversationId, true)

@@ -7,11 +7,13 @@ import { useRouter } from 'next/navigation';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAssistantChatStore } from '@/store/assistantChatStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 function UserAccount({ email: propEmail }: { email?: string | null }) {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState<string>('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const queryClient = useQueryClient();
   const open = Boolean(anchorEl);
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -37,6 +39,7 @@ function UserAccount({ email: propEmail }: { email?: string | null }) {
 
   const handleLogout = () => {
     localStorage.clear();
+    queryClient.clear();
     router.push('/login');
   };
 

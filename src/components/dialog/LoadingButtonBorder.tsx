@@ -28,7 +28,9 @@ export function LoadingBorderButton({
 
   // 100 = vazio, 0 = completo
   const [progress, setProgress] = React.useState(100);
-  const [transitionMs, setTransitionMs] = React.useState(duration);
+  const [transitionMs, setTransitionMs] = React.useState(0);
+  const startedRef = React.useRef(false);
+  const completedRef = React.useRef(false);
 
   React.useLayoutEffect(() => {
     if (!buttonRef.current) return;
@@ -50,44 +52,50 @@ export function LoadingBorderButton({
   }, []);
 
   React.useEffect(() => {
-    if (!loading) {
+    const active = loading || isComplete;
+
+    if (!active) {
+      startedRef.current = false;
+      completedRef.current = false;
       setTransitionMs(0);
       setProgress(100);
       return;
     }
 
-    if (isComplete) return;
+    if (loading && !startedRef.current) {
+      startedRef.current = true;
+      completedRef.current = false;
 
-    const target = 5; // 95% completo
-    setTransitionMs(0);
-    setProgress(100);
+      setTransitionMs(0);
+      setProgress(100);
 
-    const raf = requestAnimationFrame(() => {
-      setTransitionMs(duration);
-      setProgress(target);
-    });
+      const raf = requestAnimationFrame(() => {
+        setTransitionMs(duration);
+        setProgress(5); // para em 95%
+      });
 
-    return () => cancelAnimationFrame(raf);
-  }, [loading, duration, isComplete]);
+      return () => cancelAnimationFrame(raf);
+    }
 
-  React.useEffect(() => {
-    if (!loading || !isComplete) return;
+    if (isComplete && !completedRef.current) {
+      completedRef.current = true;
 
-    // calcula quanto falta para chegar em 100%
-    // progress: 100=vazio, 0=completo
-    // target final = 0
-    const remainingFraction = progress / 100;
-    const completeDuration = Math.max(150, duration * remainingFraction);
+      const remainingFraction = progress / 100;
+      const completeDuration = Math.max(
+        120,
+        duration * remainingFraction * 0.35,
+      );
 
-    const raf = requestAnimationFrame(() => {
-      setTransitionMs(completeDuration);
-      setProgress(0);
-    });
+      const raf = requestAnimationFrame(() => {
+        setTransitionMs(completeDuration);
+        setProgress(0);
+      });
 
-    return () => cancelAnimationFrame(raf);
-  }, [isComplete, loading, progress, duration]);
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [loading, isComplete, duration, progress]);
 
-  const width = size.width + borderWidth * 2;
+  const width = size.width + borderWidth * 2 - 1;
   const height = size.height + borderWidth * 2;
   const radius = 6;
 
@@ -150,7 +158,7 @@ export function LoadingBorderButton({
       <Button
         {...props}
         ref={buttonRef}
-        disabled={disabled || loading}
+        disabled={disabled || loading || isComplete}
         sx={{
           position: 'relative',
           zIndex: 2,
