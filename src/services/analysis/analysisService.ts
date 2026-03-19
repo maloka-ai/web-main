@@ -119,6 +119,7 @@ export interface StockMetrics {
   valor_custo_estoque_bloqueado: number | null;
   valor_custo_estoque_geral: number | null;
   valor_custo_estoque_reservado: number | null;
+  valor_custo_estoque_pendente: number | null;
 }
 
 export interface CustomerQuarterlyRecurrence {

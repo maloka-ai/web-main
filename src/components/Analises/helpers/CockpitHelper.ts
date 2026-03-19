@@ -887,6 +887,7 @@ function buildStockMultiLineData(
     Bloqueado: [],
     Reservado: [],
     Avariado: [],
+    Pendente: [],
   };
 
   stock.forEach((s) => {
@@ -911,6 +912,10 @@ function buildStockMultiLineData(
     result['Avariado'].push({
       name: label,
       value: s.valor_custo_estoque_avaria || 0,
+    });
+    result['Pendente'].push({
+      name: label,
+      value: s.valor_custo_estoque_pendente || 0,
     });
   });
 
@@ -956,7 +961,9 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     (s) =>
       (s.valor_custo_estoque_bloqueado || 0) > 0 ||
       (s.valor_custo_estoque_reservado || 0) > 0 ||
-      (s.valor_custo_estoque_avaria || 0) > 0,
+      (s.valor_custo_estoque_avaria || 0) > 0 ||
+      (s.valor_custo_estoque_pendente || 0) > 0,
+
   );
 
   const trimmedIndisponivelData = {
@@ -971,6 +978,10 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
     Avariado:
       firstIndisponivelIndex !== -1
         ? stockMultiLineData['Avariado'].slice(firstIndisponivelIndex)
+        : [],
+    Pendente:
+      firstIndisponivelIndex !== -1
+        ? stockMultiLineData['Pendente'].slice(firstIndisponivelIndex)
         : [],
   };
 
@@ -1001,9 +1012,10 @@ export function stockMakeGraphs(stock: StockMetrics[]): Graphs[] {
       value: formatCurrency(
         (currentStock.valor_custo_estoque_bloqueado || 0) +
           (currentStock.valor_custo_estoque_reservado || 0) +
-          (currentStock.valor_custo_estoque_avaria || 0),
+          (currentStock.valor_custo_estoque_avaria || 0) +
+          (currentStock.valor_custo_estoque_pendente || 0),
       ),
-      info: 'Progressão temporal dos valores de estoque indisponível (Bloqueado, Reservado e Avariado)',
+      info: 'Progressão temporal dos valores de estoque indisponível (Bloqueado, Reservado, Avariado e Pendente)',
       tooltipFormatter: (value: number) => formatCurrency(value),
       xTicks: buildXTicksEveryNDays(trimmedIndisponivelData['Bloqueado'], 30),
       xAxisAngle: -45,
