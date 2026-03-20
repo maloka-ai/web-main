@@ -25,6 +25,7 @@ export function buildDynamicColumns<T extends MRT_RowData>(
       accessorKey: k,
       header,
       filterVariant: 'text',
+      filterFn: 'tokenMatch',
       size: index === 0 ? 140 : undefined,
       muiTableHeadCellProps: { align },
       muiTableBodyCellProps: {

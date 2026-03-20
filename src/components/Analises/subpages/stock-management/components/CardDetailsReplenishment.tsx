@@ -145,7 +145,6 @@ export default function CardDetailsReplenishment({
       },
       sx: {
         cursor: cell.column.id === 'id_produto' ? 'copy' : 'pointer',
-        backgroundColor: 'red',
       },
     }),
   });

@@ -13,10 +13,9 @@ import {
 import { FileDownloadOutlined } from '@mui/icons-material';
 import DialogDetails from '@/components/dialog/DialogDetails';
 import { useEffect, useMemo, useState } from 'react';
-import ProductAnalysis from '@/components/Analises/subpages/stock-management/ProductAnalysis';
+import CustomerAnalysis from './CustomerAnalysis';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/utils/api';
-import { ProductByCriticity } from '@/services/analysis/analysisService';
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -25,6 +24,7 @@ import {
 import { MRT_Localization_PT_BR } from 'material-react-table/locales/pt-BR';
 import { buildDynamicColumns } from '@/components/table/buildColumns';
 import { tokenMatchFilterFn, tokenMatchSortingFn } from '@/utils/mrtFiltering';
+import { Customer } from '@/services/customer/types';
 
 export type DetailsDialogTableProps = {
   title: string;
@@ -42,7 +42,7 @@ export default function CardDetailsCustomersSegmentation({
   onDownload,
 }: DetailsAlertsAndActionsProps) {
   const { linkDataTable } = data;
-  const [productSelect, setProductSelect] = useState<any>();
+  const [customerSelect, setCustomerSelect] = useState<Customer | null>(null);
   const [keysStable, setKeysStable] = useState<string[]>();
   const [toastOpen, setToastOpen] = useState(false);
 
@@ -50,7 +50,7 @@ export default function CardDetailsCustomersSegmentation({
   const [globalFilter, setGlobalFilter] = useState('');
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
 
-  const { data: listProducts, isLoading } = useQuery<ProductByCriticity[]>({
+  const { data: listCustomers, isLoading } = useQuery<Customer[]>({
     queryKey: [linkDataTable],
     queryFn: async () => {
       setKeysStable(undefined);
@@ -72,32 +72,31 @@ export default function CardDetailsCustomersSegmentation({
     return buildDynamicColumns(keysStable, 26, { copyId: true });
   }, [keysStable]);
 
-  function clearSelectedProduct() {
-    setProductSelect(null);
+  function clearSelectedCustomer() {
+    setCustomerSelect(null);
   }
 
   const hasDownload = Boolean(onDownload);
 
-  const isOpenDialog = !!productSelect;
-  const dataDialog = productSelect
+  const isOpenDialog = !!customerSelect;
+  const dataDialog = customerSelect
     ? {
-        title: 'Análise detalhada do produto',
+        title: 'Análise detalhada do cliente',
       }
     : null;
 
   // Effect to manage sorting based on global filter
   useEffect(() => {
     if (globalFilter) {
-      // When global filter is active, sort by our custom score
       setSorting([{ id: '_mrt_filterMatchScore', desc: true }]);
     } else {
-      // When global filter is not active, clear or set default sorting
-      setSorting([]); // Clear sorting
+      setSorting([]);
     }
   }, [globalFilter]);
-  const table = useMaterialReactTable<ProductByCriticity>({
+
+  const table = useMaterialReactTable<Customer>({
     columns: columnsKeys as any,
-    data: listProducts || [],
+    data: listCustomers || [],
     localization: MRT_Localization_PT_BR,
     muiPaginationProps: {
       color: 'secondary',
@@ -105,23 +104,22 @@ export default function CardDetailsCustomersSegmentation({
       shape: 'circular',
       variant: 'outlined',
     },
-    state: { isLoading, globalFilter, sorting }, // Pass globalFilter and sorting state
-    onGlobalFilterChange: setGlobalFilter, // Handle global filter changes
-    onSortingChange: setSorting, // Handle sorting changes
+    state: { isLoading, globalFilter, sorting },
+    onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
     enableColumnActions: false,
-    globalFilterFn: 'tokenMatch', // Use our custom global filter function
+    globalFilterFn: 'tokenMatch',
     filterFns: {
       tokenMatch: tokenMatchFilterFn,
     },
     sortingFns: {
-      // Define custom sorting functions
       _mrt_filterMatchScore: tokenMatchSortingFn,
     },
 
     initialState: { showColumnFilters: true },
     muiTableBodyRowProps: ({ row }) => ({
       onClick: () => {
-        setProductSelect(row.original);
+        setCustomerSelect(row.original);
       },
       sx: { cursor: 'pointer' },
     }),
@@ -129,13 +127,12 @@ export default function CardDetailsCustomersSegmentation({
     muiTableBodyCellProps: ({ cell }) => ({
       onClick: (e) => {
         const columnId = cell.column.id;
-        if (columnId === 'id_produto') {
+        if (columnId === 'id_cliente') {
           e.stopPropagation();
           const value = cell.getValue()?.toString();
           if (value) {
             navigator.clipboard.writeText(value);
             setToastOpen(true);
-            // Pequeno feedback visual opcional
             const td = e.currentTarget as HTMLElement;
             td.style.transition = 'background 0.2s ease';
             td.style.background = '#f0f0f0';
@@ -146,19 +143,20 @@ export default function CardDetailsCustomersSegmentation({
         }
       },
       sx: {
-        cursor: cell.column.id === 'id_produto' ? 'copy' : 'pointer',
-        backgroundColor: 'red',
+        cursor: cell.column.id === 'id_cliente' ? 'copy' : 'pointer',
       },
     }),
   });
+
   useEffect(() => {
-    const cardDetails = document.getElementById('card-details-replenishment');
+    const cardDetails = document.getElementById('card-details-customers');
     if (cardDetails) {
       cardDetails.scrollIntoView({ behavior: 'smooth' });
     }
   }, [linkDataTable]);
+
   return (
-    <Card id={'card-details-replenishment'}>
+    <Card id={'card-details-customers'}>
       <CardContent sx={{ padding: '0.5rem' }}>
         <CardHeader
           title={
@@ -190,9 +188,9 @@ export default function CardDetailsCustomersSegmentation({
       <DialogDetails
         data={dataDialog}
         open={isOpenDialog}
-        onClose={clearSelectedProduct}
+        onClose={clearSelectedCustomer}
       >
-        <ProductAnalysis product={productSelect!} />
+        <CustomerAnalysis customer={customerSelect!} />
       </DialogDetails>
       <Snackbar
         open={toastOpen}
@@ -206,7 +204,7 @@ export default function CardDetailsCustomersSegmentation({
           variant="filled"
           sx={{ width: '100%' }}
         >
-          ID SKU copiado!
+          ID Cliente copiado!
         </Alert>
       </Snackbar>
     </Card>

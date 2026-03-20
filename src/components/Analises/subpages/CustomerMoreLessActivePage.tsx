@@ -6,7 +6,7 @@ import RenderGraphic from '../widgets/RenderGraphic';
 import { makeSegmentationCustomerGraphs } from '../helpers/CustomerMoreLessActiveHelper';
 import { DetailsDialogTableProps } from '@/components/dialog/DialogDetailsTable';
 import { useCustomerResumeSegmentations } from '@/services/customer/queries';
-import CardDetailsCustomersSegmentation from '@/components/Analises/subpages/stock-management/components/CardDetailsCustomersSegmentation';
+import CardDetailsCustomersSegmentation from '@/components/Analises/subpages/customers/components/CardDetailsCustomersSegmentation';
 
 const CustomerMoreLessActivePage = () => {
   const [detailsTable, setDetailsTable] =

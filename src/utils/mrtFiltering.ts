@@ -18,38 +18,58 @@ interface MRT_Row_With_Score<T extends Record<string, any>> extends Record<strin
  */
 export const tokenMatchFilterFn: FilterFn<any> = (
   row: MRT_Row_With_Score<any>,
-  columnId: string, // Although not directly used for global filter, it's part of the signature
+  columnId: string,
   filterValue: string | undefined
 ): boolean => {
-  if (!row) { // Defensive check for undefined/null row
+  if (!row) {
     return false;
   }
-  const searchTokens = (filterValue ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+  const searchTokens = (filterValue ?? '')
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
 
   if (!searchTokens.length) {
-    row._mrt_filterMatchScore = 0; // Reset score if no filter
-    return true; // No filter value, show all rows
+    if (!columnId || columnId === 'global') {
+      row._mrt_filterMatchScore = 0;
+    }
+    return true;
   }
 
   let matchCount = 0;
   const rowOriginal = row.original;
 
-  // Extract all string values from the row's original data
-  const rowValues: string[] = Object.values(rowOriginal)
-    .filter((value) => typeof value === 'string' || typeof value === 'number') // Include numbers as strings for search
-    .map((value) => String(value).toLowerCase());
+  let rowValues: string[] = [];
+
+  // If columnId is provided and exists in rowOriginal, it's a column-specific filter
+  if (columnId && columnId !== 'global' && columnId in rowOriginal) {
+    const value = rowOriginal[columnId];
+    if (typeof value === 'string' || typeof value === 'number') {
+      rowValues = [String(value).toLowerCase()];
+    }
+  } else {
+    // Global filter - Extract all string/number values from the row's original data
+    rowValues = Object.values(rowOriginal)
+      .filter(
+        (value) => typeof value === 'string' || typeof value === 'number',
+      )
+      .map((value) => String(value).toLowerCase());
+  }
 
   for (const token of searchTokens) {
     for (const rowValue of rowValues) {
       if (rowValue.includes(token)) {
         matchCount++;
-        break; // Move to the next search token once found in any row value
+        break;
       }
     }
   }
 
-  row._mrt_filterMatchScore = matchCount;
-  return matchCount > 0; // Only show rows that have at least one token match
+  if (!columnId || columnId === 'global') {
+    row._mrt_filterMatchScore = matchCount;
+  }
+
+  return matchCount > 0;
 };
 
 /**

@@ -583,6 +583,7 @@ export function salesMakeGraphs(
           return [m, m];
         }),
       ),
+      xAxisAngle: -45,
       tooltipFormatter: (value: number) => formatCurrency(value),
     },
     {
