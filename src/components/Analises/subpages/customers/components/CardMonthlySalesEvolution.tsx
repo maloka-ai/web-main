@@ -12,7 +12,14 @@ import {
   Stack,
   useTheme,
   alpha,
+  Chip,
+  Checkbox,
 } from '@mui/material';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
 import {
   ResponsiveContainer,
   LineChart,
@@ -37,7 +44,12 @@ type MonthlyRow = {
   cliente: string;
 };
 
-type StoreOption = { id: number; label: string };
+type StoreOption = {
+  id: number;
+  label: string;
+  isGroup?: boolean;
+  storeIds?: number[];
+};
 
 type ChartRow = {
   mes: number;
@@ -55,6 +67,25 @@ const baseMonths: ChartRow[] = Array.from({ length: 12 }, (_, i) => ({
   label: monthLabel(i + 1),
 }));
 
+/**
+ * Extrai o prefixo de um nome de loja com base em separadores comuns
+ * ou as duas primeiras palavras.
+ */
+function getPrefix(name: string): string {
+  if (!name) return '';
+  const separators = [' - ', ' . ', ' : ', ' / '];
+  for (const sep of separators) {
+    if (name.includes(sep)) {
+      return name.split(sep)[0].trim();
+    }
+  }
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) {
+    return `${words[0]} ${words[1]}`;
+  }
+  return '';
+}
+
 export function CardMonthlySalesEvolution({
   height = 340,
 }: {
@@ -67,7 +98,7 @@ export function CardMonthlySalesEvolution({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const [selectedStore, setSelectedStore] = useState<StoreOption | null>(null);
+  const [selectedStores, setSelectedStores] = useState<StoreOption[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -91,35 +122,81 @@ export function CardMonthlySalesEvolution({
     };
   }, []);
 
-  // Opções de loja
+  // Opções de loja com agrupamento dinâmico
   const storeOptions = useMemo<StoreOption[]>(() => {
     const map = new Map<number, string>();
     raw.forEach((r) => {
       if (!map.has(r.id_loja)) map.set(r.id_loja, r.nome_loja);
     });
-    return Array.from(map.entries()).map(([id, label]) => ({ id, label }));
+
+    const individuals: StoreOption[] = Array.from(map.entries()).map(
+      ([id, label]) => ({ id, label }),
+    );
+
+    // Identificar grupos por prefixo
+    const prefixMap = new Map<string, number[]>();
+    individuals.forEach((opt) => {
+      const p = getPrefix(opt.label);
+      if (p) {
+        if (!prefixMap.has(p)) prefixMap.set(p, []);
+        prefixMap.get(p)!.push(opt.id);
+      }
+    });
+
+    const groups: StoreOption[] = [];
+    prefixMap.forEach((ids, prefix) => {
+      if (ids.length > 1) {
+        groups.push({
+          // Gerar um ID negativo único baseado no prefixo para não colidir com IDs de loja reais
+          id: -Math.abs(
+            prefix.split('').reduce((a, b) => a + b.charCodeAt(0), 0),
+          ),
+          label: `GRUPO: ${prefix}`,
+          isGroup: true,
+          storeIds: ids,
+        });
+      }
+    });
+
+    // Ordenar: Grupos primeiro, depois individuais
+    return [...groups, ...individuals].sort((a, b) => {
+      if (a.isGroup && !b.isGroup) return -1;
+      if (!a.isGroup && b.isGroup) return 1;
+      return a.label.localeCompare(b.label);
+    });
   }, [raw]);
 
-  const selectedStoreId = selectedStore?.id ?? null;
+  // Lista flat de todos os IDs de lojas selecionados (incluindo as de grupos)
+  const selectedIds = useMemo(() => {
+    const ids = new Set<number>();
+    selectedStores.forEach((s) => {
+      if (s.isGroup && s.storeIds) {
+        s.storeIds.forEach((id) => ids.add(id));
+      } else {
+        ids.add(s.id);
+      }
+    });
+    return Array.from(ids);
+  }, [selectedStores]);
 
   const filtered = useMemo(
     () =>
-      selectedStoreId == null
+      selectedIds.length === 0
         ? []
-        : raw.filter((r) => r.id_loja === selectedStoreId),
-    [raw, selectedStoreId],
+        : raw.filter((r) => selectedIds.includes(r.id_loja)),
+    [raw, selectedIds],
   );
 
   const years = useMemo<number[]>(
     () =>
-      selectedStoreId == null
+      selectedIds.length === 0
         ? []
         : Array.from(new Set(filtered.map((r) => r.ano))).sort((a, b) => a - b),
-    [filtered, selectedStoreId],
+    [filtered, selectedIds],
   );
 
   const chartData = useMemo<ChartRow[]>(() => {
-    if (selectedStoreId == null) return [];
+    if (selectedIds.length === 0) return [];
 
     const rows = baseMonths.map((m) => ({ ...m }));
 
@@ -138,9 +215,9 @@ export function CardMonthlySalesEvolution({
     });
 
     return rows;
-  }, [filtered, years, selectedStoreId]);
+  }, [filtered, years, selectedIds]);
 
-  const showChart = selectedStoreId != null;
+  const showChart = selectedIds.length > 0;
 
   return (
     <Card>
@@ -155,24 +232,70 @@ export function CardMonthlySalesEvolution({
             direction="row"
             spacing={1}
             alignItems="center"
-            sx={{ minWidth: 320 }}
+            sx={{ minWidth: 400 }}
           >
             <Autocomplete
+              multiple
               size="small"
               options={storeOptions}
-              value={selectedStore}
-              onChange={(_, value) => setSelectedStore(value)}
+              disableCloseOnSelect
+              value={selectedStores}
+              onChange={(_, value) => {
+                // Evitar redundância: se um grupo for selecionado, removemos as lojas individuais desse grupo da lista de tags
+                const groups = value.filter((v) => v.isGroup);
+                const filteredValue = value.filter((v) => {
+                  if (v.isGroup) return true;
+                  return !groups.some((g) => g.storeIds?.includes(v.id));
+                });
+                setSelectedStores(filteredValue);
+              }}
               getOptionLabel={(o) => o.label}
               loading={loading}
               isOptionEqualToValue={(opt, val) => opt.id === val.id}
+              groupBy={(option) =>
+                option.isGroup ? 'Grupos de Lojas' : 'Lojas Individuais'
+              }
+              renderOption={(props, option, { selected }) => {
+                // Visualmente marcar como selecionado se a loja individual pertence a um grupo selecionado
+                const isSelected =
+                  selected ||
+                  (!option.isGroup &&
+                    selectedStores.some(
+                      (s) => s.isGroup && s.storeIds?.includes(option.id),
+                    ));
+
+                return (
+                  <li {...props}>
+                    <Checkbox
+                      icon={icon}
+                      checkedIcon={checkedIcon}
+                      style={{ marginRight: 8 }}
+                      checked={isSelected}
+                    />
+                    {option.label}
+                  </li>
+                );
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Selecionar loja"
-                  placeholder="Escolha uma loja"
+                  label="Selecionar lojas"
+                  placeholder="Escolha uma ou mais lojas"
                 />
               )}
-              sx={{ width: 320 }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option.id}
+                    label={option.label}
+                    size="small"
+                    color={option.isGroup ? 'primary' : 'default'}
+                    variant={option.isGroup ? 'filled' : 'outlined'}
+                  />
+                ))
+              }
+              sx={{ width: '100%' }}
             />
           </Stack>
         }
@@ -197,7 +320,7 @@ export function CardMonthlySalesEvolution({
             }}
           >
             <Typography variant="body2">
-              Selecione uma loja para exibir o gráfico
+              Selecione uma ou mais lojas para exibir o gráfico comparativo
             </Typography>
           </Box>
         )}
